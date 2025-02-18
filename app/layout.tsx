@@ -3,7 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "next-themes";
 import Image from 'next/image';
 import "./globals.css";
-import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/server";
@@ -17,8 +16,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Freeater",
-  description: "Freeater an innovative platform for users with food allergies, enabling verified feedback on restaurant allergy accommodations across the UK. Developed by Mario Portillo Hernaiz",
+  title: "Charity Network",
+  description: "Charity Network an innovative platform for charities across the UK to help with communication and resource sharing. Developed by Mario Portillo Hernaiz",
 };
 
 export default async function RootLayout({
@@ -26,9 +25,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await createClient().auth.getUser();
+  } = await supabase.auth.getUser();
 
   const userIsBusiness = user?.user_metadata.display_name === "eatery";
 
@@ -37,28 +37,19 @@ export default async function RootLayout({
   
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/icon.ico" sizes="any" />
+        <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossOrigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossOrigin="" />
+
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-Y5J8GD0BCE" />
+      </head>
       <body className="bg-background text-foreground">
-        <head>
-          <link rel="icon" href="/icon.ico" sizes="any" />
-          <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet" />
-          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-            crossOrigin=""/>
-          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossOrigin="" />
-
-          <Script async src="https://www.googletagmanager.com/gtag/js?id=G-Y5J8GD0BCE" />
-          <Script>
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-
-              gtag('config', 'G-Y5J8GD0BCE');
-            `}
-          </Script>
-        </head>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -72,11 +63,10 @@ export default async function RootLayout({
                   <div className="flex gap-5 font-semibold">
                     {/* <ThemeSwitcher /> */}
                     <a href="/">
-                      <Image src="/logo-removebg.png" alt="Image" width="180" height="180" color="white" />
+                      <Image src="/logo.png" alt="Image" width="200" height="200" color="white" />
                     </a>
-                    {userIsBusiness ? <Badge variant="secondary">Business Account</Badge> : null}
                   </div>
-                  <HeaderAuth is_maintenance={is_maintenance} userIsBusiness={userIsBusiness} />
+                  <HeaderAuth is_maintenance={is_maintenance} />
                 </div>
               </nav>
               
@@ -90,61 +80,21 @@ export default async function RootLayout({
 
               <footer className="w-full mt-auto py-12 px-4 sm:px-6 lg:px-8 bg-[hsl(var(--layout-background))]">
                 <div className="max-w-6xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div className="space-y-4">
-                      <h2 className="text-lg font-semibold">About Freeater</h2>
+                      <h2 className="text-lg font-semibold">About Charity Network</h2>
                       <p className="text-sm text-muted-foreground">
-                        Empowering everyone with any dietary restrictions to eat freely, whether at a 
-                        local restaurant, enjoying a takeaway or dining out abroad. Join our online community 
-                        which shares one common goal: freedom to eat.
+                        .
                       </p>
                     </div>
                     
-                    {/* <div className="space-y-4">
-                      <h2 className="text-lg font-semibold">Quick Links (In progress)</h2>
-                      <nav>
-                        <ul className="space-y-1 text-sm">
-                          <li><a href="/protected/about-page" className="text-sm hover:underline">• Your Freeater Team</a></li>
-                          <li>• FAQ</li>
-                          <li>• Terms and Conditions</li>
-                          <li>• Privacy Policy</li>
-                        </ul>
-                      </nav>
-                    </div> */}
-                    
                     <div className="space-y-4">
-                      <h2 className="text-lg font-semibold">Contact Us With Any Queries</h2>
-                      {/* <p className="text-sm">
-                        Website Queries: <a href="mailto:mario@freeater.com" className="hover:underline">mario@freeater.com</a>
-                      </p> */}
+                      <h2 className="text-lg font-semibold">Contact Us</h2>
                       <p className="text-sm">
-                        Email: <a href="mailto:info@freeater.com" className="hover:underline">info@freeater.com</a>
+                        Email: <a href="mailto:portillomario407@gmail.com" className="hover:underline">portillomario407@gmail.com</a>
                       </p>
-                      <div className="flex space-x-2">
-                        <a href="https://www.tiktok.com/@freeaterltd" aria-label="TikTok" className="text-foreground hover:text-secondary">
-                          <img src="/tiktok_icon.svg" className="h-6 w-6" />
-                        </a>
-                        <a href="https://www.instagram.com/freeaterltd/" aria-label="Instagram" className="text-foreground hover:text-secondary pr-1">
-                          <InstagramIcon className="h-6 w-6" />
-                        </a>
-                        <a href="https://www.linkedin.com/company/freeater/" aria-label="LinkedIn" className="text-foreground hover:text-secondary">
-                          <LinkedinIcon className="h-6 w-6" />
-                        </a>
-                        <a href="https://www.youtube.com/@FreeaterLtd" aria-label="Youtube" className="text-foreground hover:text-secondary  pr-1">
-                          <YoutubeIcon className="h-6 w-6" />
-                        </a>
-                      </div>
                     </div>
 
-                    <div>
-                      <h2 className="text-lg font-semibold">Featured In:</h2>
-                      <div className="grid grid-cols-3">
-                        <Image src="/websummitlogo.jpg" alt="Image" width="100" height="100" className="pt-5"/>
-                        <Image src="/lenlogo.png" alt="Image" width="100" height="100" className="pt-2"/>
-                        <Image src="/mvp.jpg" alt="Image" width="100" height="100" className="pt-6"/>
-                        <div></div>
-                      </div>
-                    </div>
                     <div>
                       <form action="https://formspree.io/f/xgvwdrnd" name="waitingList" method="POST" className="grid grid-rows-3 grid-cols-1 gap-2">
                         <h2 className="text-lg font-semibold">Waitlist:</h2>
@@ -155,12 +105,9 @@ export default async function RootLayout({
                   </div>
                   
                   <div className="mt-8 pt-8 border-t border-border">
-                    <p className="text-xs text-center text-muted-foreground">
-                      Disclaimer: Information provided by Freeater is based on user submissions and restaurant data. Always verify allergen information with the restaurant directly before dining.
+                    <p className="text-sm text-center text-muted-foreground">
+                      &copy; 2025 Charity Network. All rights reserved.
                     </p>
-                  </div>
-                  <div className="container mx-auto px-4 text-center text-muted-foreground">
-                    &copy; 2024 Freeater. All rights reserved.
                   </div>
                 </div>
               </footer>

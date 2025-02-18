@@ -5,6 +5,40 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+// Any sort of database fetch
+export const getAuthUser = async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+};
+
+export const getAllCharities = async () => {
+  const user = await getAuthUser();
+  const supabase = await createClient();
+
+  const { data: charities } = await supabase
+    .from("registered_users")
+    .select("*") as { data: CharityData[] | []; error: any };;
+
+  return charities;
+};
+
+export const getRegisteredCharity = async () => {
+  const user = await getAuthUser();
+  const supabase = await createClient();
+
+  const { data: registeredCharity } = await supabase
+    .from("registered_users")
+    .select("*")
+    .eq("id", user?.id)
+    .single() as { data: CharityData | null; error: any };;
+
+  return registeredCharity;
+};
+
+// Any sort of form actions & database insert/update/delete
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
@@ -12,11 +46,7 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get("origin");
 
   if (!email || !password) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Email and password are required",
-    );
+    return { success: false, message: "Email and password are required" };
   }
 
   const { error } = await supabase.auth.signUp({
@@ -31,11 +61,7 @@ export const signUpAction = async (formData: FormData) => {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
   } else {
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
-    );
+    return { success: true, message: "Thanks for signing up! Please check your email for a verification link." };
   }
 };
 
@@ -50,7 +76,7 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect("error", "/sign-in", error.message);
+    return { success: false, message: error.toString() };
   }
 
   return redirect("/protected");
@@ -132,3 +158,79 @@ export const signOutAction = async () => {
   await supabase.auth.signOut();
   return redirect("/sign-in");
 };
+
+export async function submitCharity(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  const eateryId = formData.get("eateryId") as string || null;
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string || "";
+  const longitude = Number(formData.get("longitude")) || 0;
+  const latitude = Number(formData.get("latitude")) || 0;
+  const address = formData.get("address") as string;
+  const openingHours = JSON.parse(formData.get("openingHours") as string || `["[]"]`);
+  const starRating = Number(formData.get("starRating")) || 0;
+  const phone = formData.get("phone") as string || "";
+  const website = formData.get("website") as string || "";
+
+  const eateryRequested = formData.get("eateryRequested") === "true";
+
+  if ((authError || !user) && !eateryRequested) {
+    return redirect("/sign-in");
+  } else {
+    const { data: existingEatery } = await supabase
+      .from("eatery_map")
+      .select("*")
+      .eq("owner_id", user?.id)
+      .single();
+  
+    if (!existingEatery) {
+      // Insert an eatery
+      // const { error } = await supabase
+      //   .from("eatery_map")
+      //   .insert({
+      //     id: eateryId,
+      //     name: name,
+      //     description: description,
+      //     latitude: latitude,
+      //     longitude: longitude,
+      //     address: address,
+      //     opening_hours: openingHours,
+      //     rating: starRating,
+      //     total_rating: eateryRequested ? 0 : 1,
+      //     phone_number: phone,
+      //     website_link: website,
+      //     admin_verified: false,
+      //   });
+      
+      // if (error) {
+      //   console.log(error);
+      //   return { success: false, message: "Error Adding Eatery" };
+      // } else {
+        return { success: true, message: "Eatery Successfully Added" };
+      // }
+    } else {
+      // const { error } = await supabase
+      //   .from("eatery_map")
+      //   .update({
+      //     name: name,
+      //     description: description,
+      //     latitude: latitude,
+      //     longitude: longitude,
+      //     address: address,
+      //     opening_hours: openingHours,
+      //     phone_number: phone,
+      //     website_link: website,
+      //   })
+      //   .eq("id", existingEatery.id);
+      
+      // if (error) {
+      //   console.log(error);
+      //   return { success: false, message: "Error Updating Eatery" };
+      // } else {
+        return { success: true, message: "Eatery Successfully Updated" };
+      // }
+    }
+  }  
+}
