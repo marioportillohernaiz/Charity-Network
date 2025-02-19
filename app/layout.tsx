@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/server";
 import Script from 'next/script';
 import WorkingProgressPage from "./working-progress/page";
-import { Badge } from "@/components/ui/badge";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`

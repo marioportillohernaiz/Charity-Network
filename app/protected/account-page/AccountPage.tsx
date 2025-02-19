@@ -54,7 +54,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     const fullAddress = [addressNumber, addressStreet, addressCity, addressPostcode].join(", ");
     const newUUID = crypto.randomUUID();
 
-    formData.append("eateryId", newUUID);
+    formData.append("id", newUUID);
     formData.append("name", name);
     formData.append("description", description);
     formData.append("latitude", latitude);
@@ -63,7 +63,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     formData.append("openingHours", JSON.stringify(openingHours));
     formData.append("phone", phone);
     formData.append("website", website);
-    formData.append("eateryRequested", "true");
 
     const response = await submitCharity(formData);
     if (response.success) {
@@ -83,7 +82,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
           <Card className="w-full max-w-2xl mx-auto">
             <CardHeader>
               <div className="flex items-center space-x-2">
-                <CardTitle className="text-2xl font-bold">Eatery Profile Settings</CardTitle>
+                <CardTitle className="text-2xl font-bold">Charity Profile Settings</CardTitle>
                 {accountData ? (accountData?.admin_verified ? <Badge>Verified</Badge> : <Badge variant="secondary">Verification Pending</Badge>) : null}
               </div>
             </CardHeader>
@@ -91,7 +90,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
               <div className="grid gap-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Eatery Name</Label>
+                    <Label htmlFor="name">Charity Name</Label>
                     <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
                   </div>
                   <div>

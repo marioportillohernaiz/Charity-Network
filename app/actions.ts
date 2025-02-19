@@ -163,7 +163,7 @@ export async function submitCharity(formData: FormData) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  const eateryId = formData.get("eateryId") as string || null;
+  const eateryId = formData.get("id") as string || null;
   const name = formData.get("name") as string;
   const description = formData.get("description") as string || "";
   const longitude = Number(formData.get("longitude")) || 0;
@@ -174,9 +174,8 @@ export async function submitCharity(formData: FormData) {
   const phone = formData.get("phone") as string || "";
   const website = formData.get("website") as string || "";
 
-  const eateryRequested = formData.get("eateryRequested") === "true";
 
-  if ((authError || !user) && !eateryRequested) {
+  if (authError || !user) {
     return redirect("/sign-in");
   } else {
     const { data: existingEatery } = await supabase
@@ -197,8 +196,6 @@ export async function submitCharity(formData: FormData) {
       //     longitude: longitude,
       //     address: address,
       //     opening_hours: openingHours,
-      //     rating: starRating,
-      //     total_rating: eateryRequested ? 0 : 1,
       //     phone_number: phone,
       //     website_link: website,
       //     admin_verified: false,
