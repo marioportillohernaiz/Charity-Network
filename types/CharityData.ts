@@ -1,6 +1,7 @@
 interface CharityData {
   id: string;
   name?: string;
+  owner_id?: string;
   description?: string;
   latitude: number;
   longitude: number;

@@ -19,7 +19,7 @@ export const getAllCharities = async () => {
   const supabase = await createClient();
 
   const { data: charities } = await supabase
-    .from("registered_users")
+    .from("registered_charities")
     .select("*") as { data: CharityData[] | []; error: any };;
 
   return charities;
@@ -29,11 +29,11 @@ export const getRegisteredCharity = async () => {
   const user = await getAuthUser();
   const supabase = await createClient();
 
-  const { data: registeredCharity } = await supabase
-    .from("registered_users")
+  const { data: registeredCharity, error } = await supabase
+    .from("registered_charities")
     .select("*")
-    .eq("id", user?.id)
-    .single() as { data: CharityData | null; error: any };;
+    .eq("owner_id", user?.id)
+    .single() as { data: CharityData; error: any };
 
   return registeredCharity;
 };
@@ -89,7 +89,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   const callbackUrl = formData.get("callbackUrl")?.toString();
 
   if (!email) {
-    return encodedRedirect("error", "/forgot-password", "Email is required");
+    return { success: false, message: "Email is required" };
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -98,22 +98,14 @@ export const forgotPasswordAction = async (formData: FormData) => {
 
   if (error) {
     console.error(error.message);
-    return encodedRedirect(
-      "error",
-      "/forgot-password",
-      "Could not reset password",
-    );
+    return { success: false, message: "Could not reset password" };
   }
 
   if (callbackUrl) {
     return redirect(callbackUrl);
   }
 
-  return encodedRedirect(
-    "success",
-    "/forgot-password",
-    "Check your email for a link to reset your password.",
-  );
+  return { success: true, message: "Check your email for a link to reset your password." };
 };
 
 export const resetPasswordAction = async (formData: FormData) => {
@@ -153,6 +145,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   encodedRedirect("success", "/protected/reset-password", "Password updated");
 };
 
+// BROKEN
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
@@ -163,14 +156,13 @@ export async function submitCharity(formData: FormData) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  const eateryId = formData.get("id") as string || null;
+  const charityId = formData.get("id") as string || null;
   const name = formData.get("name") as string;
   const description = formData.get("description") as string || "";
   const longitude = Number(formData.get("longitude")) || 0;
   const latitude = Number(formData.get("latitude")) || 0;
   const address = formData.get("address") as string;
   const openingHours = JSON.parse(formData.get("openingHours") as string || `["[]"]`);
-  const starRating = Number(formData.get("starRating")) || 0;
   const phone = formData.get("phone") as string || "";
   const website = formData.get("website") as string || "";
 
@@ -178,56 +170,56 @@ export async function submitCharity(formData: FormData) {
   if (authError || !user) {
     return redirect("/sign-in");
   } else {
-    const { data: existingEatery } = await supabase
-      .from("eatery_map")
+    const { data: existingCharity } = await supabase
+      .from("registered_charities")
       .select("*")
-      .eq("owner_id", user?.id)
+      .eq("id", user?.id)
       .single();
   
-    if (!existingEatery) {
-      // Insert an eatery
-      // const { error } = await supabase
-      //   .from("eatery_map")
-      //   .insert({
-      //     id: eateryId,
-      //     name: name,
-      //     description: description,
-      //     latitude: latitude,
-      //     longitude: longitude,
-      //     address: address,
-      //     opening_hours: openingHours,
-      //     phone_number: phone,
-      //     website_link: website,
-      //     admin_verified: false,
-      //   });
+    if (!existingCharity) {
+      // Insert an charity
+      const { error } = await supabase
+        .from("registered_charities")
+        .insert({
+          id: charityId,
+          name: name,
+          description: description,
+          latitude: latitude,
+          longitude: longitude,
+          address: address,
+          opening_hours: openingHours,
+          phone_number: phone,
+          website_link: website,
+          admin_verified: false,
+        });
       
-      // if (error) {
-      //   console.log(error);
-      //   return { success: false, message: "Error Adding Eatery" };
-      // } else {
-        return { success: true, message: "Eatery Successfully Added" };
-      // }
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Adding Charity" };
+      } else {
+        return { success: true, message: "Charity Successfully Added" };
+      }
     } else {
-      // const { error } = await supabase
-      //   .from("eatery_map")
-      //   .update({
-      //     name: name,
-      //     description: description,
-      //     latitude: latitude,
-      //     longitude: longitude,
-      //     address: address,
-      //     opening_hours: openingHours,
-      //     phone_number: phone,
-      //     website_link: website,
-      //   })
-      //   .eq("id", existingEatery.id);
+      const { error } = await supabase
+        .from("registered_charities")
+        .update({
+          name: name,
+          description: description,
+          latitude: latitude,
+          longitude: longitude,
+          address: address,
+          opening_hours: openingHours,
+          phone_number: phone,
+          website_link: website,
+        })
+        .eq("id", existingCharity.id);
       
-      // if (error) {
-      //   console.log(error);
-      //   return { success: false, message: "Error Updating Eatery" };
-      // } else {
-        return { success: true, message: "Eatery Successfully Updated" };
-      // }
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Updating Charity" };
+      } else {
+        return { success: true, message: "Charity Successfully Updated" };
+      }
     }
   }  
 }

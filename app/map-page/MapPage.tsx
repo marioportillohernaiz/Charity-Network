@@ -35,9 +35,22 @@ export default function Map({ charitiesData, currentCharity }: { charitiesData: 
       .forEach((charity) => {
         const marker = L.marker([charity.latitude, charity.longitude], { icon: customIcon }).addTo(map);
 
+        const formatName = (name: string | undefined) => {
+          return name?.replace(/(.{20})/g, '$1<br>');
+        };
+        
+        const getTooltipHeight = (name: string | undefined) => {
+          if (name) {
+            const lineCount = Math.ceil(name.length / 20);
+            return 110 + (lineCount - 1) * 25;
+          }
+        };
+        
+        const tooltipHeight = getTooltipHeight(charity.name);
+        
         const tooltipContent = `
-          <div style="width: 250px; height: 110px; padding: 10px;">
-            <p style="margin: 0; font-weight: bold; font-size: 20px;">${charity.name}</p>
+          <div style="width: 250px; height: ${tooltipHeight}px; padding: 10px;">
+            <p style="margin: 0; font-weight: bold; font-size: 20px;">${formatName(charity.name)}</p>
             <div style="display: flex; align-items: center; gap: 12px; margin: 5px 0;">
               <p style="margin: 2px 0; font-size: 16px;">⭐ 0 / 5<p>
             </div>
@@ -46,6 +59,8 @@ export default function Map({ charitiesData, currentCharity }: { charitiesData: 
             </p>
           </div>
         `;
+        
+        
 
         marker.bindTooltip(tooltipContent, {
           permanent: false, 

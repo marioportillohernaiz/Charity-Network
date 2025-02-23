@@ -77,13 +77,13 @@ export default async function RootLayout({
                 </div>
               )}
 
-              <footer className="w-full mt-auto py-12 px-4 sm:px-6 lg:px-8 bg-[hsl(var(--layout-background))]">
+              <footer className="w-full mt-auto py-12 px-4 sm:px-6 lg:px-8 bg-[hsl(var(--layout-background))] text-white">
                 <div className="max-w-6xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div className="space-y-4">
                       <h2 className="text-lg font-semibold">About Charity Network</h2>
-                      <p className="text-sm text-muted-foreground">
-                        .
+                      <p className="text-sm">
+                        Charity Network is a platform designed to connect charities, enabling them to collaborate, share resources, and maximize their community impact through AI-powered recommendations and seamless networking.
                       </p>
                     </div>
                     
@@ -98,13 +98,13 @@ export default async function RootLayout({
                       <form action="https://formspree.io/f/xgvwdrnd" name="waitingList" method="POST" className="grid grid-rows-3 grid-cols-1 gap-2">
                         <h2 className="text-lg font-semibold">Waitlist:</h2>
                         <Input type="email" id="email" name="email" placeholder="Enter your email" required />
-                        <Button type="submit" className="w-full" variant={"outline"} disabled={is_maintenance}>Join</Button>
+                        <Button type="submit" className="w-full text-black" variant={"outline"} disabled={is_maintenance}>Join</Button>
                       </form>
                     </div>
                   </div>
                   
                   <div className="mt-8 pt-8 border-t border-border">
-                    <p className="text-sm text-center text-muted-foreground">
+                    <p className="text-sm text-center">
                       &copy; 2025 Charity Network. All rights reserved.
                     </p>
                   </div>
