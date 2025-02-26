@@ -2,13 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Clock, Globe, MapPin, Phone } from "lucide-react";
+import { Clock, Globe, MapPin, Phone, Star } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
+import AddCharityDialog from "@/components/ui/priv_addcharitydialog";
+import AddCharityReviewDialog from "@/components/ui/priv_addcharityreviewdialog";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 
-export default function Map({ charitiesData, currentCharity }: { charitiesData: CharityData[]; currentCharity: CharityData; })  {
+export default function Map({ charitiesData, currentCharity, commentsData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; })  {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [selectedCharity, setSelectedCharity] = useState<CharityData | null>(null);
@@ -59,8 +62,6 @@ export default function Map({ charitiesData, currentCharity }: { charitiesData: 
             </p>
           </div>
         `;
-        
-        
 
         marker.bindTooltip(tooltipContent, {
           permanent: false, 
@@ -80,13 +81,18 @@ export default function Map({ charitiesData, currentCharity }: { charitiesData: 
     <div id="map" className="relative w-full bg-background">
       <div ref={mapRef} className="h-full w-full bg-muted z-0" />
 
+      <AddCharityDialog />
+
       <Drawer open={!!selectedCharity} onOpenChange={() => setSelectedCharity(null)}>
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col">
           <div className="h-[calc(90vh-100px)] overflow-y-auto md:p-6">
 
             {/* CHARITY INFORMATION */}
-            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
               <div>
+                
+                {selectedCharity && <AddCharityReviewDialog selectedCharityId={selectedCharity.id} />}
+
                 <img className="mb-6 h-[200px] w-full max-w-full rounded-lg object-cover" src="/placeholder.png"/>
                 <h2 className="mb-2 text-2xl font-bold">{selectedCharity?.name}</h2>
                 <p className="mb-6 text-muted-foreground">
@@ -130,6 +136,36 @@ export default function Map({ charitiesData, currentCharity }: { charitiesData: 
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* COMMENTS */}
+            <hr className="border-gray-300 my-5" />
+            <div>
+              <h2 className="mb-2 text-2xl font-bold flex">Comments</h2>
+              {commentsData.filter((comment) => comment.charity_id === selectedCharity?.id).length > 0 ? (
+                commentsData
+                .filter((comment) => comment.charity_id === selectedCharity?.id)
+                .map((singleCommentData, index) => (
+                  <Card key={index} className="w-full mb-4">
+                    <CardHeader className="pb-2">
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            className={`w-5 h-5 ${i < singleCommentData.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} 
+                          />
+                        ))}
+                        <p className="text-sm text-gray-600 pl-3">{format(singleCommentData.created_at, "dd/MM/yyyy")}</p>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex">
+                      <p className="text-sm">{singleCommentData.comment}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <p className="text-muted-foreground italic">No comments added yet...</p>
+              )}
             </div>
           </div>
         </DrawerContent>

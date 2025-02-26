@@ -20,7 +20,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
   const [name, setName] = useState(accountData?.name || '');
   const [description, setDescription] = useState(accountData?.description || '');
   const [latitude, setLatitude] = useState(accountData?.latitude.toString() || "0");
-  const [longitude, setLongitude] = useState(accountData?.longitude.toString() || "0");
   const address = accountData?.address ? accountData.address.split(",").map(item => item.trim()) : [];
   const [addressNumber, setAddressNumber] = useState(address[0] || "");
   const [addressStreet, setAddressStreet] = useState(address[1] || "");
@@ -57,8 +56,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     formData.append("id", newUUID);
     formData.append("name", name);
     formData.append("description", description);
-    formData.append("latitude", latitude);
-    formData.append("longitude", longitude);
     formData.append("address", fullAddress);
     formData.append("openingHours", JSON.stringify(openingHours));
     formData.append("phone", phone);
@@ -74,15 +71,12 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
 
   return (
     <div className="flex min-h-screen mx-auto flex-col">
-      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-        <div className="mx-auto grid w-full max-w-6xl gap-2">
-          {accountData ? <h1 className="text-3xl font-semibold">Update Profile</h1> : <h1 className="text-3xl font-semibold">Create Profile</h1>}
-        </div>
+      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:px-10">
         <form>
           <Card className="w-full max-w-2xl mx-auto">
             <CardHeader>
               <div className="flex items-center space-x-2">
-                <CardTitle className="text-2xl font-bold">Charity Profile Settings</CardTitle>
+                {accountData ? <CardTitle className="text-2xl font-bold">Update Charity Profile Settings</CardTitle> : <CardTitle className="text-2xl font-bold">Add Charity Profile Settings</CardTitle>}
                 {accountData ? (accountData?.admin_verified ? <Badge>Verified</Badge> : <Badge variant="secondary">Verification Pending</Badge>) : null}
               </div>
             </CardHeader>
@@ -102,40 +96,12 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                       <Input className="col-span-2" id="address_postcode" name="address_postcode" placeholder="Post Code" value={addressPostcode} onChange={(e) => setAddressPostcode(e.target.value)} required />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="latitude">Latitude</Label>
-                      <Input
-                        id="latitude"
-                        name="latitude"
-                        value={latitude}
-                        onChange={(e) => setLatitude(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="longitude">Longitude</Label>
-                      <Input
-                        id="longitude"
-                        name="longitude"
-                        value={longitude}
-                        onChange={(e) => setLongitude(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
                   <div>
                     <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className="min-h-[100px]"
-                    />
+                    <Textarea id="description" name="description" value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[100px]"/>
                   </div>
                   <div>
-                    <Label htmlFor="website">Website</Label>
+                    <Label htmlFor="website">Website Link</Label>
                     <Input id="website" name="website" type="url" value={website} onChange={(e) => setWebsite(e.target.value)} />
                   </div>
                   <div>
@@ -153,7 +119,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     />
                   </div> */}
                   <div className="grid gap-2">
-                    <Label htmlFor="openinghours" className="mb-2">Opening Hours</Label>
+                    <Label htmlFor="openinghours" className="mt-3">Opening Hours</Label>
                     {Object.entries(openingHours).map(([day, { isOpen, start, end }]) => (
                       <TimeRangeSelector
                         key={day}
@@ -172,7 +138,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
           <div className="grid gap-2">
             <Link href="/protected/reset-password" className="w-full my-4">
               <Button type="button" className="w-full">
-                <KeyRound /> Reset Password
+                <KeyRound className="w-4 h-4 mr-2" /> Reset Password
               </Button>
             </Link>
             <SubmitButton type="submit" pendingText="Saving..." className="w-full" formAction={handleSubmit}>

@@ -98,7 +98,7 @@ export default async function RootLayout({
                       <form action="https://formspree.io/f/xgvwdrnd" name="waitingList" method="POST" className="grid grid-rows-3 grid-cols-1 gap-2">
                         <h2 className="text-lg font-semibold">Waitlist:</h2>
                         <Input type="email" id="email" name="email" placeholder="Enter your email" required />
-                        <Button type="submit" className="w-full text-black" variant={"outline"} disabled={is_maintenance}>Join</Button>
+                        <Button type="submit" className="w-full text-black" variant={"outline"} disabled>Join</Button>
                       </form>
                     </div>
                   </div>
