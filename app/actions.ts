@@ -174,7 +174,13 @@ export async function submitCharity(formData: FormData) {
   const openingHours = JSON.parse(formData.get("openingHours") as string || `["[]"]`);
   const phone = formData.get("phone") as string || "";
   const email = formData.get("email") as string || "";
+  const facebook = formData.get("facebook") as string || "";
+  const twitter = formData.get("twitter") as string || "";
+  const instagram = formData.get("instagram") as string || "";
   const website = formData.get("website") as string || "";
+  const category = JSON.parse(formData.get("category") as string);
+  const settings = JSON.parse(formData.get("settings") as string);
+
   const starRating = Number(formData.get("starRating")) || 0;
   const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'America/New_York' })
 
@@ -184,8 +190,8 @@ export async function submitCharity(formData: FormData) {
     const { data: existingCharity } = await supabase
       .from("registered_charities")
       .select("*")
-      .eq("id", user?.id)
-      .single();
+      .eq("owner_id", user?.id)
+      .single(); 
   
     if (!existingCharity) {
       // Insert an charity
@@ -225,6 +231,11 @@ export async function submitCharity(formData: FormData) {
           email: email,
           phone_number: phone,
           website_link: website,
+          facebook_link: facebook,
+          twitter_link: twitter,
+          instagram_link: instagram,
+          category_and_tags: category,
+          settings: settings,
           updated_at: now
         })
         .eq("id", existingCharity.id);

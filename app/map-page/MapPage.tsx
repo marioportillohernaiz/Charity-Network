@@ -6,8 +6,8 @@ import { Clock, Globe, MapPin, Phone, Star } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
-import AddCharityDialog from "@/components/ui/priv_addcharitydialog";
-import AddCharityReviewDialog from "@/components/ui/priv_addcharityreviewdialog";
+import AddCharityDialog from "@/components/component/add-charity-dialog";
+import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 
@@ -126,8 +126,8 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
                     <div className="grid grid-cols-2">
                       {selectedCharity?.opening_hours ? (
                         Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
-                          <><p key={day} className="">{day}:</p>
-                          <p>{isOpen ? `${start} - ${end}` : "Closed"}</p></>
+                          <div key={day}><p key={day} className="">{day}:</p>
+                          <p>{isOpen ? `${start} - ${end}` : "Closed"}</p></div>
                         ))
                       ) : (
                         <p className="text-muted-foreground italic">No opening hours available</p>

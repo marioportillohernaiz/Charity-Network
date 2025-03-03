@@ -12,11 +12,19 @@ interface CharityData {
   phone_number?: string;
   website_link?: string;
 
-  created_date?: Date;
-  updated_date?: Date;
-
   rating: number | 0;
   total_rating: number | 0;
+
+  facebook_link?: string;
+  instagram_link?: string;
+  twitter_link?: string;
+  src_charity_img?: string;
+
+  category_and_tags: {primary: string; secondary: string[]; tags: string[]};
+  settings: {show_email: boolean; show_phone: boolean; email_notif: boolean; show_address: boolean; resource_alert: boolean; resource_request: boolean;};
+
+  created_date?: Date;
+  updated_date?: Date;
 
   admin_verified?: boolean;
 }
