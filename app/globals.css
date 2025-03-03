@@ -80,3 +80,19 @@
   width: 100vw;
   z-index: 1;
 }
+
+#smallmap {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

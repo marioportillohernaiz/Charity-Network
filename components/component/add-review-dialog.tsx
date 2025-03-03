@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Label } from "@radix-ui/react-label";
-import { ScrollArea } from "./scrollarea"
+import { ScrollArea } from "../ui/scrollarea"
 import { Textarea } from "@/components/ui/textarea"
 import { Star } from "lucide-react";
 import { toast, Toaster } from "sonner";
