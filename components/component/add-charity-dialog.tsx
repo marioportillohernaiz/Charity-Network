@@ -42,7 +42,7 @@ export default function AddCharityDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<CharitySearchResult[]>([]);
-  const [selectedCharity, setSelectedCharity] = useState<CharityDetails | null>(null);
+  const [selectedCharity, setSelectedCharity] = useState<CharityData | null>(null);
   const [description, setDescription] = useState("");
   const [starRating, setStarRating] = useState({rating: 0});
   const [loading, setLoading] = useState(false);
@@ -118,12 +118,12 @@ export default function AddCharityDialog() {
     const charityFormData = new FormData();
     charityFormData.append("name", selectedCharity.name);
     charityFormData.append("description", description);
-    charityFormData.append("address", selectedCharity.address);
-    charityFormData.append("longitude", selectedCharity.location.lng.toString());
-    charityFormData.append("latitude", selectedCharity.location.lat.toString());
+    charityFormData.append("address", selectedCharity.address || "");
+    charityFormData.append("longitude", selectedCharity.latitude.toString());
+    charityFormData.append("latitude", selectedCharity.longitude.toString());
     charityFormData.append("openingHours", JSON.stringify(selectedCharity.opening_hours));
     charityFormData.append("starRating", starRating.rating.toString());
-    charityFormData.append("email", "");  // These could be populated if available
+    charityFormData.append("email", selectedCharity.email || "");
     charityFormData.append("phone", selectedCharity.phone_number || "");
     charityFormData.append("website", selectedCharity.website_link || "");
 
@@ -248,7 +248,7 @@ export default function AddCharityDialog() {
                 <div className="grid m-2 my-2">
                   <Label>Opening Hours:</Label>
                   <div className="border rounded-md p-3 mt-1 text-sm">
-                    {Object.entries(selectedCharity.opening_hours).map(([day, hours]) => (
+                    {Object.entries(selectedCharity.opening_hours || <></>).map(([day, hours]) => (
                       <div key={day} className="flex justify-between py-1 border-b last:border-0">
                         <span className="font-medium">{day}</span>
                         <span>{hours.isOpen ? `${hours.start} - ${hours.end}` : "Closed"}</span>
