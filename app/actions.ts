@@ -48,6 +48,42 @@ export const getCommentData = async () => {
   return comments;
 };
 
+export const getCharityResourceData = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: resources } = await supabase
+    .from("resources")
+    .select("*") 
+    .eq("charity_id", charity.id) as { data: ResourcesData[] | []; error: any };;
+  
+  return resources;
+};
+
+export const getResourceTransitDataFrom = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: resource_transit } = await supabase
+    .from("resources")
+    .select("*") 
+    .eq("charity_from", charity.id) as { data: TransitData[] | []; error: any };;
+  
+  return resource_transit;
+};
+
+export const getResourceTransitDataTo = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: resource_transit } = await supabase
+    .from("resources")
+    .select("*") 
+    .eq("charity_to", charity.id) as { data: TransitData[] | []; error: any };;
+  
+  return resource_transit;
+};
+
 // Any sort of form actions & database insert/update/delete
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -182,7 +218,7 @@ export async function submitCharity(formData: FormData) {
   const settings = JSON.parse(formData.get("settings") as string);
 
   const starRating = Number(formData.get("starRating")) || 0;
-  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'America/New_York' })
+  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'London' })
 
   if (authError || !user) {
     return redirect("/sign-in");
@@ -299,5 +335,82 @@ export async function submitReview(formData: FormData) {
       }
     }
     return { success: false, message: "Error" };
+  }  
+}
+
+export async function submitResource(formData: FormData) {
+  const supabase = await createClient();
+  const user = await getAuthUser();
+  const charity = await getRegisteredCharity();
+
+  const id = formData.get("id") as string;
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+  const category = formData.get("category") as string;
+  const quantity = Number(formData.get("quantity"));
+  const reservedQuantity = Number(formData.get("reservedQuantity")) || 0;
+  const unit = formData.get("unit") as string;
+  const shareableQuantity = Number(formData.get("shareableQuantity")) || 0;
+  const location = formData.get("location") as string;
+  const expiryDate = formData.get("expiryDate") as string;
+  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'London' })
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {
+    const { data: existingResource } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (existingResource) {
+      const { error } = await supabase
+      .from("resources")
+      .update({
+        name: name,
+        description: description,
+        category: category,
+        quantity: quantity,
+        quantity_reserved: reservedQuantity,
+        unit: unit,
+        shareable_quantity: shareableQuantity,
+        location: location,
+        expiry_date: new Date(expiryDate),
+        updated_at: now
+      })
+      .eq("id", existingResource.id);
+
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Adding Resource" };
+      } else {
+        return { success: true, message: "Resource Successfully Updated" };
+      }
+    } else {
+      // Insert a resource
+      const { error } = await supabase
+      .from("resources")
+      .insert({
+        charity_id: charity.id,
+        name: name,
+        description: description,
+        category: category,
+        quantity: quantity,
+        quantity_reserved: reservedQuantity,
+        unit: unit,
+        shareable_quantity: shareableQuantity,
+        location: location,
+        expiry_date: new Date(expiryDate),
+        updated_at: now
+      });
+
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Adding Resource" };
+      } else {
+        return { success: true, message: "Resource Successfully Added" };
+      }
+    }
   }  
 }

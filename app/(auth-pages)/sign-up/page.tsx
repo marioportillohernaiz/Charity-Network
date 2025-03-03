@@ -96,9 +96,7 @@ export default function Signup() {
             <div className="flex items-center space-x-2 my-4">
               <Checkbox id="consent" name="consent" required />
               <Label htmlFor="consent" className="text-xs leading-none">
-                * I consent to the collection and storage of my email address and any other provided 
-                personal information for account creation and site functionality. Data will not be shared
-                with any third parties.
+                * I confirm this account is for a registered charitable organisation.
               </Label>
             </div>
             <SubmitButton type="submit" formAction={handleSubmit} pendingText="Signing up...">
@@ -116,10 +114,6 @@ export default function Signup() {
           // className="dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-    </div>
-    <div className="bg-accent text-lg p-3 mx-auto rounded-md text-foreground flex gap-3 items-center">
-      <InfoIcon size="16" strokeWidth={2} />
-      The website is still under development, stay tuned to our emails to hear our progress!
     </div>
     <Toaster richColors expand={true} />
     </>
