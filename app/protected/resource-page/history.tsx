@@ -1,178 +1,274 @@
 "use client"
 
-import React, { useState } from 'react';
-import { Search, Download, Eye, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns-tz';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const HistoryTab = ({charityData,resourceData,resourceTransitFrom,resourceTransitTo}:{charityData: CharityData[];resourceData: ResourcesData[]; resourceTransitFrom:TransitData[]; resourceTransitTo:TransitData[]}) => {
-
-  // Enhanced sample data with reserved quantities
-  const [resources, setResources] = useState(resourceData || [])
-  const [transitsFrom, setTransitFromData] = useState(resourceTransitFrom || []);
-  const [transitsTo, setTransitToData] = useState(resourceTransitTo || []);
+const HistoryTab = ({charity,charityData,resourceData,transitData}:{charity: CharityData;charityData: CharityData[];resourceData: ResourcesData[]; transitData:TransitData[];}) => {
+  const sentTransitData = transitData.filter(item => item.charity_from === charity.id && item.status === "Received");
+  const receivedTransitData = transitData.filter(item => item.charity_to === charity.id && item.status === "Received");
 
   return (
     <div className="space-y-4">
-      <Card className="mb-4">
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-2xl font-bold">Sharing History - Resources Sent To Charities</CardTitle>
-              <CardDescription>History of resources shared with other charities</CardDescription>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export History
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex flex-wrap gap-2">
-            <div className="relative w-full sm:w-96">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input 
-                type="search" 
-                placeholder="Search sharing history..." 
-                className="pl-8 w-full" 
-              />
-            </div>
-            <select className="bg-white border rounded-md px-3 py-1 text-sm">
-              <option value="all">All Resources</option>
-              {resources.map(resource => (
-                <option key={resource.id} value={resource.id}>{resource.name}</option>
-              ))}
-            </select>
-            <select className="bg-white border w-48 rounded-md px-3 py-1 text-sm">
-              <option value="all">All charities</option>
-              {charityData.map(charity => (
-                <option key={charity.id} value={charity.name}>{charity.name}</option>
-              ))}
-            </select>
-          </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Sharing History</h1>
+      </div>
 
-          <div className="space-y-4">
-            {transitsTo.map(history => (
-              <div key={history.id} className="flex items-start border rounded-md p-4 hover:bg-gray-50">
-                <div className="flex-grow">
-                  <div className="flex items-center mb-1">
-                    <span className="font-medium mr-2">{history.resource_name}</span>
-                    <span className="text-sm text-gray-500">
-                      {history.quantity} items shared with {history.charity_to}
-                    </span>
-                  </div>
-                  {/* <div className="flex items-center text-sm text-gray-500">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>{history.date}</span>
-                    <span className="mx-2">•</span>
-                    {getTransitStatusBadge(history.status)}
-                  </div> */}
-                </div>
-                <Button variant="outline" size="sm">
-                  <Eye className="h-4 w-4 mr-1" />
-                  Details
-                </Button>
-              </div>
-            ))}
-          </div>
+      <TransitHistoryTable
+        title="Resources Sent To Charities"
+        description="History of resources you shared with other charities"
+        charityData={charityData}
+        resourceData={resourceData}
+        transitData={sentTransitData}
+      />
 
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-gray-500">
-              Showing {transitsTo.length} sharing records
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="bg-blue-50">1</Button>
-              <Button variant="outline" size="sm">2</Button>
-              <Button variant="outline" size="sm">Next</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-2xl font-bold">Sharing History - Resources Received From Charities</CardTitle>
-              <CardDescription>History of resources shared to our charity</CardDescription>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export History
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex flex-wrap gap-2">
-            <div className="relative w-full sm:w-96">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input 
-                type="search" 
-                placeholder="Search sharing history..." 
-                className="pl-8 w-full" 
-              />
-            </div>
-            <select className="bg-white border rounded-md px-3 py-1 text-sm">
-              <option value="all">All Resources</option>
-              {resources.map(resource => (
-                <option key={resource.id} value={resource.id}>{resource.name}</option>
-              ))}
-            </select>
-            <select className="bg-white border rounded-md w-48 px-3 py-1 text-sm">
-              <option value="all">All Charities</option>
-              <option value="Hope Foundation">Hope Foundation</option>
-              <option value="Care Center">Care Center</option>
-              <option value="Help Network">Help Network</option>
-              <option value="Community Aid">Community Aid</option>
-              <option value="Education First">Education First</option>
-            </select>
-          </div>
-
-          <div className="space-y-4">
-            {transitsFrom.map(history => (
-              <div key={history.id} className="flex items-start border rounded-md p-4 hover:bg-gray-50">
-                <div className="flex-grow">
-                  <div className="flex items-center mb-1">
-                    <span className="font-medium mr-2">{history.resource_name}</span>
-                    <span className="text-sm text-gray-500">
-                      {history.quantity} items shared with {history.charity_to}
-                    </span>
-                  </div>
-                  {/* <div className="flex items-center text-sm text-gray-500">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>{history.date}</span>
-                    <span className="mx-2">•</span>
-                    {getTransitStatusBadge(history.status)}
-                  </div> */}
-                </div>
-                <Button variant="outline" size="sm">
-                  <Eye className="h-4 w-4 mr-1" />
-                  Details
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-gray-500">
-              Showing {transitsFrom.length} sharing records
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="bg-blue-50">1</Button>
-              <Button variant="outline" size="sm">2</Button>
-              <Button variant="outline" size="sm">Next</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TransitHistoryTable
+        title="Resources Received From Charities"
+        description="History of resources shared to your charity"
+        charityData={charityData}
+        resourceData={resourceData}
+        transitData={receivedTransitData}
+      />
     </div>
+  );
+};
+
+const TransitHistoryTable = ({ title, description, charityData, resourceData, transitData} : 
+  {title: string; description: string; charityData: CharityData[]; resourceData: ResourcesData[]; transitData: TransitData[];}
+) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedResource, setSelectedResource] = useState('all');
+  const [selectedCharity, setSelectedCharity] = useState('all');
+  
+  const uniqueResourceIds = transitData
+    .map(item => item.resource_id)
+    .filter((value, index, self) => self.indexOf(value) === index);
+  const relevantResources = resourceData.filter(resource => uniqueResourceIds.includes(resource.id));
+
+  const charityIdField = title.includes("Sent To") ? 'charity_to' : 'charity_from';
+  const uniqueCharityIds = transitData
+    .map(item => item[charityIdField])
+    .filter((value, index, self) => self.indexOf(value) === index);
+  const relevantCharities = charityData.filter(charity => uniqueCharityIds.includes(charity.id));
+  
+  const filteredTransitData = transitData.filter(item => {
+    const charityId = title.includes("Sent To") ? item.charity_to : item.charity_from;
+    const charity = charityData.find(c => c.id === charityId) || { name: "Unknown" };
+    
+    const resource = resourceData.find(r => r.id === item.resource_id) || { name: "Unknown" };
+    
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery === '' || 
+      resource.name.toLowerCase().includes(searchLower) || 
+      charity.name.toLowerCase().includes(searchLower) || 
+      item.quantity.toString().includes(searchLower);
+    
+    const matchesResource = selectedResource === 'all' || item.resource_id === selectedResource;
+    const matchesCharity = selectedCharity === 'all' || charityId === selectedCharity;
+    
+    return matchesSearch && matchesResource && matchesCharity;
+  });
+  
+  const totalPages = Math.ceil(filteredTransitData.length / ITEMS_PER_PAGE);
+  
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredTransitData, totalPages, currentPage]);
+  
+  const currentItems = filteredTransitData.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+  
+  const handlePageChange = (pageNumber : number) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+  
+  const generatePaginationItems = () => {
+    const pages = [];
+    pages.push(1);
+    
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (!pages.includes(i)) {
+        pages.push(i);
+      }
+    }
+    if (totalPages > 1 && !pages.includes(totalPages)) {
+      pages.push(totalPages);
+    }
+    
+    return pages.sort((a, b) => a - b);
+  };
+
+  return (
+    <Card className="mb-4">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-2xl font-bold">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 flex flex-wrap gap-2">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input 
+              type="search" 
+              placeholder="Search sharing history..." 
+              className="pl-8 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <Select value={selectedResource} onValueChange={setSelectedResource}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All Resources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Resources</SelectItem>
+              {relevantResources.map(resource => (
+                <SelectItem key={resource.id} value={resource.id}>{resource.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Select value={selectedCharity} onValueChange={setSelectedCharity}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All Charities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Charities</SelectItem>
+              {relevantCharities.map(charity => (
+                <SelectItem key={charity.id} value={charity.id}>{charity.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-4">
+          {currentItems.map(history => {
+            const charityDetails = charityData.find(charity => 
+              charity.id === (title.includes("Sent To") ? history.charity_to : history.charity_from)
+            ) || { name: "Unknown Charity", address: "Address not available" };
+            
+            const resourceDetails = resourceData.find(resource => 
+              resource.id === history.resource_id
+            );
+
+            return (
+              <Card key={history.id} className="p-4 grid grid-cols-6 gap-4">
+                <div className="my-auto">
+                  <p className="font-medium text-xl">{resourceDetails?.name}</p>
+                  <p className="text-gray-500">{history.quantity} {resourceDetails?.unit}</p>
+                </div>
+
+                <div className="my-auto col-span-2">
+                  <p className="font-medium">{charityDetails.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {charityDetails.address || "No address provided"}
+                  </p>
+                </div>
+
+                <div className="my-auto">
+                  <p className="text-sm text-gray-500">Time Sent</p>
+                  <p>{history.time_sent && format(history.time_sent, "dd/MM/yyyy hh:mm")}</p>
+                </div>
+
+                <div className="my-auto">
+                  <p className="text-sm text-gray-500">Time Recieved</p>
+                  <p>{history.time_received && format(history.time_received, "dd/MM/yyyy hh:mm")}</p>
+                </div>
+                
+                <div className="my-auto">
+                  <Badge className="bg-green-200 text-green-800">Received</Badge>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <div className="text-sm text-gray-500 mr-6">
+            Showing {transitData.length > 0 ? Math.min(transitData.length, (currentPage - 1) * ITEMS_PER_PAGE + 1) : 0}-
+            {Math.min(currentPage * ITEMS_PER_PAGE, transitData.length)} of {transitData.length} sharing records
+          </div>
+          
+          {totalPages > 1 && (
+            <Pagination className="flex justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious href="#" aria-disabled={currentPage === 1} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(currentPage - 1);
+                    }}
+                  />
+                </PaginationItem>
+                
+                {generatePaginationItems().map((page, index, array) => {
+                  if (index > 0 && page > array[index - 1] + 1) {
+                    return (
+                      <React.Fragment key={`ellipsis-${page}`}>
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationLink href="#" isActive={page === currentPage}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(page);
+                            }}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    );
+                  }
+                  
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationLink href="#" isActive={page === currentPage}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(page);
+                        }}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                <PaginationItem>
+                  <PaginationNext href="#" aria-disabled={currentPage === totalPages} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(currentPage + 1);
+                    }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

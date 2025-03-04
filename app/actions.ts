@@ -60,26 +60,13 @@ export const getCharityResourceData = async () => {
   return resources;
 };
 
-export const getResourceTransitDataFrom = async () => {
+export const getResourceTransitData = async () => {
   const supabase = await createClient();
   const charity = await getRegisteredCharity();
 
   const { data: resource_transit } = await supabase
-    .from("resources")
-    .select("*") 
-    .eq("charity_from", charity.id) as { data: TransitData[] | []; error: any };;
-  
-  return resource_transit;
-};
-
-export const getResourceTransitDataTo = async () => {
-  const supabase = await createClient();
-  const charity = await getRegisteredCharity();
-
-  const { data: resource_transit } = await supabase
-    .from("resources")
-    .select("*") 
-    .eq("charity_to", charity.id) as { data: TransitData[] | []; error: any };;
+    .from("resource_transit")
+    .select("*") as { data: TransitData[] | []; error: any };;
   
   return resource_transit;
 };
@@ -218,7 +205,8 @@ export async function submitCharity(formData: FormData) {
   const settings = JSON.parse(formData.get("settings") as string);
 
   const starRating = Number(formData.get("starRating")) || 0;
-  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'London' })
+  // const timeZone = getTimeZoneValue();
+  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'Europe/Paris' })
 
   if (authError || !user) {
     return redirect("/sign-in");

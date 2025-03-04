@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Clock, Globe, MapPin, Phone, Star } from "lucide-react";
+import { Clock, Globe, MapPin, Phone, Star, StarHalf } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
@@ -20,7 +20,7 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
     if (!mapRef.current || mapInstanceRef.current) return;
 
     // Initialize the map
-    const map = L.map(mapRef.current).setView([52.7721, -1.2062], 13);
+    const map = L.map(mapRef.current).setView([52.7721, -1.2062], 15);
     mapInstanceRef.current = map;
 
     // Add OpenStreetMap tiles
@@ -85,16 +85,27 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
 
       <Drawer open={!!selectedCharity} onOpenChange={() => setSelectedCharity(null)}>
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col">
-          <div className="h-[calc(90vh-100px)] overflow-y-auto md:p-6">
+          <div className="max-w-7xl w-full mx-auto h-[calc(90vh-100px)] overflow-y-auto p-2 md:p-6">
 
             {/* CHARITY INFORMATION */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
               <div>
-                
-                {selectedCharity && <AddCharityReviewDialog selectedCharityId={selectedCharity.id} />}
-
                 <img className="mb-6 h-[200px] w-full max-w-full rounded-lg object-cover" src="/placeholder.png"/>
                 <h2 className="mb-2 text-2xl font-bold">{selectedCharity?.name}</h2>
+                <div className="mb-2 flex items-center space-x-1">
+                  {[...Array(5)].map((_, index) => {
+                    const isFilled = index < Math.floor(selectedCharity?.rating ?? 0);
+                    const isHalf = index === Math.floor(selectedCharity?.rating ?? 0) && ((selectedCharity?.rating ?? 0) % 1 !== 0);
+
+                    return isHalf ? (
+                      <StarHalf key={index} className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                    ) : (
+                      <Star key={index} className={`w-6 h-6 ${isFilled ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}/>
+                    );
+                  })}
+                  <p className="text-gray-400">({selectedCharity?.rating.toFixed(1) ?? "N/A"}/5)</p>
+                  <p className="text-gray-400">Total Ratings: {selectedCharity?.total_rating}</p>
+                </div>
                 <p className="mb-6 text-muted-foreground">
                   {selectedCharity?.description || <span className="italic">No description given yet</span>}
                 </p>
@@ -141,7 +152,11 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
             {/* COMMENTS */}
             <hr className="border-gray-300 my-5" />
             <div>
-              <h2 className="mb-2 text-2xl font-bold flex">Comments</h2>
+              <div className="flex justify-between">
+                <h2 className="mb-2 text-2xl font-bold">Comments</h2>
+                {selectedCharity && <div className="flex justify-end"><AddCharityReviewDialog selectedCharityId={selectedCharity.id} /></div>}
+              </div>
+              
               {commentsData.filter((comment) => comment.charity_id === selectedCharity?.id).length > 0 ? (
                 commentsData
                 .filter((comment) => comment.charity_id === selectedCharity?.id)

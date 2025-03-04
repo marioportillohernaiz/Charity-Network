@@ -184,12 +184,12 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
         tags: tags
       });
       const settingsJSON = JSON.stringify({
-        show_email: showEmail.toString(),
-        show_phone: showPhone.toString(),
-        email_notif: emailNotifications.toString(),
-        show_address: showAddress.toString(),
-        resource_alert: resourceAlerts.toString(),
-        resource_request: resourceRequests.toString()
+        show_email: showEmail,
+        show_phone: showPhone,
+        email_notif: emailNotifications,
+        show_address: showAddress,
+        resource_alert: resourceAlerts,
+        resource_request: resourceRequests
       });
 
       const formData = new FormData;
