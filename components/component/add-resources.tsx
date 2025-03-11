@@ -71,13 +71,13 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
       {action == "restock" &&
         <DialogTrigger asChild><Button variant="outline" size="sm">Restock</Button></DialogTrigger>
       }
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] px-4">
         <DialogHeader>
           <DialogTitle>{resource ? "Update Resources" : "Add Resource"}</DialogTitle>
           <DialogDescription>{resource ? "Update" : "Add"} a resource to your inventory with detailed information.</DialogDescription>
         </DialogHeader>
         <form>
-        <ScrollArea className="grid flex-1 max-h-[60vh] overflow-auto">
+        <ScrollArea className="grid flex-1 max-h-[60vh] overflow-auto px-4">
           <div className="py-2">
             <Label htmlFor="name" className="font-medium">
               Resource Name <span className="text-red-500">*</span>

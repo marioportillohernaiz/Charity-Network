@@ -1,213 +1,354 @@
 "use client"
 
-import React, { useState } from 'react';
-import { Plus, ArrowUpDown, Package2 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import React, { useMemo } from 'react';
+import { Plus, ArrowUpDown, Package2, TrendingUp, CalendarClock, Share2, AlertTriangle, BarChart4 } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { format, subMonths, differenceInDays } from 'date-fns';
 
-const OverviewTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
+type ResourceData = {
+  id: string | number;
+  name: string;
+  description?: string;
+  category: string;
+  quantity: number;
+  quantity_reserved: number;
+  shareable_quantity: number;
+  unit: string;
+  location?: string;
+  expiry_date?: Date | string | null;
+  updated_at: Date | string;
+};
 
-  // Sample data for the charts
-  const resourceData1 = [
-    { name: 'Food', value: 650 },
-    { name: 'Clothing', value: 230 },
-    { name: 'Medical', value: 145 },
-    { name: 'Education', value: 95 },
-    { name: 'Hygiene', value: 85 }
+const OverviewTab = ({ resourceData, requestData }: { resourceData: ResourceData[], requestData?: TransitData[] }) => {
+  // Colors for the charts
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
+
+  const seasonalTrendsData = [
+    { month: 'Jan', food: 240, clothing: 350, medical: 80 },
+    { month: 'Feb', food: 220, clothing: 320, medical: 85 },
+    { month: 'Mar', food: 280, clothing: 280, medical: 90 },
+    { month: 'Apr', food: 250, clothing: 220, medical: 100 },
+    { month: 'May', food: 200, clothing: 190, medical: 110 },
+    { month: 'Jun', food: 180, clothing: 180, medical: 120 },
+    { month: 'Jul', food: 190, clothing: 200, medical: 115 },
+    { month: 'Aug', food: 210, clothing: 250, medical: 105 },
+    { month: 'Sep', food: 250, clothing: 300, medical: 95 },
+    { month: 'Oct', food: 270, clothing: 340, medical: 90 },
+    { month: 'Nov', food: 300, clothing: 360, medical: 85 },
+    { month: 'Dec', food: 320, clothing: 370, medical: 80 }
   ];
 
-  const monthlyTrendsData = [
-    { name: 'Jan', resources: 980, requests: 18 },
-    { name: 'Feb', resources: 1040, requests: 21 },
-    { name: 'Mar', resources: 1100, requests: 19 },
-    { name: 'Apr', resources: 1180, requests: 22 },
-    { name: 'May', resources: 1220, requests: 20 },
-    { name: 'Jun', resources: 1300, requests: 24 },
-    { name: 'Jul', resources: 1234, requests: 23 }
-  ];
+  // Calculate total resource statistics
+  const totalResources = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.quantity, 0), [resourceData]);
+  const totalShareable = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.shareable_quantity, 0), [resourceData]);
+  const totalReserved = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.quantity_reserved, 0), [resourceData]);
+  const totalAvailable = useMemo(() => totalResources - totalReserved - totalShareable, [totalResources, totalReserved, totalShareable]);
 
-  const requestsData = [
-    { id: 1, charity: 'Hope Foundation', resource: 'Winter Coats', quantity: 50, urgency: 'High', status: 'Pending' },
-    { id: 2, charity: 'Care Center', resource: 'Canned Food', quantity: 200, urgency: 'Medium', status: 'Approved' },
-    { id: 3, charity: 'Help Network', resource: 'Medical Supplies', quantity: 30, urgency: 'High', status: 'Pending' },
-    { id: 4, charity: 'Education First', resource: 'School Supplies', quantity: 100, urgency: 'Low', status: 'Fulfilled' },
-    { id: 5, charity: 'Community Aid', resource: 'Hygiene Kits', quantity: 75, urgency: 'Medium', status: 'Approved' }
-  ];
+  // Calculate resource distribution by category
+  const resourceDistribution = useMemo(() => {
+    const distribution: Record<string, number> = {};
+    
+    resourceData.forEach(resource => {
+      if (!distribution[resource.category]) {
+        distribution[resource.category] = 0;
+      }
+      distribution[resource.category] += resource.quantity;
+    });
+    
+    return Object.entries(distribution).map(([name, value]) => ({
+      name,
+      value,
+      color: COLORS[name.length % COLORS.length] || '#d53e4f'
+    })).sort((a, b) => b.value - a.value);
+  }, [resourceData]);
 
-  // Colors for the pie chart
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  // Generate monthly trends data (mocked based on current data)
+  const monthlyTrendsData = useMemo(() => {
+    const today = new Date();
+    const result = [];
+    
+    // Get an array of last 6 months
+    for (let i = 6; i >= 0; i--) {
+      const monthDate = subMonths(today, i);
+      const monthName = format(monthDate, 'MMM');
+      
+      // Simulate resource and request numbers based on the current data
+      // In a real app, this would come from historical data
+      const baseResources = totalResources * (0.85 + Math.random() * 0.3);
+      const baseRequests = requestData ? requestData.length * (0.7 + Math.random() * 0.6) : 15 + Math.round(Math.random() * 10);
+      
+      // For the current month, use actual numbers
+      if (i === 0) {
+        result.push({
+          name: monthName,
+          resources: totalResources,
+          requests: requestData ? requestData.filter(r => r.status === 'Pending' || r.status === 'Approved').length : baseRequests,
+          shareablePercentage: Math.round((totalShareable / totalResources) * 100)
+        });
+      } else {
+        result.push({
+          name: monthName,
+          resources: Math.round(baseResources * (1 - i * 0.03)),
+          requests: Math.round(baseRequests * (1 - i * 0.04)),
+          shareablePercentage: Math.round(((totalShareable / totalResources) * (0.9 + Math.random() * 0.2)) * 100)
+        });
+      }
+    }
+    
+    return result;
+  }, [totalResources, totalShareable, requestData]);
 
+  // Calculate resource allocation data
+  const resourceAllocationData = useMemo(() => [
+    { name: 'Available', value: totalAvailable, color: '#00C49F' },
+    { name: 'Reserved', value: totalReserved, color: '#A83632' },
+    { name: 'Shareable', value: totalShareable, color: '#0088FE' }
+  ], [totalAvailable, totalReserved, totalShareable]);
+
+  // Find expiring resources
+  const expiringResourcesCount = useMemo(() => {
+    return resourceData.filter(resource => {
+      if (!resource.expiry_date) return false;
+      const expiryDate = new Date(resource.expiry_date);
+      const today = new Date();
+      const diffDays = differenceInDays(expiryDate, today);
+      return diffDays >= 0 && diffDays <= 30;
+    }).length;
+  }, [resourceData]);
+
+  // Calculate month-over-month change
+  const monthOverMonthChange = useMemo(() => {
+    if (monthlyTrendsData.length < 2) return 0;
+    const currentMonth = monthlyTrendsData[monthlyTrendsData.length - 1].resources;
+    const previousMonth = monthlyTrendsData[monthlyTrendsData.length - 2].resources;
+    return previousMonth === 0 ? 100 : Math.round(((currentMonth - previousMonth) / previousMonth) * 100);
+  }, [monthlyTrendsData]);
+
+  // Utility functions for badges
   const getUrgencyBadge = (urgency: string) => {
     switch(urgency) {
       case 'High':
-        return <Badge className="bg-red-500">High</Badge>;
+        return <Badge className="bg-red-500 text-white">High</Badge>;
       case 'Medium':
-        return <Badge className="bg-blue-600">Medium</Badge>;
+        return <Badge className="bg-blue-600 text-white">Medium</Badge>;
       case 'Low':
-        return <Badge className="bg-gray-500">Low</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'Pending':
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      case 'Approved':
-        return <Badge className="bg-green-500">Approved</Badge>;
-      case 'Fulfilled':
-        return <Badge className="bg-blue-400">Fulfilled</Badge>;
+        return <Badge className="bg-gray-500 text-white">Low</Badge>;
       default:
         return <Badge>Unknown</Badge>;
     }
   };
 
   return (
-    <>
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card className="bg-white hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
-          <Package2 className="h-4 w-4 text-blue-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">1,234</div>
-          <div className="flex items-center mt-1">
-            <Badge className="bg-green-100 text-green-800 hover:bg-green-100">+20.1%</Badge>
-            <span className="text-xs text-muted-foreground ml-1">from last month</span>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
+            <Package2 className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalResources.toLocaleString()}</div>
+            <div className="flex items-center mt-1">
+              <Badge className={`${monthOverMonthChange >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} hover:bg-green-100`}>
+                {monthOverMonthChange >= 0 ? '+' : ''}{monthOverMonthChange}%
+              </Badge>
+              <span className="text-xs text-muted-foreground ml-1">from last month</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Requests</CardTitle>
+            <ArrowUpDown className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {requestData 
+                ? requestData.filter(r => r.status === 'Pending' || r.status === 'Approved').length 
+                : 23}
+            </div>
+            <div className="flex items-center mt-1">
+              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                {requestData 
+                  ? requestData.filter(r => r.status === 'Pending').length 
+                  : 12} new
+              </Badge>
+              <span className="text-xs text-muted-foreground ml-1">pending requests</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Shareable Resources</CardTitle>
+            <Share2 className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalShareable.toLocaleString()}</div>
+            <div className="flex items-center mt-1">
+              <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
+                {Math.round((totalShareable / totalResources) * 100)}%
+              </Badge>
+              <span className="text-xs text-muted-foreground ml-1">of total inventory</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+            <CalendarClock className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{expiringResourcesCount}</div>
+            <div className="flex items-center mt-1">
+              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">30 days</Badge>
+              <span className="text-xs text-muted-foreground ml-1">or less remaining</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       
-      <Card className="bg-white hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Requests</CardTitle>
-          <ArrowUpDown className="h-4 w-4 text-blue-600" />
+      {/* Charts Row */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle>Resource Distribution</CardTitle>
+            <CardDescription>Current distribution of resources by category</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={resourceDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={60}
+                  dataKey="value"
+                  label={({ name, percent }) => {
+                    return `${name}\n${(percent * 100).toFixed(0)}%`;
+                  }}
+                >
+                  {resourceDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value) => [`${value} items`, 'Quantity']}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-2 border shadow-sm rounded-md">
+                          <p className="font-medium">{data.name}</p>
+                          <p className="text-sm">{data.value} items ({(data.value / totalResources * 100).toFixed(1)}%)</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle>Resource Allocation</CardTitle>
+            <CardDescription>How your resources are currently allocated</CardDescription>
+          </CardHeader>
+          <CardContent className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={resourceAllocationData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={true}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {resourceAllocationData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value) => [`${value} items`, 'Quantity']}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-2 border shadow-sm rounded-md">
+                          <p className="font-medium">{data.name}</p>
+                          <p className="text-sm">{data.value} items ({(data.value / totalResources * 100).toFixed(1)}%)</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
+        <p className="text-muted-foreground">View AI predictions for resources needed in your charity.</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart4 className="h-5 w-5 text-green-500" />
+            Seasonal Resource Trends
+          </CardTitle>
+          <CardDescription>Historical demand patterns by category</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">23</div>
-          <div className="flex items-center mt-1">
-            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">12 new</Badge>
-            <span className="text-xs text-muted-foreground ml-1">requests this week</span>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-white hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Resources Shared</CardTitle>
-          <Plus className="h-4 w-4 text-blue-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">432</div>
-          <div className="flex items-center mt-1">
-            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">15</Badge>
-            <span className="text-xs text-muted-foreground ml-1">partner charities</span>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={seasonalTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="food" 
+                  name="Food" 
+                  stroke="#0088FE" 
+                  activeDot={{ r: 8 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="clothing" 
+                  name="Clothing" 
+                  stroke="#00C49F" 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="medical" 
+                  name="Medical" 
+                  stroke="#FF8042" 
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
     </div>
-    
-    <div className="grid gap-4 md:grid-cols-2 mt-4">
-      <Card className="bg-white">
-        <CardHeader>
-          <CardTitle>Resource Distribution</CardTitle>
-          <CardDescription>Current distribution of resources by category</CardDescription>
-        </CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={resourceData1}
-                cx="50%"
-                cy="50%"
-                labelLine={true}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-              >
-                {resourceData1.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => [`${value} items`, 'Quantity']} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-white">
-        <CardHeader>
-          <CardTitle>Monthly Trends</CardTitle>
-          <CardDescription>Resources and requests over time</CardDescription>
-        </CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyTrendsData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis yAxisId="left" orientation="left" />
-              <YAxis yAxisId="right" orientation="right" />
-              <Tooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="resources" name="Resources" fill="#0088FE" />
-              <Bar yAxisId="right" dataKey="requests" name="Requests" fill="#FF8042" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
-    
-    <Card className="bg-white mt-4">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Recent Requests</CardTitle>
-          <CardDescription>Latest resource requests from other charities</CardDescription>
-        </div>
-        <Button variant="outline" size="sm">
-          View All
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Charity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urgency</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {requestsData.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{request.charity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.resource}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.quantity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {getUrgencyBadge(request.urgency)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {getStatusBadge(request.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Button variant="ghost" size="sm">View</Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card></>
   );
 };
 
