@@ -20,7 +20,7 @@ export default async function AuthButton({ is_maintenance } : { is_maintenance: 
         <Link href="/map-page">Map</Link>
       </Button>
       <Button asChild size="sm" variant={"link"} className="text-white">
-        <Link href="/sign-in">Account</Link>
+        <Link href="/sign-in">Log In</Link>
       </Button>
     </div>
   ));

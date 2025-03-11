@@ -9,12 +9,15 @@ import L from "leaflet";
 import AddCharityDialog from "@/components/component/add-charity-dialog";
 import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TransitStatus } from "@/types/TransitStatus";
 
 
-export default function Map({ charitiesData, currentCharity, commentsData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; })  {
+export default function Map({ charitiesData, currentCharity, commentsData, transitData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [selectedCharity, setSelectedCharity] = useState<CharityData | null>(null);
+  const transitLinesRef = useRef<L.Polyline[]>([]);
+  const transitIconsRef = useRef<L.Marker[]>([]);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -31,12 +34,22 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
       iconSize: [25, 35],
       iconAnchor: [16, 40],
     });
+    const charityIcon = L.icon({
+      iconUrl: "/pincharity.png",
+      iconSize: [27, 40],
+      iconAnchor: [16, 40],
+    });
 
+    const charityLocations: Record<string, [number, number]> = {};
     if (charitiesData) {
       charitiesData
       .filter((charity) => charity.admin_verified)
       .forEach((charity) => {
-        const marker = L.marker([charity.latitude, charity.longitude], { icon: customIcon }).addTo(map);
+        charityLocations[charity.id] = [charity.latitude, charity.longitude];
+        
+        const marker = charity.id == currentCharity.id ? 
+          L.marker([charity.latitude, charity.longitude], { icon: charityIcon }).addTo(map) : 
+          L.marker([charity.latitude, charity.longitude], { icon: customIcon }).addTo(map);
 
         const formatName = (name: string | undefined) => {
           return name?.replace(/(.{20})/g, '$1<br>');
@@ -52,7 +65,7 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
         const tooltipHeight = getTooltipHeight(charity.name);
         
         const tooltipContent = `
-          <div style="width: 250px; height: ${tooltipHeight}px; padding: 10px;">
+          <div style="width: 250px; height: ${tooltipHeight}px; padding: 10px; border-radius: 30px;">
             <p style="margin: 0; font-weight: bold; font-size: 20px;">${formatName(charity.name)}</p>
             <div style="display: flex; align-items: center; gap: 12px; margin: 5px 0;">
               <p style="margin: 2px 0; font-size: 16px;">⭐ 0 / 5<p>
@@ -74,8 +87,66 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
           setSelectedCharity(charity);
         });
       });
+
+      drawTransitLines(map, transitData, charityLocations);
     }
-  }, [charitiesData]);
+  }, [charitiesData, transitData]);
+
+  const drawTransitLines = (map: L.Map, transits: TransitData[], charityLocations: Record<string, [number, number]>) => {
+    const inTransitResources = transits && transits.filter(transit => transit.status === TransitStatus.IN_TRANSIT);
+    
+    inTransitResources.forEach(transit => {
+      const fromLocation = charityLocations[transit.charity_from];
+      const toLocation = charityLocations[transit.charity_to];
+      const charityTo = charitiesData.find(charity => charity.id === transit.charity_to);
+      
+      if (fromLocation && toLocation) {
+        const transitLine = L.polyline([fromLocation, toLocation], {
+          color: '#1E88E5',
+          weight: 3,
+        }).addTo(map);
+        
+        transitLinesRef.current.push(transitLine);
+        const midLat = (fromLocation[0] + toLocation[0]) / 2;
+        const midLng = (fromLocation[1] + toLocation[1]) / 2;
+        
+        const truckIconHtml = `
+          <div style="background-color: #1E88E5;border-radius: 50%;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;
+          ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 17h4V5H2v12h3"/>
+              <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/>
+              <circle cx="7.5" cy="17.5" r="2.5"/>
+              <circle cx="17.5" cy="17.5" r="2.5"/>
+            </svg>
+          </div>
+        `;
+        
+        const truckIcon = L.divIcon({
+          html: truckIconHtml,
+          className: 'truck-icon',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+        });
+        
+        const truckMarker = L.marker([midLat, midLng], {
+          icon: truckIcon
+        }).addTo(map);
+        
+        truckMarker.bindTooltip(`
+          <div style="padding: 8px;">
+            <p style="margin: 0; font-weight: bold;">Resource in Transit</p>
+            <p style="margin: 5px 0 0;">Charity to: ${charityTo?.name}</p>
+            <p style="margin: 5px 0 0;">Item: ${transit.resource_id}</p>
+            <p style="margin: 2px 0 0;">Quantity: ${transit.quantity}</p>
+            <p style="margin: 2px 0 0;">${transit.description || 'No description'}</p>
+          </div>
+        `);
+        
+        transitIconsRef.current.push(truckMarker);
+      }
+    });
+  };
 
   return (
     <div id="map" className="relative w-full bg-background">
@@ -134,11 +205,13 @@ export default function Map({ charitiesData, currentCharity, commentsData }: { c
                   <Clock className="mt-1 h-4 w-4 shrink-0" />
                   <div>
                     <p className="font-semibold">Opening Hours</p>
-                    <div className="grid grid-cols-2">
+                    <div className="grid grid-rows-7">
                       {selectedCharity?.opening_hours ? (
                         Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
-                          <div key={day}><p key={day} className="">{day}:</p>
-                          <p>{isOpen ? `${start} - ${end}` : "Closed"}</p></div>
+                          <div key={day} className="grid grid-cols-2">
+                            <p>{day}:</p>
+                            <p>{isOpen ? `${start} - ${end}` : "Closed"}</p>
+                          </div>
                         ))
                       ) : (
                         <p className="text-muted-foreground italic">No opening hours available</p>

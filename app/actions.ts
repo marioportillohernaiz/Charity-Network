@@ -6,6 +6,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { format } from 'date-fns-tz';
 
+const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'Europe/Paris' })
+
 // Any sort of database fetch
 export const getAuthUser = async () => {
   const supabase = await createClient();
@@ -60,13 +62,26 @@ export const getCharityResourceData = async () => {
   return resources;
 };
 
+export const getOtherCharityResourceData = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: shareableResources } = await supabase
+    .from("resources")
+    .select("*")
+    .neq("charity_id", charity.id)
+    .gt("shareable_quantity", 0) as { data: ResourcesData[] | []; error: any };
+  
+  return shareableResources || [];
+};
+
 export const getResourceTransitData = async () => {
   const supabase = await createClient();
   const charity = await getRegisteredCharity();
 
   const { data: resource_transit } = await supabase
     .from("resource_transit")
-    .select("*") as { data: TransitData[] | []; error: any };;
+    .select("*") as { data: TransitData[] | []; error: any };
   
   return resource_transit;
 };
@@ -206,7 +221,6 @@ export async function submitCharity(formData: FormData) {
 
   const starRating = Number(formData.get("starRating")) || 0;
   // const timeZone = getTimeZoneValue();
-  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'Europe/Paris' })
 
   if (authError || !user) {
     return redirect("/sign-in");
@@ -341,7 +355,6 @@ export async function submitResource(formData: FormData) {
   const shareableQuantity = Number(formData.get("shareableQuantity")) || 0;
   const location = formData.get("location") as string;
   const expiryDate = formData.get("expiryDate") as string;
-  const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'London' })
 
   if (!user) {
     return redirect("/sign-in");
@@ -399,6 +412,91 @@ export async function submitResource(formData: FormData) {
       } else {
         return { success: true, message: "Resource Successfully Added" };
       }
+    }
+  }  
+}
+
+export async function rejectTransit(id: string) {
+  const supabase = await createClient();
+  const user = await getAuthUser(); 
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {
+    const { data: existingTransit } = await supabase
+      .from("resource_transit")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (existingTransit) {
+      const { error } = await supabase
+        .from("resource_transit")
+        .update({
+          status: "Rejected"
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Rejecting Transit" };
+      } else {
+        return { success: true, message: "Transit Rejected" };
+      }
+    } else {
+      return { success: false, message: "Error Fetching Transit" };
+    }
+  }  
+}
+
+export async function dispatchTransit(id: string, resource: ResourcesData | undefined) {
+  const supabase = await createClient();
+  const user = await getAuthUser(); 
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {
+    const { data: existingTransit } = await supabase
+      .from("resource_transit")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    const { data: existingResource } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("id", resource?.id)
+      .single();
+
+    console.log(existingTransit);
+    console.log(existingResource);
+
+    if (existingTransit && existingResource) {
+      const { error } = await supabase
+        .from("resource_transit")
+        .update({
+          status: "In transit",
+          time_sent: now,
+          updated_at: now,
+        })
+        .eq("id", id);
+
+      const { error: errorResource } = await supabase
+        .from("resources")
+        .update({
+          quantity_reserved: existingResource.quantity_reserved - existingTransit.quantity,
+          updated_at: now,
+        })
+        .eq("id", resource?.id);
+
+      if (error || errorResource) {
+        console.log(error);
+        return { success: false, message: "Error Dispatching Transit" };
+      } else {
+        return { success: true, message: "Transit Dispatched" };
+      }
+    } else {
+      return { success: false, message: "Error Fetching Transit" };
     }
   }  
 }

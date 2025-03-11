@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { Loader2 } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
 import { Badge } from "./ui/badge";
@@ -43,6 +43,7 @@ export default function UserMenu({ registeredCharity }: { registeredCharity: Cha
         <Link href="/protected/account-page">Account</Link>
       </span>
     </Button>
+    <Bell color="#ffffff" className="w-5 h-5 mr-2"/>
     <form action={signOutAction}>
       <Button type="submit" variant="link" className="pl-0 text-white">
         Sign out
