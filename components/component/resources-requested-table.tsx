@@ -2,7 +2,7 @@
 "use client"
 
 import { Input } from "../ui/input";
-import { Calendar, CheckSquare, CircleX, Clock, Search, Truck, XCircle } from "lucide-react";
+import { Calendar, CheckSquare, Clock, Search, Truck, XCircle } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import React from "react";
@@ -11,9 +11,12 @@ import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, Pagi
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import { TransitStatus } from "@/types/TransitStatus";
+import RejectRequest from "./reject-request";
+import HandleDispatch from "./handle-dispatch";
 
 export function ResourcesRequestedTable({resourceData, transitData, charityData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]}) {
-  const requestedResources = transitData.filter(item => item.status == "Requested" || item.status == "In transit");
+  const requestedResources = transitData.filter(item => item.status == TransitStatus.REQUESTED || item.status == TransitStatus.IN_TRANSIT);
 
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,11 +64,11 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
             <Badge className="bg-blue-200 text-blue-800">In transit</Badge>
           </div>
         );
-      case 'Completed':
+      case 'Received':
         return (
           <div className="flex items-center">
             <CheckSquare className="h-4 w-4 text-green-500 mr-1" />
-            <Badge className="bg-green-200 text-green-800">Completed</Badge>
+            <Badge className="bg-green-200 text-green-800">Received</Badge>
           </div>
         );
       case 'Rejected':
@@ -84,16 +87,16 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
     switch(request.status) {
       case 'Requested':
         return (
-          <Button variant="outline" className="bg-red-100 text-red-800 border-red-200">
-            <CircleX className="w-4 h-4 mr-2" />
-            Reject
-          </Button>
+          <div>
+            <RejectRequest request={request} resourceData={resourceData} />
+            <HandleDispatch request={request} resourceData={resourceData} />
+          </div>
         );
       case 'In transit':
         return (
           <Button 
             variant="outline" 
-            className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+            className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 w-full"
             onClick={() => setShowTransitInfo(showTransitInfo === request.id ? "" : request.id)}
           >
             {showTransitInfo === request.id ? "Hide Tracking" : "Track Shipment"}
@@ -184,7 +187,7 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
               <option value="All">All Statuses</option>
               <option value="Requested">Requested</option>
               <option value="In transit">In transit</option>
-              <option value="Completed">Completed</option>
+              <option value="Received">Received</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
@@ -196,6 +199,9 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Charity
                   </th>
@@ -214,9 +220,6 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Updated Date
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -233,6 +236,11 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
                   return (
                   <React.Fragment key={request.id}>
                     <tr className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-center space-x-2">
+                          {getActionButton(request)}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="ml-2">
@@ -266,14 +274,9 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{format(request.updated_at, "dd/mm/yyyy hh:mm")}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
-                          {getActionButton(request)}
-                        </div>
-                      </td>
                     </tr>
 
-                    {showTransitInfo === request.id && request.status == "In transit" && (
+                    {showTransitInfo === request.id && request.status == TransitStatus.IN_TRANSIT && (
                       <tr className="bg-gray-50">
                         <td colSpan={7} className="px-6 py-4">
                           <div className="border border-blue-200 rounded-md bg-blue-50 p-4">

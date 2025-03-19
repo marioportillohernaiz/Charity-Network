@@ -167,14 +167,14 @@ const OverviewTab = ({ resourceData, requestData }: { resourceData: ResourceData
           <CardContent>
             <div className="text-2xl font-bold">
               {requestData 
-                ? requestData.filter(r => r.status === 'Pending' || r.status === 'Approved').length 
-                : 23}
+                ? requestData.filter(r => r.status === 'Requested' || r.status === 'In transit').length 
+                : 0}
             </div>
             <div className="flex items-center mt-1">
               <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
                 {requestData 
-                  ? requestData.filter(r => r.status === 'Pending').length 
-                  : 12} new
+                  ? requestData.filter(r => r.status === 'Requested').length 
+                  : 0} new
               </Badge>
               <span className="text-xs text-muted-foreground ml-1">pending requests</span>
             </div>

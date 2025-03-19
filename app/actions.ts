@@ -468,9 +468,6 @@ export async function dispatchTransit(id: string, resource: ResourcesData | unde
       .eq("id", resource?.id)
       .single();
 
-    console.log(existingTransit);
-    console.log(existingResource);
-
     if (existingTransit && existingResource) {
       const { error } = await supabase
         .from("resource_transit")
@@ -499,4 +496,77 @@ export async function dispatchTransit(id: string, resource: ResourcesData | unde
       return { success: false, message: "Error Fetching Transit" };
     }
   }  
+}
+
+export async function requestResource(resource: ResourcesData | null, requestQuantity: number, notes: string) {
+  const supabase = await createClient();
+  const user = await getAuthUser(); 
+  const charity = await getRegisteredCharity();
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {    
+    if (resource) {
+      const { error } = await supabase
+        .from("resource_transit")
+        .insert({
+          resource_id: resource.id,
+          charity_from: resource.charity_id,
+          charity_to: charity.id,
+          quantity: requestQuantity,
+          status: "Requested",
+          description: notes,
+          can_expire: resource.expiry_date ? true : false,
+          time_sent: null,
+          time_received: null,
+          updated_at: now,
+        });
+
+      const { error: errorCharity } = await supabase
+        .from("resources")
+        .update({
+          quantity_reserved: resource.quantity_reserved + requestQuantity,
+          shareable_quantity: resource.shareable_quantity - requestQuantity,
+          updated_at: now,
+        })
+        .eq("id", resource.id);
+
+      if (error || errorCharity) {
+        console.log(error);
+        console.log(errorCharity);
+        return { success: false, message: "Error Requesting Resrource" };
+      } else {
+        return { success: true, message: "Resource Requested" };
+      }
+    } else {
+      return { success: false, message: "Error Fetching Request" };
+    }
+  }  
+}
+
+export async function submitSales(formData: FormData) {
+  const supabase = await createClient();
+  const user = await getAuthUser(); 
+  const charity = await getRegisteredCharity();
+
+  const sales_data = JSON.parse(formData.get("sales_data") as string || `["{}"]`);
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {
+    const { error } = await supabase
+    .from("sales_register")
+    .insert({
+      charity_id: charity.id,
+      date: now,
+      sales_data: sales_data,
+    });
+
+    if (error) {
+      console.log(error);
+      return { success: false, message: "Error registering sales" };
+    } else {
+      return { success: true, message: "Sales registered successfully" };
+    }
+  }   
 }

@@ -1,17 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpDown, Loader2 } from "lucide-react"
+import { ArrowUpDown, DollarSign, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import RequestsList from "./requests-list"
 import ResourcesList from "./resources-list"
-import { AddResources } from "@/components/component/add-resources"
+import { AddResources } from "@/components/component/add-resources-dialog"
 import OverviewTab from "./overview"
 import HistoryTab from "./history"
 import { Toaster } from "sonner"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { RegisterSales } from "@/components/component/register-sales-dialog"
 
 export default function DashboardPage({charity,charityData,resourceData,transitData}:{charity: CharityData; charityData: CharityData[];resourceData: ResourcesData[]; transitData: TransitData[];}) {
   const router = useRouter();
@@ -28,31 +29,33 @@ export default function DashboardPage({charity,charityData,resourceData,transitD
   };
   
   return (
-    <div className="flex min-h-screen flex-col space-y-6 p-8">
-      <div className="flex items-center justify-between space-y-2">
+    <div className="flex min-h-screen flex-col space-y-6 p-4 md:p-8">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resources Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Resources Dashboard</h1>
           <p className="text-muted-foreground">Manage and track your charity&apos;s resources</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <AddResources resource={null} action={"add"} />
+          <RegisterSales />
+          <div className="hidden md:block h-8 w-px bg-gray-300 mx-1"></div>
           <Button asChild variant="outline" onClick={(e) => handleNavigation(e, "/protected/request-page")}>
             <span>
               {loading && clickedItem === "/protected/request-page" ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : (<ArrowUpDown className="mr-2 h-4 w-4" />) }
-              <Link href="/protected/request-page">Request Resources</Link>
+              <Link href="/protected/request-page">Request</Link>
             </span>
           </Button>
         </div>
       </div>
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
-          <TabsTrigger value="requests">Requests</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="w-full md:w-1/2 grid grid-cols-4">
+          <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="resources" className="text-xs md:text-sm">Resources</TabsTrigger>
+          <TabsTrigger value="requests" className="text-xs md:text-sm">Requests</TabsTrigger>
+          <TabsTrigger value="history" className="text-xs md:text-sm">History</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
-          <OverviewTab resourceData={resourceData}  />
+          <OverviewTab resourceData={resourceData} />
         </TabsContent>
         <TabsContent value="resources" className="space-y-4">
           <ResourcesList resourceData={resourceData} />

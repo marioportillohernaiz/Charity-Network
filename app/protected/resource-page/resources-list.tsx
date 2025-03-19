@@ -4,8 +4,9 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { AddResources } from '@/components/component/add-resources';
+import { AddResources } from '@/components/component/add-resources-dialog';
 import { AllResourcesTable } from '@/components/component/all-resources-table';
+import { ScrollArea } from '@/components/ui/scrollarea';
 
 const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
 
@@ -15,20 +16,35 @@ const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
         <Card>
           <CardHeader>
             <CardTitle>Low Stock Items</CardTitle>
-            <CardDescription>Resources that need replenishing</CardDescription>
+            <CardDescription>Resources that need replenishing (less than 20)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {resourceData.filter(r => (r.quantity - r.shareable_quantity) < 20).length > 0 ? (
-                resourceData.filter(r => (r.quantity - r.shareable_quantity) < 20).map(resource => (
-                  <div key={resource.id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50">
-                    <div>
-                      <div className="font-medium">{resource.name}</div>
-                      <div className="text-sm text-gray-500">{resource.quantity} {resource.unit} left</div>
+                resourceData.filter(r => (r.quantity - r.shareable_quantity) < 20).length > 4 ? (
+                  <><ScrollArea className="max-h-52 overflow-auto mb-4">
+                    {resourceData.filter(r => (r.quantity - r.shareable_quantity) < 20).map(resource => (
+                      <div key={resource.id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50 mb-2">
+                        <div>
+                          <div className="font-medium">{resource.name}</div>
+                          <div className="text-sm text-gray-500">{resource.quantity - resource.shareable_quantity} {resource.unit} available</div>
+                        </div>
+                        <AddResources resource={resource} action={"restock"} />
+                      </div>
+                    ))}
+                  </ScrollArea>
+                  <p className="text-center text-sm text-gray-500">Scroll down to view more</p></>
+                ) : (
+                  resourceData.filter(r => (r.quantity - r.shareable_quantity) < 20).map(resource => (
+                    <div key={resource.id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50">
+                      <div>
+                        <div className="font-medium">{resource.name}</div>
+                        <div className="text-sm text-gray-500">{resource.quantity} {resource.unit} left</div>
+                      </div>
+                      <AddResources resource={resource} action={"restock"} />
                     </div>
-                    <AddResources resource={resource} action={"restock"} />
-                  </div>
-                ))
+                  ))
+                )
               ) : (
                 <p>No items need replenishing</p>
               )}
@@ -84,7 +100,7 @@ const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
         <h1 className="text-2xl font-bold">All Resources</h1>
         <p className="text-gray-500">Complete list of resources in your inventory.</p>
       </div>
-      <AllResourcesTable resourceData={resourceData} isShareable={false} />
+      <AllResourcesTable resourceData={resourceData} />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { getAuthUser, getRegisteredCharity, signOutAction } from "@/app/actions";
+import { getAuthUser, getRegisteredCharity } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import UserMenu from "./user-menu";
@@ -15,9 +15,6 @@ export default async function AuthButton({ is_maintenance } : { is_maintenance: 
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"link"} className="text-white">
         <Link href="/">Home</Link>
-      </Button>
-      <Button asChild size="sm" variant={"link"} className="text-white">
-        <Link href="/map-page">Map</Link>
       </Button>
       <Button asChild size="sm" variant={"link"} className="text-white">
         <Link href="/sign-in">Log In</Link>

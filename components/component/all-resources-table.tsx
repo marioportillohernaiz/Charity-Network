@@ -8,13 +8,11 @@ import { format } from "date-fns";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationEllipsis, PaginationLink, PaginationNext } from "../ui/pagination";
-import { AddResources } from "./add-resources";
+import { AddResources } from "./add-resources-dialog";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 
-export function AllResourcesTable({resourceData, isShareable} : {resourceData: ResourcesData[]; isShareable: boolean;}) {
-  const shareableResources = resourceData.filter(resource => resource.shareable_quantity > 0) || [];
-  const resources = isShareable ? shareableResources : resourceData;
+export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[];}) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -25,7 +23,7 @@ export function AllResourcesTable({resourceData, isShareable} : {resourceData: R
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  const filteredResources = resources.filter(resource => {
+  const filteredResources = resourceData.filter(resource => {
     const matchesSearch = resource.name.toLowerCase().includes(searchTerm.toLowerCase()) || resource.category?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || resource.category === selectedCategory;
     
@@ -109,14 +107,13 @@ export function AllResourcesTable({resourceData, isShareable} : {resourceData: R
     "Technology Equipment","Office Equipment","Educational Materials","Transportation & Mobility",
     "Emergency Aid","Volunteer & Human Resources","Financial & Grant Support","Other"]
 
-
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle hidden></CardTitle>
       </CardHeader>
       <CardContent>
-        {resources.length > 0 ? (
+        {resourceData.length > 0 ? (
         <><div className="mb-4 flex flex-wrap gap-2 sm:flex-nowrap">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
@@ -212,26 +209,60 @@ export function AllResourcesTable({resourceData, isShareable} : {resourceData: R
                     <Badge className="text-sm" variant="outline">{resource.category}</Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      <span>{resource.quantity - resource.quantity_reserved - resource.shareable_quantity} {resource.unit}</span>
+                    <div>
+                      <p className="font-semibold">{resource.quantity - resource.quantity_reserved - resource.shareable_quantity} {resource.unit}</p>
                       <div className="text-xs text-gray-500">Total Units: {resource.quantity}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="w-24">
-                      <span className="text-sm">{resource.quantity_reserved} {resource.unit}</span>
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>{getPercentage(resource, resource.quantity_reserved)}%</span>
-                        <Progress value={getPercentage(resource, resource.quantity_reserved)} className="h-2 ml-2 mt-1" />
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-14 w-14 flex-shrink-0">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-sm font-bold">{getPercentage(resource, resource.quantity_reserved)}%</span>
+                        </div>
+                        <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="16" fill="none" className="stroke-gray-200" strokeWidth="3" />
+                          {getPercentage(resource, resource.quantity_reserved) > 0 && (
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="16"
+                              fill="none"
+                              className="stroke-amber-500"
+                              strokeWidth="3"
+                              strokeDasharray={`${getPercentage(resource, resource.quantity_reserved)} 100`}
+                            />
+                          )}
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{resource.quantity_reserved} {resource.unit}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      <span>{resource.shareable_quantity} {resource.unit}</span>
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>{getPercentage(resource, resource.shareable_quantity)}%</span>
-                        <Progress value={getPercentage(resource, resource.shareable_quantity)} className="h-2 ml-2 mt-1" />
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-14 w-14 flex-shrink-0">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-sm font-bold">{getPercentage(resource, resource.shareable_quantity)}%</span>
+                        </div>
+                        <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="16" fill="none" className="stroke-gray-200" strokeWidth="3" />
+                          {getPercentage(resource, resource.shareable_quantity) > 0 && (
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="16"
+                              fill="none"
+                              className="stroke-blue-600"
+                              strokeWidth="3"
+                              strokeDasharray={`${getPercentage(resource, resource.shareable_quantity)} 100`}
+                            />
+                          )}
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{resource.shareable_quantity} {resource.unit}</p>
                       </div>
                     </div>
                   </td>
