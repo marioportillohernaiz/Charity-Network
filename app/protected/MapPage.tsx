@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Clock, Globe, MapPin, Phone, Search, Star, StarHalf, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Globe, MapPin, Phone, Search, Star, StarHalf, X } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
@@ -11,7 +11,9 @@ import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TransitStatus } from "@/types/TransitStatus";
 import { Input } from "@/components/ui/input";
-
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PRIMARY_CATEGORIES } from "@/types/Categories";
 
 export default function Map({ charitiesData, currentCharity, commentsData, transitData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; }) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -19,13 +21,29 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
   const [selectedCharity, setSelectedCharity] = useState<CharityData | null>(null);
   const transitLinesRef = useRef<L.Polyline[]>([]);
   const transitIconsRef = useRef<L.Marker[]>([]);
+  const markersRef = useRef<L.Marker[]>([]);
+  const categoriesScrollRef = useRef<HTMLDivElement>(null);
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<CharityData[]>([]);
   const [showResults, setShowResults] = useState(false);
+  
+  // Category filter state
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
+  // Scroll categories horizontally
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoriesScrollRef.current) {
+      const scrollAmount = 300;
+      if (direction === 'left') {
+        categoriesScrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      } else {
+        categoriesScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
 
-  // Filter charities based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setSearchResults([]);
@@ -37,12 +55,105 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       .filter(charity => 
         (charity.name?.toLowerCase().includes(query) || 
          charity.address?.toLowerCase().includes(query)) &&
-        charity.admin_verified
+        charity.admin_verified &&
+        (!selectedCategory || charity.category_and_tags?.primary === selectedCategory)
       )
-      .slice(0, 6); // Limit to 6 results
+      .slice(0, 6);
 
     setSearchResults(filteredCharities);
-  }, [searchQuery, charitiesData]);
+  }, [searchQuery, charitiesData, selectedCategory]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+    
+    transitLinesRef.current.forEach(line => line.remove());
+    transitLinesRef.current = [];
+    transitIconsRef.current.forEach(icon => icon.remove());
+    transitIconsRef.current = [];
+    
+    const filteredCharities = charitiesData.filter(charity => 
+      charity.admin_verified && 
+      (!selectedCategory || charity.category_and_tags?.primary === selectedCategory)
+    );
+    
+    const charityLocations: Record<string, [number, number]> = {};
+    
+    if (filteredCharities.length > 0) {
+      const customIcon = L.icon({
+        iconUrl: "/pin.png",
+        iconSize: [25, 35],
+        iconAnchor: [16, 40],
+      });
+      
+      const charityIcon = L.icon({
+        iconUrl: "/pincharity.png",
+        iconSize: [27, 40],
+        iconAnchor: [16, 40],
+      });
+      
+      filteredCharities.forEach((charity) => {
+        charityLocations[charity.id] = [charity.latitude, charity.longitude];
+        
+        const marker = charity.id === currentCharity.id ? 
+          L.marker([charity.latitude, charity.longitude], { icon: charityIcon }).addTo(mapInstanceRef.current!) : 
+          L.marker([charity.latitude, charity.longitude], { icon: customIcon }).addTo(mapInstanceRef.current!);
+          
+        markersRef.current.push(marker);
+        
+        const formatName = (name: string | undefined) => {
+          return name?.replace(/(.{20})/g, '$1<br>');
+        };
+        
+        const getTooltipHeight = (name: string | undefined) => {
+          if (name) {
+            const lineCount = Math.ceil(name.length / 20);
+            return 110 + (lineCount - 1) * 25;
+          }
+        };
+        
+        const tooltipHeight = getTooltipHeight(charity.name);
+        
+        const tooltipContent = `
+          <div style="width: 250px; height: ${tooltipHeight}px; padding: 10px; border-radius: 30px;">
+            <p style="margin: 0; font-weight: bold; font-size: 20px;">${formatName(charity.name)}</p>
+            <div style="display: flex; align-items: center; gap: 12px; margin: 5px 0;">
+              <p style="margin: 2px 0; font-size: 16px;">⭐ 0 / 5<p>
+            </div>
+            <p style="margin: 5px 0; font-size: 14px;">
+              This charity has not been rated yet
+            </p>
+          </div>
+        `;
+
+        marker.bindTooltip(tooltipContent, {
+          permanent: false, 
+          direction: "right",
+          opacity: 0.9,
+          offset: [10, -25],
+        });
+
+        marker.on("click", () => {
+          setSelectedCharity(charity);
+        });
+      });
+      
+      // Redraw transit lines
+      if (filteredCharities.length > 0) {
+        drawTransitLines(mapInstanceRef.current, transitData, charityLocations);
+      }
+      
+      // Adjust map view if necessary to fit all visible charities
+      if (filteredCharities.length > 0) {
+        const bounds = L.latLngBounds(filteredCharities.map(c => [c.latitude, c.longitude]));
+        if (bounds.isValid()) {
+          mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+        }
+      }
+    }
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -75,6 +186,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         const marker = charity.id == currentCharity.id ? 
           L.marker([charity.latitude, charity.longitude], { icon: charityIcon }).addTo(map) : 
           L.marker([charity.latitude, charity.longitude], { icon: customIcon }).addTo(map);
+          
+        markersRef.current.push(marker);
 
         const formatName = (name: string | undefined) => {
           return name?.replace(/(.{20})/g, '$1<br>');
@@ -129,6 +242,17 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       // Clear search
       setSearchQuery("");
       setShowResults(false);
+    }
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (categoryValue: string) => {
+    if (selectedCategory === categoryValue) {
+      // If clicking the already selected category, deselect it
+      setSelectedCategory(null);
+    } else {
+      // Otherwise select the new category
+      setSelectedCategory(categoryValue);
     }
   };
 
@@ -212,13 +336,13 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       <div className="flex gap-2 absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md px-4 search-container">
         <AddCharityDialog />
 
-        <div className="relative">
+        <div className="relative flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search for charities..."
-              className="pl-10 pr-10 py-2 w-full border border-input shadow-lg"
+              className="pl-10 pr-10 py-2 w-full border border-input rounded-full shadow-lg"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -261,6 +385,44 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Category filters */}
+      <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-3xl px-4">
+        <div className="flex items-center rounded-md mb-2">
+          <Button 
+            size="icon"
+            className="shrink-0 h-7 w-7 rounded-full p-0"
+            onClick={() => scrollCategories('left')}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <div 
+            ref={categoriesScrollRef}
+            className="flex items-center space-x-2 py-2 overflow-x-auto scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {PRIMARY_CATEGORIES.map((category) => (
+              <Badge 
+                key={category.value}
+                variant={selectedCategory === category.value ? "default" : "secondary"}
+                className="cursor-pointer whitespace-nowrap"
+                onClick={() => handleCategorySelect(category.value)}
+              >
+                {category.label}
+              </Badge>
+            ))}
+          </div>
+          
+          <Button 
+            size="icon" 
+            className="shrink-0 h-7 w-7 rounded-full p-0"
+            onClick={() => scrollCategories('right')}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

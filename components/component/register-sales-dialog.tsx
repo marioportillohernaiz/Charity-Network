@@ -3,8 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { format } from "date-fns"
-import { CalendarIcon, DollarSign, PlusCircle, Trash2 } from "lucide-react"
+import { DollarSign, PlusCircle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "../ui/button"

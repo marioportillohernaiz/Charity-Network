@@ -105,7 +105,7 @@ export default function AddCharityDialog() {
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button 
-          className="w-10 h-10 rounded-full shadow-xl bg-primary text-white text-5xl pt-1"
+          className="w-11 h-11 rounded-full shadow-xl bg-primary text-white text-5xl pt-1"
           onClick={() => setIsDialogOpen(true)}
         >+</Button>
       </DialogTrigger>

@@ -18,27 +18,7 @@ import L from "leaflet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-
-// Define the available primary categories
-const PRIMARY_CATEGORIES = [
-  { value: "health", label: "Health & Medical" },
-  { value: "education", label: "Education" },
-  { value: "welfare", label: "Environment and Animal Welfare" },
-  { value: "housing", label: "Housing & Homelessness" },
-  { value: "food", label: "Food Services" },
-  { value: "humanitarian", label: "Humanitarian Services" },
-  { value: "arts", label: "Arts & Culture" },
-  { value: "community", label: "Community Development" },
-  { value: "religious", label: "Religious" },
-  { value: "other", label: "Other" }
-];
-
-// Define the available secondary categories
-const SECONDARY_CATEGORIES = [
-  "Children & Youth", "Elderly", "Disabled", "Mental Health", 
-  "Crisis Relief", "Food Security", "Education", "Research",
-  "Advocacy", "Conservation", "Sports & Recreation", "International"
-];
+import { PRIMARY_CATEGORIES, SECONDARY_CATEGORIES } from '@/types/Categories';
 
 export default function AccountPage({ accountData }: { accountData: CharityData }) {
   
