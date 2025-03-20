@@ -1,208 +1,137 @@
 'use client'
 
-import { useState } from "react";
-import { ChevronRight, Loader2, MapPin, Search, Star } from "lucide-react";
-import { SubmitButton } from "../submit-button";
-import { toast } from "sonner";
-import { submitCharity } from "@/app/actions";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { ScrollArea } from "../ui/scrollarea";
+import { useState } from "react";
+import { Label } from "@radix-ui/react-label";
+import { ScrollArea } from "../ui/scrollarea"
+import { ChevronRight, Loader2, Star } from "lucide-react";
+import { SubmitButton } from "../submit-button";
 import { Textarea } from "../ui/textarea";
-
-interface CharitySearchResult {
-  place_id: string;
-  name: string;
-  address: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  rating?: number;
-}
-
-interface CharityDetails {
-  place_id: string;
-  name: string;
-  address: string;
-  phone_number: string;
-  website_link: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  opening_hours: Record<string, { isOpen: boolean; start: string; end: string }>;
-  rating?: number;
-  description?: string;
-}
+import { toast } from "sonner";
+import { submitCharity } from "@/app/actions";
 
 export default function AddCharityDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<CharitySearchResult[]>([]);
-  const [selectedCharity, setSelectedCharity] = useState<CharityData | null>(null);
+  const [website, setWebsite] = useState("");
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [starRating, setStarRating] = useState({rating: 0});
-  const [loading, setLoading] = useState(false);
-  const [searchError, setSearchError] = useState("");
-
   const handleRatingChange = (rating: number) => {
     setStarRating((prev) => ({ ...prev, rating }))
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setSearchResults([]);
-    setSelectedCharity(null);
-    setSearchError("");
+  const [webLinkAdded, setWebLinkAdded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [websiteError, setWebsiteError] = useState("");
+
+  const handleWebScrape = async (event: React.FormEvent) => {
+    if (!website) return;
+    setName("");
+    setDescription("");
+    setPhone("");
+    setEmail("");
+    setWebsiteError("");
+
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/search", {
+      const response = await fetch("http://localhost:3000/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery }),
+        body: JSON.stringify({ url: website }),
       });
 
       const data = await response.json();
+
+      console.log(data.opening_hours);
       
       if (data.error) {
-        setSearchError(data.error);
-      } else if (Array.isArray(data) && data.length > 0) {
-        setSearchResults(data);
+        setWebsiteError("Error: Cannot fetch data.");
+        setWebLinkAdded(false);
+      } else if (data) {
+        setWebLinkAdded(true);
+        data.title && setName(data.title);
+        data.description && setDescription(data.description);
+        data.phone && setPhone(data.phone);
+        data.email && setEmail(data.email);
       } else {
-        setSearchError("No charities found. Try a different search term.");
+        setWebsiteError("Error: Cannot fetch data.");
       }
+      setLoading(false);
     } catch (error) {
-      setSearchError("Error connecting to search service. Please try again later.");
-      console.error("Search error:", error);
-    } finally {
+      setWebsiteError("Error: " + error);
+      setWebLinkAdded(false);
       setLoading(false);
     }
-  };
+  }
 
-  const handleSelectCharity = async (placeId: string) => {
-    setSelectedCharity(null);
-    setLoading(true);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
 
-    try {
-      const response = await fetch("http://localhost:5000/details", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ place_id: placeId }),
-      });
-
-      const data = await response.json();
-      
-      if (data.error) {
-        setSearchError(data.error);
-      } else {
-        setSelectedCharity(data);
-        // Start with empty description
-        setDescription("");
-      }
-    } catch (error) {
-      setSearchError("Error fetching charity details. Please try again later.");
-      console.error("Details error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedCharity) return;
+    const address_number = form.elements.namedItem('address_number') as HTMLTextAreaElement;
+    const address_street = form.elements.namedItem('address_street') as HTMLTextAreaElement;
+    const address_city = form.elements.namedItem('address_city') as HTMLTextAreaElement;
+    const address_postcode = form.elements.namedItem('address_postcode') as HTMLTextAreaElement;
+    const address = [address_number.value.trim(), address_street.value.trim(), address_city.value.trim(), address_postcode.value.trim()].join(", ");
 
     const charityFormData = new FormData();
-    charityFormData.append("name", selectedCharity.name);
+    charityFormData.append("name", name);
     charityFormData.append("description", description);
-    charityFormData.append("address", selectedCharity.address || "");
-    charityFormData.append("longitude", selectedCharity.latitude.toString());
-    charityFormData.append("latitude", selectedCharity.longitude.toString());
-    charityFormData.append("openingHours", JSON.stringify(selectedCharity.opening_hours));
-    charityFormData.append("starRating", starRating.rating.toString());
-    charityFormData.append("email", selectedCharity.email || "");
-    charityFormData.append("phone", selectedCharity.phone_number || "");
-    charityFormData.append("website", selectedCharity.website_link || "");
+    charityFormData.append("address", address);
 
-    const newCharity = await submitCharity(charityFormData);
-    if (newCharity.success) {
-      toast.success(newCharity.message);
-      setIsDialogOpen(false);
+    // charityFormData.append("openingHours", JSON.stringify(openingHours));
+    charityFormData.append("starRating", starRating.rating.toString());
+
+    charityFormData.append("email", email);
+    charityFormData.append("phone", phone);
+    charityFormData.append("website", website);
+
+    const newEatery = await submitCharity(charityFormData);
+    if (newEatery.success) {
+      toast.success(newEatery.message);
     } else {
-      toast.error(newCharity.message);
+      toast.error(newEatery.message);
     }
+
+    setIsDialogOpen(false);
   }
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button 
-          className="fixed w-20 h-20 bottom-10 right-10 rounded-full shadow-xl bg-primary text-white text-6xl pt-0"
+          className="w-10 h-10 rounded-full shadow-xl bg-primary text-white text-5xl pt-1"
           onClick={() => setIsDialogOpen(true)}
         >+</Button>
       </DialogTrigger>
       <DialogContent className="p-6 flex flex-col">
         <DialogHeader>
-          <DialogTitle>Search and Add Charity</DialogTitle>
+          <DialogTitle>Request to Add Location</DialogTitle>
         </DialogHeader>
         
         <div className="m-2">
-          <Label htmlFor="search">Search for a charity using the Places API</Label>
+          <Label htmlFor="website">Enter Website Link</Label>
           <div className="flex space-x-2 mt-2">
-            <Input 
-              id="search" 
-              name="search" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="e.g. Food bank Oxford, UK"
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <Button size="icon" type="button" onClick={handleSearch}>
-              {loading && !selectedCharity ? (
+            <Input id="website" name="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+            <Button size="icon" type="button" onClick={handleWebScrape}>
+              {loading ? (
                 <Loader2 className="h-6 w-6 animate-spin" /> 
               ) : (
-                <Search />
+                <ChevronRight />
               )}
             </Button>
           </div>
         </div>
 
-        {searchError && <p className="text-destructive text-sm mx-2">{searchError}</p>}
-
-        {searchResults.length > 0 && !selectedCharity && (
-          <ScrollArea className="grid gap-1 flex-1 max-h-[40vh] overflow-auto mt-4">
-            <p className="text-muted-foreground text-sm mb-2 ml-2">Select a charity from the results:</p>
-            {searchResults.map((result) => (
-              <Button 
-                key={result.place_id}
-                variant="outline" 
-                className="flex flex-col items-start p-3 mb-2 h-auto gap-1 w-full"
-                onClick={() => handleSelectCharity(result.place_id)}
-              >
-                <div className="flex justify-between w-full">
-                  <span className="font-medium">{result.name}</span>
-                  {result.rating && (
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
-                      <span className="text-sm">{result.rating}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                  <span className="truncate">{result.address}</span>
-                </div>
-              </Button>
-            ))}
-          </ScrollArea>
-        )}
-
-        {selectedCharity && (
-          <>
-            <ScrollArea className="grid gap-1 flex-1 max-h-[60vh] overflow-auto">
+        <form onSubmit={handleSubmit} className="w-full">
+          {webLinkAdded ? (
+            <>
+            <ScrollArea className="grid gap-1 flex-1 max-h-[60vh] overflow-auto ">
                 <div className="flex">
                   <Label className="m-2">Rate the Charity:</Label>
                   <div className="flex items-center space-x-1">
@@ -217,65 +146,41 @@ export default function AddCharityDialog() {
                     ))}
                   </div>
                 </div>
-                
+                <p className="text-gray-400 italic mt-2">*Please check the fields are correct:</p>
                 <div className="grid m-2 my-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" name="name" value={selectedCharity.name} readOnly />
+                  <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name not found"/>
                 </div>
                 <div className="grid m-2 my-2">
-                  <Label htmlFor="description">Description (Optional)</Label>
-                  <Textarea 
-                    id="description" 
-                    name="description" 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Add a description of this charity"
-                  />
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea id="description" name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description not found"/>
                 </div>
                 <div className="grid m-2 my-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" name="address" value={selectedCharity.address} readOnly />
+                  <Label htmlFor="address">Full Address (enter manually)</Label>
+                  <div className="grid grid-cols-4 grid-rows-2 gap-2">
+                    <Input id="address_number" name="address_number" placeholder="Building Numb." required />
+                    <Input className="col-span-3" id="address_street" name="address_street" placeholder="Street Name" required />
+                    <Input className="col-span-2" id="address_city" name="address_city" placeholder="City" required />
+                    <Input className="col-span-2" id="address_postcode" name="address_postcode" placeholder="Post Code" required />
+                  </div>
                 </div>
                 <div className="grid m-2 my-2">
                   <Label htmlFor="phone">Phone Number:</Label>
-                  <Input id="phone" name="phone" value={selectedCharity.phone_number || "Not available"} readOnly />
+                  <Input id="phone" name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone not found"/>
                 </div>
                 <div className="grid m-2 my-2">
-                  <Label htmlFor="website">Website:</Label>
-                  <Input id="website" name="website" value={selectedCharity.website_link || "Not available"} readOnly />
+                  <Label htmlFor="email">Email:</Label>
+                  <Input id="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email not found"/>
                 </div>
                 
-                <div className="grid m-2 my-2">
-                  <Label>Opening Hours:</Label>
-                  <div className="border rounded-md p-3 mt-1 text-sm">
-                    {Object.entries(selectedCharity.opening_hours || <></>).map(([day, hours]) => (
-                      <div key={day} className="flex justify-between py-1 border-b last:border-0">
-                        <span className="font-medium">{day}</span>
-                        <span>{hours.isOpen ? `${hours.start} - ${hours.end}` : "Closed"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
             </ScrollArea>
-            
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setSelectedCharity(null)}>
-                Back to Search
-              </Button>
-              <Button type="button" onClick={handleSubmit}>
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                Submit Charity
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {!selectedCharity && searchResults.length === 0 && (
-          <div className="text-center p-6 text-muted-foreground">
-            <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
-            <p>Search for a charity to add it to the map</p>
-          </div>
-        )}
+            </>
+          ) : null}
+          <DialogFooter className="mt-2 !flex !justify-between">
+            <p className="text-red-500 mt-2">{websiteError}</p>
+            <SubmitButton pendingText="Sending Request..." type="submit" disabled={!webLinkAdded}>Send Request</SubmitButton>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

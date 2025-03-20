@@ -33,6 +33,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
   const [canExpire, setCanExpire] = useState(resource?.expiry_date ? true : false);
   const [isShareable, setIsShareable] = useState(resource?.shareable_quantity ? (resource?.shareable_quantity > 0 ? true : false) : false);
   const [shareableQuantity, setShareableQuantity] = useState(resource?.shareable_quantity || 0);
+  const isUpdate = action === "restock" || action === "editrow";
 
   const handleSubmit = async () => {
     const resourceData = new FormData();
@@ -43,7 +44,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
     resourceData.append("quantity", quantity.toString() || "0");
     resourceData.append("reservedQuantity", reservedQuantity.toString()  || "0");
     resourceData.append("unit", unit.toString());
-    resourceData.append("shareableQuantity", isShareable ? shareableQuantity.toString() : "");
+    resourceData.append("shareableQuantity", isShareable ? shareableQuantity.toString() : "0");
     resourceData.append("location", storage || "");
     resourceData.append("expiryDate", canExpire ? (date?.toString() || "") : "");
 
@@ -78,7 +79,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
         </DialogHeader>
         <form>
         <ScrollArea className="grid flex-1 max-h-[60vh] overflow-auto px-4">
-          <div className="py-2">
+          {!isUpdate && <div className="py-2">
             <Label htmlFor="name" className="font-medium">
               Resource Name <span className="text-red-500">*</span>
             </Label>
@@ -90,9 +91,9 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
               placeholder="Enter resource name" 
               required
             />
-          </div>
+          </div>}
 
-          <div className="py-2">
+          {!isUpdate && <div className="py-2">
             <Label htmlFor="category" className="font-medium">
               Category <span className="text-red-500">*</span>
             </Label>
@@ -121,7 +122,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </div>}
 
           <div className="grid gap-4 md:grid-cols-2 py-2">
             <div className="space-y-1">
@@ -216,7 +217,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
                 <Label htmlFor="expiry_date" className="font-medium">
                   Expiry Date
                 </Label>
-                <p className="text-xs text-gray-500">Only for items with a limited shelf life</p>
+                <p className="text-xs text-gray-500 pr-2">Only for items with a limited shelf life</p>
               </div>
               <Switch 
                 className="my-auto"
@@ -253,7 +254,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
             )}
           </div>
 
-          <div className="py-2">
+          {!isUpdate && <div className="py-2">
             <Label htmlFor="description" className="font-medium">
               Description
             </Label>
@@ -265,7 +266,7 @@ export function AddResources({resource, action} : {resource: ResourcesData | nul
               placeholder="Add additional details about this resource..." 
               rows={3}
             />
-          </div>
+          </div>}
 
           <div className="py-2">
             <div className="flex items-center space-x-2">

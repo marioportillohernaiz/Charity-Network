@@ -69,11 +69,9 @@ export default function AddCharityReviewDialog({ selectedCharityId } : { selecte
             </div>
           
             <SubmitButton pendingText="Adding Review..." type="submit" formAction={handleSubmit}>Add Review</SubmitButton>
-            <Toaster richColors expand={true} />
           </form>
         </ScrollArea>
       </DialogContent>
-      <Toaster />
     </Dialog>
   )
 }

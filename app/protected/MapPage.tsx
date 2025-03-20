@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Clock, Globe, MapPin, Phone, Star, StarHalf } from "lucide-react";
+import { Clock, Globe, MapPin, Phone, Search, Star, StarHalf, X } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
@@ -10,6 +10,7 @@ import AddCharityDialog from "@/components/component/add-charity-dialog";
 import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TransitStatus } from "@/types/TransitStatus";
+import { Input } from "@/components/ui/input";
 
 
 export default function Map({ charitiesData, currentCharity, commentsData, transitData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; }) {
@@ -18,6 +19,30 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
   const [selectedCharity, setSelectedCharity] = useState<CharityData | null>(null);
   const transitLinesRef = useRef<L.Polyline[]>([]);
   const transitIconsRef = useRef<L.Marker[]>([]);
+  
+  // Search functionality
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<CharityData[]>([]);
+  const [showResults, setShowResults] = useState(false);
+
+  // Filter charities based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setSearchResults([]);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filteredCharities = charitiesData
+      .filter(charity => 
+        (charity.name?.toLowerCase().includes(query) || 
+         charity.address?.toLowerCase().includes(query)) &&
+        charity.admin_verified
+      )
+      .slice(0, 6); // Limit to 6 results
+
+    setSearchResults(filteredCharities);
+  }, [searchQuery, charitiesData]);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -32,7 +57,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
     const customIcon = L.icon({
       iconUrl: "/pin.png",
       iconSize: [25, 35],
-      iconAnchor: [16, 40],
+      iconAnchor: [16, 40], //12, 36
     });
     const charityIcon = L.icon({
       iconUrl: "/pincharity.png",
@@ -92,6 +117,21 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
     }
   }, [charitiesData, transitData]);
 
+  // Handle charity selection from search results
+  const handleCharitySelect = (charity: CharityData) => {
+    if (mapInstanceRef.current) {
+      // Center map on selected charity
+      mapInstanceRef.current.setView([charity.latitude, charity.longitude], 16);
+      
+      // Set selected charity to show drawer
+      setSelectedCharity(charity);
+      
+      // Clear search
+      setSearchQuery("");
+      setShowResults(false);
+    }
+  };
+
   const drawTransitLines = (map: L.Map, transits: TransitData[], charityLocations: Record<string, [number, number]>) => {
     const inTransitResources = transits && transits.filter(transit => transit.status === TransitStatus.IN_TRANSIT);
     
@@ -101,8 +141,10 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       const charityTo = charitiesData.find(charity => charity.id === transit.charity_to);
       
       if (fromLocation && toLocation) {
+        const lineColor = transit.charity_to === currentCharity?.id ? '#E53935' : '#1E88E5';
+        
         const transitLine = L.polyline([fromLocation, toLocation], {
-          color: '#1E88E5',
+          color: lineColor,
           weight: 3,
         }).addTo(map);
         
@@ -111,8 +153,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         const midLng = (fromLocation[1] + toLocation[1]) / 2;
         
         const truckIconHtml = `
-          <div style="background-color: #1E88E5;border-radius: 50%;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;
-          ">
+        <div style="background-color: ${lineColor};border-radius: 50%;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;
+          ${transit.charity_to === currentCharity?.id ? 'transform: scaleX(-1);' : ''}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 17h4V5H2v12h3"/>
               <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/>
@@ -135,7 +177,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         
         truckMarker.bindTooltip(`
           <div style="padding: 8px;">
-            <p style="margin: 0; font-weight: bold;">Resource in Transit</p>
+            <p style="margin: 0; font-weight: bold; font-size: 15px;">Resource in Transit</p>
             <p style="margin: 5px 0 0;">Charity to: ${charityTo?.name}</p>
             <p style="margin: 5px 0 0;">Item: ${transit.resource_id}</p>
             <p style="margin: 2px 0 0;">Quantity: ${transit.quantity}</p>
@@ -148,11 +190,79 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
     });
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showResults && target && !target.closest('.search-container')) {
+        setShowResults(false);
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showResults]);
+
   return (
     <div id="map" className="relative w-full bg-background">
       <div ref={mapRef} className="h-full w-full bg-muted z-0" />
+      
+      {/* Search bar */}
+      <div className="flex gap-2 absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md px-4 search-container">
+        <AddCharityDialog />
 
-      <AddCharityDialog />
+        <div className="relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search for charities..."
+              className="pl-10 pr-10 py-2 w-full border border-input shadow-lg"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchResults([]);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+          
+          {/* Search results dropdown */}
+          {showResults && searchResults.length > 0 && (
+            <div className="absolute w-full mt-1 bg-background border border-input rounded-md shadow-lg z-20 max-h-80 overflow-y-auto">
+              {searchResults.map((charity) => (
+                <div 
+                  key={charity.id}
+                  className="p-3 cursor-pointer hover:bg-accent border-b last:border-b-0"
+                  onClick={() => handleCharitySelect(charity)}
+                >
+                  <div className="flex items-start">
+                    <MapPin className="h-5 w-5 mr-2 mt-0.5 shrink-0 text-primary" />
+                    <div>
+                      <p className="font-medium">{charity.name}</p>
+                      {charity.address && (
+                        <p className="text-sm text-muted-foreground truncate">{charity.address}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       <Drawer open={!!selectedCharity} onOpenChange={() => setSelectedCharity(null)}>
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col">

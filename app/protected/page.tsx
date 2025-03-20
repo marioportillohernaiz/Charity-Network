@@ -1,5 +1,5 @@
 import { getAllCharities, getCommentData, getRegisteredCharity, getResourceTransitData } from "../actions";
-import Map from "../map-page/MapPage";
+import Map from "./MapPage";
 
 export default async function MapPage() {
   const charitiesData = await getAllCharities();

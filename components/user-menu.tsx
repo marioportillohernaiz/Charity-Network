@@ -25,10 +25,10 @@ export default function UserMenu({ registeredCharity }: { registeredCharity: Cha
   return (
     <>
     <Badge variant="secondary">Hi {registeredCharity?.name}</Badge>
-    <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/")}>
+    <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected")}>
       <span>
-        {loading && clickedItem === "/" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}
-        <Link href="/">Map</Link>
+        {loading && clickedItem === "/protected" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}
+        <Link href="/protected">Map</Link>
       </span>
     </Button>
     <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected/resource-page")}>

@@ -8,10 +8,11 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns-tz';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TransitStatus } from '@/types/TransitStatus';
 
 const HistoryTab = ({charity,charityData,resourceData,transitData}:{charity: CharityData;charityData: CharityData[];resourceData: ResourcesData[]; transitData:TransitData[];}) => {
-  const sentTransitData = transitData.filter(item => item.charity_from === charity.id && item.status === "Received");
-  const receivedTransitData = transitData.filter(item => item.charity_to === charity.id && item.status === "Received");
+  const sentTransitData = transitData.filter(item => item.charity_from === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
+  const receivedTransitData = transitData.filter(item => item.charity_to === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
 
   return (
     <div className="space-y-4">
@@ -163,12 +164,15 @@ const TransitHistoryTable = ({ title, description, charityData, resourceData, tr
         <div className="space-y-4">
           {currentItems.map(history => {
             const charityDetails = charityData.find(charity => 
-              charity.id === (title.includes("Sent To") ? history.charity_to : history.charity_from)
-            ) || { name: "Unknown Charity", address: "Address not available" };
+              charity.id === (title.includes("Sent To") ? history.charity_to : history.charity_from));
             
             const resourceDetails = resourceData.find(resource => 
               resource.id === history.resource_id
             );
+            console.log("============");
+            console.log(history.resource_id);
+            console.log("============");
+            console.log(resourceData);
 
             return (
               <Card key={history.id} className="p-4 grid grid-cols-6 gap-4">
@@ -178,24 +182,28 @@ const TransitHistoryTable = ({ title, description, charityData, resourceData, tr
                 </div>
 
                 <div className="my-auto col-span-2">
-                  <p className="font-medium">{charityDetails.name}</p>
+                  <p className="font-medium">{charityDetails?.name}</p>
                   <p className="text-sm text-gray-500">
-                    {charityDetails.address || "No address provided"}
+                    {charityDetails?.address || "No address provided"}
                   </p>
                 </div>
 
                 <div className="my-auto">
                   <p className="text-sm text-gray-500">Time Sent</p>
-                  <p>{history.time_sent && format(history.time_sent, "dd/MM/yyyy hh:mm")}</p>
+                  <p>{history.time_sent ? (format(history.time_sent, "dd/MM/yyyy hh:mm")) : ("n/a")}</p>
                 </div>
 
                 <div className="my-auto">
                   <p className="text-sm text-gray-500">Time Recieved</p>
-                  <p>{history.time_received && format(history.time_received, "dd/MM/yyyy hh:mm")}</p>
+                  <p>{history.time_received ? (format(history.time_received, "dd/MM/yyyy hh:mm")) : ("n/a")}</p>
                 </div>
                 
                 <div className="my-auto">
-                  <Badge className="bg-green-200 text-green-800">Received</Badge>
+                  {history.status === "Received" ? (
+                    <Badge className="bg-green-200 text-green-800 hover:bg-green-200">Received</Badge>
+                  ) : (
+                    <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Rejected</Badge>
+                  )}
                 </div>
               </Card>
             );
