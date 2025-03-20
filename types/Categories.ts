@@ -21,3 +21,9 @@ export const SECONDARY_CATEGORIES = [
   "Crisis Relief", "Food Security", "Education", "Research",
   "Advocacy", "Conservation", "Sports & Recreation", "International"
 ];
+
+
+export const RESOURCE_CATEGORIES = ["All", "Food","Clothing & Personal Items",
+  "Household & Shelter Supplies","Medical & Health Supplies","Technology Equipment",
+  "Office Equipment","Educational Materials","Transportation & Mobility",
+  "Emergency Aid","Volunteer & Human Resources","Financial & Grant Support","Other"]

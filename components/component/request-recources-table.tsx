@@ -22,6 +22,7 @@ import { Slider } from "../ui/slider";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { requestResource } from "@/app/actions";
+import { RESOURCE_CATEGORIES } from "@/types/Categories";
 
 export function SharedResourcesTable({resourceData, charityData} : {resourceData: ResourcesData[]; charityData: CharityData[]}) {
   const sharedResources = resourceData.filter(item => item.shareable_quantity > 0);
@@ -75,10 +76,6 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
       toast.error(response.message);
     }
   }
-
-  const categories = ["All", "Food", "Clothing & Personal Items", "Household & Shelter Supplies", "Medical & Health Supplies",
-    "Technology Equipment", "Office Equipment", "Educational Materials", "Transportation & Mobility",
-    "Emergency Aid", "Volunteer & Human Resources", "Financial & Grant Support", "Other"];
 
   const filteredResources = sharedResources.filter(resource => {
     const matchesSearch = 
@@ -162,7 +159,7 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
                 setCurrentPage(1);
               }}
             >
-              {categories.map(category => (
+              {RESOURCE_CATEGORIES.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
