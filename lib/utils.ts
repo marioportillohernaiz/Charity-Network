@@ -14,7 +14,8 @@ export type SeasonalPrediction = {
   explanation?: string;
 };
 
-export async function fetchSeasonalPredictions(charityData: CharityData): Promise<SeasonalPrediction | null> {
+export async function fetchSeasonalPredictions(charityData: CharityData, resourceData: ResourcesData[], transitData: TransitData[]): Promise<SeasonalPrediction | null> {
+
   try {
     const response = await fetch('/api/predictions', {
       method: 'POST',
@@ -24,7 +25,9 @@ export async function fetchSeasonalPredictions(charityData: CharityData): Promis
       body: JSON.stringify({
         description: charityData.description,
         tags: charityData.category_and_tags?.tags,
-        categories: charityData.category_and_tags
+        categories: charityData.category_and_tags,
+        resources: resourceData.filter(resource => resource.charity_id === charityData.id),
+        resourceHistory: transitData.filter(transit => (transit.charity_from === charityData.id || transit.charity_to === charityData.id) && transit.status === 'Received'),
       }),
     });
 

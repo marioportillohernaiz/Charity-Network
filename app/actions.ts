@@ -62,19 +62,6 @@ export const getCharityResourceData = async () => {
   return resources;
 };
 
-export const getOtherCharityResourceData = async () => {
-  const supabase = await createClient();
-  const charity = await getRegisteredCharity();
-
-  const { data: shareableResources } = await supabase
-    .from("resources")
-    .select("*")
-    .neq("charity_id", charity.id)
-    .gt("shareable_quantity", 0) as { data: ResourcesData[] | []; error: any };
-  
-  return shareableResources || [];
-};
-
 export const getAllResourceData = async () => {
   const supabase = await createClient();
 

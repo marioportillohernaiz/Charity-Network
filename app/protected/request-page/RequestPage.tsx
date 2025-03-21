@@ -39,15 +39,16 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
   const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
   const [predictionError, setPredictionError] = useState<string | null>(null);
 
+  const otherCharityResourceData = resourceData.filter(resource => resource.charity_id !== charity.id);
+
   // Function to load predictions
   const loadPredictions = async (forceRefresh = false) => {
     setIsLoadingPredictions(true);
     setPredictionError(null);
     
     try {      
-      const predictions = await fetchSeasonalPredictions(charity || null);
+      const predictions = await fetchSeasonalPredictions(charity || null, resourceData, transitData);
       
-      console.log(predictions);
       if (predictions) {
         const chartData = transformPredictionsToChartData(predictions);
         setSeasonalTrendsData(chartData);
@@ -127,7 +128,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
         </div>
 
         <div className="space-y-5 overflow-hidden">
-          <SharedResourcesTable resourceData={resourceData} charityData={charityData} />
+          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} />
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>

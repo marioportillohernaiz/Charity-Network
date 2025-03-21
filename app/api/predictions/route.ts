@@ -37,50 +37,91 @@ function summarizeResourceHistory(history: any[]) {
   
   let summary = '';
   
-  // If history data is available, format it appropriately
-  // This assumes a specific format of the history data, adjust as needed
-  if (Array.isArray(history)) {
-    summary += `- Historical data spans ${history.length} periods\n`;
-    
-    // Extract trends if possible
-    const categories = new Set<string>();
-    history.forEach(period => {
-      if (period.categories) {
-        Object.keys(period.categories).forEach(cat => categories.add(cat));
-      }
+  // Basic statistics
+  const totalTransfers = history.length;
+  const totalQuantity = history.reduce((sum, transfer) => sum + transfer.quantity, 0);
+  
+  // Calculate date range
+  const dates = history.map(transfer => new Date(transfer.time_sent));
+  const oldestDate = new Date(Math.min(...dates.map(d => d.getTime())));
+  const newestDate = new Date(Math.max(...dates.map(d => d.getTime())));
+  const dateRangeInDays = Math.ceil((newestDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Get unique resource IDs
+  const uniqueResourceIds = new Set(history.map(transfer => transfer.resource_id));
+  
+  // Categorize transfers by status
+  const statusCounts: Record<string, number> = {};
+  history.forEach(transfer => {
+    statusCounts[transfer.status] = (statusCounts[transfer.status] || 0) + 1;
+  });
+  
+  // Extract information about transfer descriptions if available
+  const transfersWithDescriptions = history.filter(transfer => transfer.description && transfer.description.trim() !== '');
+  
+  // Analyze charity relationships
+  const charityRelationships: Record<string, Set<string>> = {};
+  history.forEach(transfer => {
+    if (!charityRelationships[transfer.charity_from]) {
+      charityRelationships[transfer.charity_from] = new Set();
+    }
+    charityRelationships[transfer.charity_from].add(transfer.charity_to);
+  });
+  
+  // Build a comprehensive summary
+  summary += `Resource transfer history shows ${totalTransfers} transactions spanning ${dateRangeInDays} days (from ${oldestDate.toLocaleDateString()} to ${newestDate.toLocaleDateString()}). `;
+  summary += `A total of ${totalQuantity} items were transferred, involving ${uniqueResourceIds.size} unique resource types. `;
+  
+  // Add status information
+  const statusSummary = Object.entries(statusCounts)
+    .map(([status, count]) => `${count} ${status.toLowerCase()}`)
+    .join(', ');
+  summary += `Transfer statuses include: ${statusSummary}. `;
+  
+  // Add description information if available
+  if (transfersWithDescriptions.length > 0) {
+    const sampleDescriptions = transfersWithDescriptions
+      .slice(0, Math.min(2, transfersWithDescriptions.length))
+      .map(t => `"${t.description}"`)
+      .join(', ');
+    summary += `Notable transfers include ${sampleDescriptions}. `;
+  }
+  
+  // Add charity relationship information
+  const totalDonors = Object.keys(charityRelationships).length;
+  
+  // Create a set of all recipients without using spread operator
+  const allRecipients = new Set<string>();
+  Object.values(charityRelationships).forEach(recipientSet => {
+    recipientSet.forEach(recipient => {
+      allRecipients.add(recipient);
     });
+  });
+  const totalRecipients = allRecipients.size;
+  
+  summary += `Resource sharing involved ${totalDonors} donating organizations and ${totalRecipients} receiving organizations. `;
+  
+  // Identify potential trends
+  if (totalTransfers >= 2) {
+    // Sort by date to analyze chronological trends
+    const sortedTransfers = [...history].sort((a, b) => 
+      new Date(a.time_sent).getTime() - new Date(b.time_sent).getTime()
+    );
     
-    // Summarize trends for each category
-    categories.forEach(category => {
-      const trend = analyzeTrend(history, category);
-      summary += `- ${category}: ${trend}\n`;
-    });
+    // Compare first and last transfer quantities to detect a simple trend
+    const firstQuantity = sortedTransfers[0].quantity;
+    const lastQuantity = sortedTransfers[sortedTransfers.length - 1].quantity;
+    
+    if (lastQuantity > firstQuantity) {
+      summary += `Transfer quantities show an increasing trend from ${firstQuantity} to ${lastQuantity} units. `;
+    } else if (lastQuantity < firstQuantity) {
+      summary += `Transfer quantities show a decreasing trend from ${firstQuantity} to ${lastQuantity} units. `;
+    } else {
+      summary += `Transfer quantities remain stable at ${firstQuantity} units. `;
+    }
   }
   
   return summary;
-}
-
-// Helper function to analyze trends in historical data
-function analyzeTrend(history: any[], category: string) {
-  // This is a simplified version - enhance based on your actual data structure
-  const values = history
-    .map(period => period.categories?.[category] || 0)
-    .filter(val => val > 0);
-  
-  if (values.length < 2) {
-    return 'Insufficient data for trend analysis';
-  }
-  
-  // Calculate simple trend
-  const firstVal = values[0];
-  const lastVal = values[values.length - 1];
-  const percentChange = ((lastVal - firstVal) / firstVal) * 100;
-  
-  if (percentChange > 20) return 'Strong increasing trend';
-  if (percentChange > 5) return 'Moderate increasing trend';
-  if (percentChange > -5) return 'Stable trend';
-  if (percentChange > -20) return 'Moderate decreasing trend';
-  return 'Strong decreasing trend';
 }
 
 export async function POST(request: Request) {
@@ -95,7 +136,13 @@ export async function POST(request: Request) {
 
     // Process resource data for the prompt
     const currentResourcesSummary = resources ? summarizeResources(resources) : 'No current resource data available';
-    const resourceHistorySummary = resourceHistory ? summarizeResourceHistory(resourceHistory) : 'No historical resource data available';
+    const resourceHistorySummary = resourceHistory ? summarizeResourceHistory(resourceHistory) : 'No historical data available';
+
+
+    console.log("========================")
+    console.log(resourceHistorySummary)
+    console.log("========================")
+    console.log(resourceHistory)
 
     // Format the prompt for more structured and useful predictions
     const prompt = `
@@ -111,7 +158,7 @@ export async function POST(request: Request) {
       ${currentResourcesSummary}
 
       Resource History:
-      ${resourceHistorySummary}
+      ${resourceHistory}
 
       Provide a structured monthly forecast for the following resource categories:
       1. Food
