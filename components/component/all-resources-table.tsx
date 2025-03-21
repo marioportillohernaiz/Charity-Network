@@ -11,6 +11,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, Pagi
 import { AddResources } from "./add-resources-dialog";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
+import { RESOURCE_CATEGORIES } from "@/types/Categories";
 
 export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[];}) {
 
@@ -103,10 +104,6 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
     return Math.round(availablePercent);
   };
 
-  const categories = ["All", "Food","Clothing & Personal Items","Household & Shelter Supplies","Medical & Health Supplies",
-    "Technology Equipment","Office Equipment","Educational Materials","Transportation & Mobility",
-    "Emergency Aid","Volunteer & Human Resources","Financial & Grant Support","Other"]
-
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -137,7 +134,7 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
               setCurrentPage(1);
             }}
           >
-            {categories.map(category => (
+            {RESOURCE_CATEGORIES.map(category => (
               <option key={category} value={category}>{category}</option>
             ))}
           </select>

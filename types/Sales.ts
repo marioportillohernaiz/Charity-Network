@@ -1,4 +1,4 @@
-interface CharityData {
+interface Sales {
   id: string;
   charity_id: string;
   date: Date;

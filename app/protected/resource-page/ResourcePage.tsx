@@ -55,7 +55,7 @@ export default function DashboardPage({charity,charityData,resourceData,transitD
           <TabsTrigger value="history" className="text-xs md:text-sm">History</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
-          <OverviewTab resourceData={resourceData} />
+          <OverviewTab resourceData={resourceData} requestData={transitData} charity={charity} />
         </TabsContent>
         <TabsContent value="resources" className="space-y-4">
           <ResourcesList resourceData={resourceData} />

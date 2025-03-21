@@ -3,8 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { format } from "date-fns"
-import { CalendarIcon, DollarSign, PlusCircle, Trash2 } from "lucide-react"
+import { DollarSign, PlusCircle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "../ui/button"
@@ -24,10 +23,7 @@ import { Card, CardContent } from "../ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { SubmitButton } from "../submit-button"
 import { submitSales } from "@/app/actions"
-
-const categories = ["Food","Clothing & Personal Items","Household & Shelter Supplies","Medical & Health Supplies",
-  "Technology Equipment","Office Equipment","Educational Materials","Transportation & Mobility",
-  "Emergency Aid","Volunteer & Human Resources","Financial & Grant Support","Other"]
+import { RESOURCE_CATEGORIES } from "@/types/Categories"
 
 export function RegisterSales() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -119,7 +115,7 @@ export function RegisterSales() {
                               <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                              {categories.map(category => (
+                              {RESOURCE_CATEGORIES.map(category => (
                                 <SelectItem key={category} value={category}>{category}</SelectItem>
                               ))}
                             </SelectContent>
