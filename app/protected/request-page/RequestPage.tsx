@@ -2,145 +2,86 @@
 
 import React, { useState, useTransition } from 'react';
 import { 
-  MapPin, TrendingUp, ArrowRight, Info, ArrowLeft, Loader2
+  TrendingUp, ArrowLeft, Loader2, BarChart4,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, LineChart, Line
 } from 'recharts';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ResourcesRequestedTable } from '@/components/component/resources-requested-table';
 import { SharedResourcesTable } from '@/components/component/request-recources-table';
-  
-type PredictedNeed = {
-  category: string;
-  currentStock: number;
-  predictedNeed: number;
-  timeframe: string;
-  priority: string;
-  trend: string;
-  unit: string;
-};
+import { fetchSeasonalPredictions, transformPredictionsToChartData } from '@/lib/utils';
+import { RESOURCE_CATEGORIES_MAP } from '@/types/Categories';
 
-const RequestResourcesPage = ({resourceData, transitData, charityData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]}) => {
+interface MonthData {
+  month: string;
+  [key: string]: number | string;
+}
+
+const RequestResourcesPage = ({resourceData, transitData, charityData, charity} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; charity: CharityData}) => {
   // State variables would be defined in the first part
   const [selectedResource, setSelectedResource] = useState<ResourcesData | null>(null);
   const [requestQuantity, setRequestQuantity] = useState(1);
   const [requestReason, setRequestReason] = useState('');
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
-  const [isShowPredictionDetails, setIsShowPredictionDetails] = useState(false);
-  const [selectedPrediction, setSelectedPrediction] = useState<PredictedNeed | null>();
 
-  // Mock data for predicted needs - would be defined in the first part
-  const predictedNeeds = [
-    {
-      category: 'Food',
-      currentStock: 120,
-      predictedNeed: 300,
-      timeframe: '30 days',
-      priority: 'High',
-      trend: 'Increasing',
-      unit: 'items'
-    },
-    {
-      category: 'Medical & Health Supplies',
-      currentStock: 45,
-      predictedNeed: 75,
-      timeframe: '30 days',
-      priority: 'Medium',
-      trend: 'Stable',
-      unit: 'kits'
-    },
-    {
-      category: 'Clothing & Personal Items',
-      currentStock: 200,
-      predictedNeed: 250,
-      timeframe: '60 days',
-      priority: 'Medium',
-      trend: 'Decreasing',
-      unit: 'items'
-    },
-    {
-      category: 'Educational Materials',
-      currentStock: 50,
-      predictedNeed: 150,
-      timeframe: '90 days',
-      priority: 'Low',
-      trend: 'Increasing',
-      unit: 'bundles'
-    }
-  ];
-  
-  // Prediction details chart data - would be defined in the first part
-  const predictionDetailsData = [
-    { month: 'Mar', actual: 120, predicted: 300 },
-    { month: 'Apr', actual: null, predicted: 350 },
-    { month: 'May', actual: null, predicted: 320 },
-    { month: 'Jun', actual: null, predicted: 290 }
-  ];
+  const [seasonalTrendsData, setSeasonalTrendsData] = useState<any[]>([]);
+  const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
 
-  // Location density data for the map
-  const locationData = [
-    { location: 'Boston', count: 42, lat: 42.3601, lng: -71.0589 },
-    { location: 'Cambridge', count: 28, lat: 42.3736, lng: -71.1097 },
-    { location: 'Somerville', count: 24, lat: 42.3876, lng: -71.0995 },
-    { location: 'Medford', count: 18, lat: 42.4184, lng: -71.1061 },
-    { location: 'Quincy', count: 15, lat: 42.2529, lng: -71.0023 },
-    { location: 'Newton', count: 22, lat: 42.3370, lng: -71.2092 },
-    { location: 'Brookline', count: 19, lat: 42.3318, lng: -71.1212 },
-    { location: 'Watertown', count: 14, lat: 42.3709, lng: -71.1828 }
-  ];
-  
-  // Mock data for resource availability by time
-  const availabilityByTimeData = [
-    { time: '1-7 days', percentage: 65 },
-    { time: '8-14 days', percentage: 82 },
-    { time: '15-30 days', percentage: 91 },
-    { time: '31+ days', percentage: 97 }
-  ];
-  
-  // Utility functions
-  const getPriorityBadge = (priority: string) => {
-    switch(priority) {
-      case 'High':
-        return <Badge className="bg-red-100 text-red-800">High</Badge>;
-      case 'Medium':
-        return <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>;
-      case 'Low':
-        return <Badge className="bg-blue-100 text-blue-800">Low</Badge>;
-      default:
-        return <Badge>{priority}</Badge>;
+  // Function to load predictions
+  const loadPredictions = async (forceRefresh = false) => {
+    setIsLoadingPredictions(true);
+    setPredictionError(null);
+    
+    try {      
+      const predictions = await fetchSeasonalPredictions(charity || null);
+      
+      console.log(predictions);
+      if (predictions) {
+        const chartData = transformPredictionsToChartData(predictions);
+        setSeasonalTrendsData(chartData);
+        setPredictionExplanation(predictions.explanation || null);
+      } else {
+        // Fallback to default data if predictions fail
+        setSeasonalTrendsData(defaultSeasonalTrendsData);
+        setPredictionError("Could not fetch AI predictions, using sample data instead");
+      }
+    } catch (error) {
+      console.error("Error loading predictions:", error);
+      setSeasonalTrendsData(defaultSeasonalTrendsData);
+      setPredictionError("Error loading predictions, using sample data instead");
+    } finally {
+      setIsLoadingPredictions(false);
     }
   };
-  
-  const getTrendIndicator = (trend: string) => {
-    switch(trend) {
-      case 'Increasing':
-        return <TrendingUp className="h-4 w-4 text-red-500" />;
-      case 'Stable':
-        return <ArrowRight className="h-4 w-4 text-yellow-500" />;
-      case 'Decreasing':
-        return <TrendingUp className="h-4 w-4 text-green-500 rotate-180" />;
-      default:
-        return null;
-    }
+
+  // Handle manual refresh button click
+  const handleRefreshPredictions = () => {
+    loadPredictions(true);
   };
-  
-  // Function to calculate the deficit percentage
-  const calculateDeficit = (current: number, predicted: number) => {
-    if (current >= predicted) return 0;
-    return Math.round(((predicted - current) / predicted) * 100);
-  };
+
+  // Default fallback data
+  const [predictionExplanation, setPredictionExplanation] = useState<string | null>(null);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const defaultSeasonalTrendsData = months.map(month => {
+    const monthData: MonthData = { month };
+    RESOURCE_CATEGORIES_MAP.forEach(category => {
+      monthData[category.value] = 0;
+    });
+    return monthData;
+  });
 
   const router = useRouter();
   const [loading, startTransition] = useTransition();
@@ -159,78 +100,81 @@ const RequestResourcesPage = ({resourceData, transitData, charityData} : {resour
     <div className="container mx-auto py-6 max-w-7xl">
       <div className="grid gap-6">
 
-        <div className="flex">
-          <Button asChild className="my-auto mr-4" variant="outline" onClick={(e) => handleNavigation(e, "/protected/resource-page")}>
-            <span>
-              {loading && clickedItem === "/protected/resource-page" ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : (<ArrowLeft className="mr-2 h-4 w-4" />) }
-              <Link href="/protected/resource-page">Back</Link>
-            </span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Request Resources</h1>
-            <p className="text-muted-foreground">Request resources from other charities.</p>
+        <div className="flex justify-between items-center">
+          <div className="flex">
+            <Button asChild className="my-auto mr-4" variant="outline" onClick={(e) => handleNavigation(e, "/protected/resource-page")}>
+              <span>
+                {loading && clickedItem === "/protected/resource-page" ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : (<ArrowLeft className="mr-2 h-4 w-4" />) }
+                <Link href="/protected/resource-page">Back</Link>
+              </span>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Request Resources</h1>
+              <p className="text-muted-foreground">Request resources from other charities. Scroll down to view AI predictions</p>
+            </div>
           </div>
+          
+          <Button 
+            onClick={handleRefreshPredictions}
+            disabled={isLoadingPredictions}
+            variant="outline"
+            size="icon"
+            className="h-10 w-10"
+            title="Refresh AI Predictions"
+          >
+            <RefreshCw className={`h-5 w-5 ${isLoadingPredictions ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
 
         <div className="space-y-5 overflow-hidden">
           <SharedResourcesTable resourceData={resourceData} charityData={charityData} />
+
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
+            <p className="text-muted-foreground">
+              View AI predictions for resources needed in your charity based on your charity profile.
+              {predictionError && <span className="text-amber-600 ml-2">{predictionError}</span>}
+            </p>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-purple-500" />
-                AI Resource Predictions
+                <BarChart4 className="h-5 w-5 text-green-500" />
+                Seasonal Resource Trends
+                {isLoadingPredictions && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
               </CardTitle>
-              <CardDescription>Resources you'll need based on historical data</CardDescription>
+              <CardDescription>
+                AI-predicted demand patterns by category based on your charity's profile
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {predictedNeeds.map((prediction, index) => (
-                <div 
-                  key={index}
-                  className={`p-3 rounded-lg border border-l-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    prediction.priority === 'High' 
-                      ? 'border-l-red-500' 
-                      : prediction.priority === 'Medium' 
-                        ? 'border-l-yellow-500' 
-                        : 'border-l-blue-500'
-                  }`}
-                  onClick={() => {
-                    setSelectedPrediction(prediction);
-                    setIsShowPredictionDetails(true);
-                  }}
-                >
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-medium">{prediction.category}</h3>
-                    <div className="flex items-center gap-1">
-                      {getPriorityBadge(prediction.priority)}
-                      {getTrendIndicator(prediction.trend)}
-                    </div>
-                  </div>
-                  
-                  <div className="mt-2">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Current: {prediction.currentStock} {prediction.unit}</span>
-                      <span>Needed: {prediction.predictedNeed} {prediction.unit}</span>
-                    </div>
-                    <Progress 
-                      value={(prediction.currentStock / prediction.predictedNeed) * 100} 
-                      className="h-2" 
-                    />
-                    
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-sm text-gray-500">Within {prediction.timeframe}</span>
-                      {prediction.currentStock < prediction.predictedNeed && (
-                        <Badge variant="outline" className="bg-red-50 text-red-700">
-                          {calculateDeficit(prediction.currentStock, prediction.predictedNeed)}% deficit
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              <div className="flex justify-end">
-                <Button variant="link" className="text-sm">View all predictions</Button>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={seasonalTrendsData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    {seasonalTrendsData[0]?.food !==0 && <Line type="monotone" dataKey="food" name={RESOURCE_CATEGORIES_MAP[0].label} stroke="#0088FE" activeDot={{ r: 8 }} />}
+                    {seasonalTrendsData[0]?.clothing !==0 && <Line type="monotone" dataKey="clothing" name={RESOURCE_CATEGORIES_MAP[1].label} stroke="#00C49F" />}
+                    {seasonalTrendsData[0]?.medical !==0 && <Line type="monotone" dataKey="medical" name={RESOURCE_CATEGORIES_MAP[2].label} stroke="#FF8042" />}
+                    {seasonalTrendsData[0]?.housing !==0 && <Line type="monotone" dataKey="housing" name={RESOURCE_CATEGORIES_MAP[3].label} stroke="#FFBB28" />}
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
+              {predictionExplanation && (
+                <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />
+                    AI Prediction Explanation
+                  </h3>
+                  <p className="text-sm text-blue-800">
+                    {predictionExplanation}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -348,112 +292,6 @@ const RequestResourcesPage = ({resourceData, transitData, charityData} : {resour
             </Button>
             <Button>
               Submit Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Prediction Details Dialog */}
-      <Dialog open={isShowPredictionDetails} onOpenChange={setIsShowPredictionDetails}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Resource Prediction Details</DialogTitle>
-            <DialogDescription>
-              Detailed analysis of predicted resource needs
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedPrediction && (
-            <div className="py-2">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-medium">{selectedPrediction.category}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    {getPriorityBadge(selectedPrediction.priority)}
-                    <span className="text-sm text-gray-500">
-                      {selectedPrediction.trend === 'Increasing' ? 'Increasing demand' : 
-                       selectedPrediction.trend === 'Decreasing' ? 'Decreasing demand' : 
-                       'Stable demand'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="text-right">
-                  <div className="text-sm text-gray-500">Current Stock</div>
-                  <div className="text-xl font-bold">{selectedPrediction.currentStock} {selectedPrediction.unit}</div>
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Current Stock</span>
-                  <span>Predicted Need: {selectedPrediction.predictedNeed} {selectedPrediction.unit}</span>
-                </div>
-                <Progress 
-                  value={(selectedPrediction.currentStock / selectedPrediction.predictedNeed) * 100} 
-                  className="h-3" 
-                />
-                
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-sm text-gray-500">Needed within {selectedPrediction.timeframe}</span>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                    {selectedPrediction.predictedNeed - selectedPrediction.currentStock} {selectedPrediction.unit} needed
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <h4 className="font-medium mb-2">Monthly Projection</h4>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={predictionDetailsData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <RechartsTooltip />
-                      <Legend />
-                      <Area 
-                        type="monotone" 
-                        dataKey="actual" 
-                        name="Current Stock" 
-                        fill="#82ca9d" 
-                        stroke="#82ca9d" 
-                        fillOpacity={0.3} 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="predicted" 
-                        name="Predicted Need" 
-                        fill="#8884d8" 
-                        stroke="#8884d8" 
-                        fillOpacity={0.3} 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Recommendation</h4>
-                <div className="p-3 bg-blue-50 text-blue-800 rounded-md">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      Based on your historical usage patterns and seasonal trends, we recommend 
-                      requesting <span className="font-semibold">{selectedPrediction.predictedNeed - selectedPrediction.currentStock} {selectedPrediction.unit}</span> of {selectedPrediction.category.toLowerCase()} within the next {selectedPrediction.timeframe.split(' ')[0]} days.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setIsShowPredictionDetails(false)}>
-              Close
-            </Button>
-            <Button>
-              Search Available Resources
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,44 +1,14 @@
 "use client"
 
 import React, { useMemo } from 'react';
-import { Plus, ArrowUpDown, Package2, TrendingUp, CalendarClock, Share2, AlertTriangle, BarChart4 } from 'lucide-react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
+import { ArrowUpDown, Package2, CalendarClock, Share2 } from 'lucide-react';
+import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, subMonths, differenceInDays } from 'date-fns';
 
-type ResourceData = {
-  id: string | number;
-  name: string;
-  description?: string;
-  category: string;
-  quantity: number;
-  quantity_reserved: number;
-  shareable_quantity: number;
-  unit: string;
-  location?: string;
-  expiry_date?: Date | string | null;
-  updated_at: Date | string;
-};
-
-const OverviewTab = ({ resourceData, requestData }: { resourceData: ResourceData[], requestData?: TransitData[] }) => {
-  // Colors for the charts
+const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData }) => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
-
-  const seasonalTrendsData = [
-    { month: 'Jan', food: 240, clothing: 350, medical: 80 },
-    { month: 'Feb', food: 220, clothing: 320, medical: 85 },
-    { month: 'Mar', food: 280, clothing: 280, medical: 90 },
-    { month: 'Apr', food: 250, clothing: 220, medical: 100 },
-    { month: 'May', food: 200, clothing: 190, medical: 110 },
-    { month: 'Jun', food: 180, clothing: 180, medical: 120 },
-    { month: 'Jul', food: 190, clothing: 200, medical: 115 },
-    { month: 'Aug', food: 210, clothing: 250, medical: 105 },
-    { month: 'Sep', food: 250, clothing: 300, medical: 95 },
-    { month: 'Oct', food: 270, clothing: 340, medical: 90 },
-    { month: 'Nov', food: 300, clothing: 360, medical: 85 },
-    { month: 'Dec', food: 320, clothing: 370, medical: 80 }
-  ];
 
   // Calculate total resource statistics
   const totalResources = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.quantity, 0), [resourceData]);
@@ -301,53 +271,6 @@ const OverviewTab = ({ resourceData, requestData }: { resourceData: ResourceData
           </CardContent>
         </Card>
       </div>
-
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
-        <p className="text-muted-foreground">View AI predictions for resources needed in your charity.</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart4 className="h-5 w-5 text-green-500" />
-            Seasonal Resource Trends
-          </CardTitle>
-          <CardDescription>Historical demand patterns by category</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={seasonalTrendsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="food" 
-                  name="Food" 
-                  stroke="#0088FE" 
-                  activeDot={{ r: 8 }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="clothing" 
-                  name="Clothing" 
-                  stroke="#00C49F" 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="medical" 
-                  name="Medical" 
-                  stroke="#FF8042" 
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

@@ -27,3 +27,17 @@ export const RESOURCE_CATEGORIES = ["All", "Food","Clothing & Personal Items",
   "Household & Shelter Supplies","Medical & Health Supplies","Technology Equipment",
   "Office Equipment","Educational Materials","Transportation & Mobility",
   "Emergency Aid","Volunteer & Human Resources","Financial & Grant Support","Other"]
+
+export const RESOURCE_CATEGORIES_MAP: Category[] = [
+  { value: "food", label: "Food" },
+  { value: "clothing", label: "Clothing & Personal Items" },
+  { value: "medical", label: "Medical & Health Supplies" },
+  { value: "housing", label: "Housing & Homelessness" },
+  { value: "tech", label: "Technology Equipment" },
+  { value: "office", label: "Office Equipment" },
+  { value: "education", label: "Educational Materials" },
+  { value: "transport", label: "Transportation & Mobility" },
+  { value: "volunteer", label: "Volunteer & Human Resources" },
+  { value: "finance", label: "Financial & Grant Support" },
+  { value: "other", label: "Other" }
+];
