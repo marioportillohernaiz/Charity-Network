@@ -5,11 +5,21 @@ import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Bell, Loader2, Menu, X } from "lucide-react";
 import Link from "next/link";
-import { signOutAction } from "@/app/actions";
+import { deleteNotification, signOutAction } from "@/app/actions";
 import { Badge } from "./ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
-export default function UserMenu({ registeredCharity }: { registeredCharity: CharityData; }) {
+export default function UserMenu({ registeredCharity, notificationData }: { registeredCharity: CharityData; notificationData: NotificationData[]; }) {
   const router = useRouter();
   const [loading, startTransition] = useTransition();
   const [clickedItem, setClickedItem] = useState<string | null>(null);
@@ -25,7 +35,15 @@ export default function UserMenu({ registeredCharity }: { registeredCharity: Cha
     });
   };
 
-  // Navigation links to keep code DRY
+  const handleDeleteNotification = async (id: string) => {
+    const response = await deleteNotification(id);
+    if (response.success) {
+      toast.success(response.message);
+    } else {
+      toast.error(response.message);
+    }
+  };
+
   const NavLinks = () => (
     <>
       <Badge variant="secondary" className="mr-2">Hi {registeredCharity?.name}</Badge>
@@ -57,9 +75,59 @@ export default function UserMenu({ registeredCharity }: { registeredCharity: Cha
     <>
       {/* Desktop Navigation */}
       <div className="hidden md:flex md:items-center md:space-x-2">
-        <Badge variant="secondary" className="mr-2">Hi {registeredCharity?.name}</Badge>
         <NavLinks />
-        <Bell color="#ffffff" className="w-5 h-5 mx-2"/>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" className="relative">
+              <Bell color="#ffffff" className="w-5 h-5" />
+              {notificationData?.length > 0 && (
+                <Badge variant="destructive" className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-xs">
+                  {notificationData.length > 9 ? '9+' : notificationData.length}
+                </Badge>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {notificationData?.length === 0 ? (
+              <div className="text-center py-4 text-sm text-muted-foreground">No notifications</div>
+            ) : (
+              notificationData?.slice(0, 5).map((notification) => (
+                <DropdownMenuItem key={notification.id} className="cursor-pointer p-0">
+                  <div className="flex flex-col w-full p-2 hover:bg-muted relative group">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleDeleteNotification(notification.id)}
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Delete notification</span>
+                    </Button>
+                    <div className="font-medium pr-6">{notification.title}</div>
+                    {notification.description && (
+                      <div className="text-sm text-muted-foreground line-clamp-2">
+                        {notification.description}
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(notification.created_at), 'MMM d, yyyy')}
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))
+            )}
+            {notificationData?.length > 5 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-center text-sm text-primary cursor-pointer">
+                  View all notifications
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <form action={signOutAction}>
           <Button type="submit" variant="link" className="pl-0 text-white">
             Sign out
@@ -69,7 +137,58 @@ export default function UserMenu({ registeredCharity }: { registeredCharity: Cha
 
       {/* Mobile Navigation */}
       <div className="flex items-center md:hidden">
-        <Bell color="#ffffff" className="w-5 h-5 mx-2"/>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" className="relative">
+              <Bell color="#ffffff" className="w-5 h-5" />
+              {notificationData?.length > 0 && (
+                <Badge variant="destructive" className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-xs">
+                  {notificationData.length > 9 ? '9+' : notificationData.length}
+                </Badge>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {notificationData?.length === 0 ? (
+              <div className="text-center py-4 text-sm text-muted-foreground">No notifications</div>
+            ) : (
+              notificationData?.slice(0, 5).map((notification) => (
+                <DropdownMenuItem key={notification.id} className="cursor-pointer p-0">
+                  <div className="flex flex-col w-full p-2 hover:bg-muted relative group">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleDeleteNotification(notification.id)}
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Delete notification</span>
+                    </Button>
+                    <div className="font-medium pr-6">{notification.title}</div>
+                    {notification.description && (
+                      <div className="text-sm text-muted-foreground line-clamp-2">
+                        {notification.description}
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(notification.created_at), 'MMM d, yyyy')}
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))
+            )}
+            {notificationData?.length > 5 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-center text-sm text-primary cursor-pointer">
+                  View all notifications
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>

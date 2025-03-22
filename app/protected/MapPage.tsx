@@ -102,7 +102,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       filteredCharities.forEach((charity) => {
         charityLocations[charity.id] = [charity.latitude, charity.longitude];
         
-        const marker = charity.id === currentCharity.id ? 
+        const marker = charity.id === currentCharity?.id ? 
           L.marker([charity.latitude, charity.longitude], { icon: charityIcon }).addTo(mapInstanceRef.current!) : 
           L.marker([charity.latitude, charity.longitude], { icon: customIcon }).addTo(mapInstanceRef.current!);
           
@@ -205,7 +205,10 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
   };
 
   const drawTransitLines = (map: L.Map, transits: TransitData[], charityLocations: Record<string, [number, number]>) => {
-    const inTransitResources = transits && transits.filter(transit => transit.status === TransitStatus.IN_TRANSIT);
+    const inTransitResources = transits && transits.filter(transit => 
+      transit.status === TransitStatus.IN_TRANSIT && 
+      (transit.charity_to === currentCharity?.id || transit.charity_from === currentCharity?.id)
+    );
     
     inTransitResources.forEach(transit => {
       const fromLocation = charityLocations[transit.charity_from];
@@ -319,7 +322,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
           </div>
           
           {showResults && searchResults.length > 0 && (
-            <div className="absolute w-full mt-1 bg-background border border-input rounded-md shadow-lg z-20 max-h-80 overflow-y-auto">
+            <div className="absolute w-full mt-12 bg-background border border-input rounded-md shadow-lg z-20 max-h-80 overflow-y-auto">
               {searchResults.map((charity) => (
                 <div 
                   key={charity.id}
@@ -385,7 +388,12 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
             
             <Card className="overflow-hidden p-6 grid grid-cols-2">
               <div>
-                <img className="mb-6 h-[200px] w-full max-w-full rounded-lg object-cover" src="/placeholder.png"/>
+                {selectedCharity?.src_charity_img ? (
+                  <img className="mb-6 h-[300px] w-full max-w-full rounded-lg object-cover" src={selectedCharity?.src_charity_img}/>
+                ) : (
+                  <img className="mb-6 h-[200px] w-full max-w-full rounded-lg object-cover" src="/placeholder.png"/>
+                ) }
+                
                 
                 <div className="flex justify-between items-start">
                   <div>

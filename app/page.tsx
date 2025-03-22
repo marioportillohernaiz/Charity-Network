@@ -4,9 +4,8 @@ import { useState, } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, Check, ChevronRight, HeartHandshake } from "lucide-react"
+import { ArrowRight, Check, ChevronRight } from "lucide-react"
 import Link from "next/link";
-import Image from 'next/image';
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 
