@@ -82,6 +82,30 @@ export const getResourceTransitData = async () => {
   return resource_transit;
 };
 
+export const getNotificationData = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: notifications } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("charity_id", charity?.id) as { data: NotificationData[]; error: any };
+  
+  return notifications;
+};
+
+export const getSalesData = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: sales } = await supabase
+    .from("sales_register")
+    .select("*")
+    .eq("charity_id", charity?.id) as { data: Sales[]; error: any };
+  
+  return sales;
+};
+
 // Any sort of form actions & database insert/update/delete
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -565,4 +589,35 @@ export async function submitSales(formData: FormData) {
       return { success: true, message: "Sales registered successfully" };
     }
   }   
+}
+
+export async function deleteNotification(id: string) {
+  const supabase = await createClient();
+  const user = await getAuthUser(); 
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {
+    const { data: existingNotification } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (existingNotification) {
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Deleting Notification" };
+      } else {
+        return { success: true, message: "Notification Deleted" };
+      }
+    } else {
+      return { success: false, message: "Error Fetching Notification" };
+    }
+  }  
 }

@@ -25,7 +25,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
   // Profile state
   const [name, setName] = useState(accountData?.name || '');
   const [description, setDescription] = useState(accountData?.description || '');
-  const [headerImage, setHeaderImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
   
   // Location state
@@ -113,15 +112,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
       [day]: { isOpen, start, end },
     }));
   }
-  
-  // Mock function to handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setHeaderImage(imageUrl);
-    }
-  };
 
   // Handle secondary category toggle
   const handleSecondaryCategoryToggle = (category: string, checked: boolean) => {
@@ -364,19 +354,17 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     <div>
                       <Label htmlFor="header-image">Charity Image</Label>
                       <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
-                        {headerImage ? (
+                        {accountData?.src_charity_img ? (
                           <div className="relative">
                             <img 
-                              src={headerImage} 
-                              alt="Header Preview" 
-                              className="max-h-[200px] mx-auto rounded-md" 
+                              src={`/${accountData?.src_charity_img}`} 
+                              className="h-[300px] mx-auto rounded-md" 
                             />
                             <Button 
                               type="button" 
-                              variant="outline" 
+                              variant="destructive" 
                               size="sm" 
                               className="absolute top-2 right-2"
-                              onClick={() => setHeaderImage(null)}
                             >
                               Remove
                             </Button>
@@ -388,7 +376,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                               type="file" 
                               accept="image/*" 
                               className="hidden" 
-                              onChange={(e) => handleImageUpload(e)} 
                             />
                             <div className="py-8">
                               <ImagePlus className="h-10 w-10 text-muted-foreground mx-auto mb-2" />

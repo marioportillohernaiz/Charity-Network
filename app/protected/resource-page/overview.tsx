@@ -1,13 +1,13 @@
 "use client"
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowUpDown, Package2, CalendarClock, Share2 } from 'lucide-react';
-import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format, subMonths, differenceInDays } from 'date-fns';
+import { format, subMonths, differenceInDays, parse } from 'date-fns';
 
-const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData }) => {
+const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData; salesData: Sales[] }) => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
 
   // Calculate total resource statistics
@@ -96,19 +96,112 @@ const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: Res
     return previousMonth === 0 ? 100 : Math.round(((currentMonth - previousMonth) / previousMonth) * 100);
   }, [monthlyTrendsData]);
 
-  // Utility functions for badges
-  const getUrgencyBadge = (urgency: string) => {
-    switch(urgency) {
-      case 'High':
-        return <Badge className="bg-red-500 text-white">High</Badge>;
-      case 'Medium':
-        return <Badge className="bg-blue-600 text-white">Medium</Badge>;
-      case 'Low':
-        return <Badge className="bg-gray-500 text-white">Low</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
+  const formatCurrency = (amount: number): string => {
+    return `£${amount.toFixed(2)}`
+  }
+  
+  // State for all category data and filtered data
+  const [allCategoryData, setAllCategoryData] = useState<Record<string, any[]>>({})
+  const [categoryData, setCategoryData] = useState<any[]>([])
+  const [availableMonths, setAvailableMonths] = useState<string[]>([])
+  const [selectedMonth, setSelectedMonth] = useState<string>('all')
+
+  // Process sales data by category and month
+  useEffect(() => {
+    // Create an object to store sales by month and category
+    const salesByMonth: Record<string, Record<string, number>> = {}
+    const months: Set<string> = new Set()
+    
+    // Process all sales
+    salesData.forEach((sale) => {
+      const date = new Date(sale.date)
+      const monthYear = format(date, 'MMM yyyy')
+      
+      // Add to available months
+      months.add(monthYear)
+      
+      // Initialize month if not exists
+      if (!salesByMonth[monthYear]) {
+        salesByMonth[monthYear] = {}
+      }
+      
+      // Add sales data for this month
+      sale.sales_data?.forEach((item) => {
+        if (salesByMonth[monthYear][item.category]) {
+          salesByMonth[monthYear][item.category] += item.amount
+        } else {
+          salesByMonth[monthYear][item.category] = item.amount
+        }
+      })
+    })
+    
+    // Create arrays of available months (sorted chronologically)
+    const sortedMonths = Array.from(months).sort((a, b) => {
+      const dateA = parse(a, 'MMM yyyy', new Date())
+      const dateB = parse(b, 'MMM yyyy', new Date())
+      return dateB.getTime() - dateA.getTime() // Most recent first
+    })
+    
+    setAvailableMonths(sortedMonths)
+    
+    // Create aggregate data for all months combined
+    const allMonthsData: Record<string, number> = {}
+    
+    Object.values(salesByMonth).forEach(monthData => {
+      Object.entries(monthData).forEach(([category, amount]) => {
+        if (allMonthsData[category]) {
+          allMonthsData[category] += amount
+        } else {
+          allMonthsData[category] = amount
+        }
+      })
+    })
+    
+    // Convert to array format for charts
+    const chartDataByMonth: Record<string, any[]> = {}
+    
+    // Process each month's data
+    Object.entries(salesByMonth).forEach(([month, categories]) => {
+      const monthData = Object.entries(categories).map(([category, amount]) => ({
+        category,
+        amount,
+        fill: "#064789",
+      })).sort((a, b) => b.amount - a.amount)
+      
+      chartDataByMonth[month] = monthData
+    })
+    
+    // Process all months combined
+    const allData = Object.entries(allMonthsData).map(([category, amount]) => ({
+      category,
+      amount,
+      fill: "#064789",
+    })).sort((a, b) => b.amount - a.amount)
+    
+    // Store all data
+    chartDataByMonth['all'] = allData
+    
+    setAllCategoryData(chartDataByMonth)
+    
+    // Set initial display data
+    if (selectedMonth && chartDataByMonth[selectedMonth]) {
+      setCategoryData(chartDataByMonth[selectedMonth])
+    } else if (sortedMonths.length > 0) {
+      setCategoryData(chartDataByMonth[sortedMonths[0]])
+    } else {
+      setCategoryData(allData)
     }
-  };
+    
+  }, [salesData])
+  
+  // Update displayed data when month selection changes
+  useEffect(() => {
+    if (selectedMonth && allCategoryData[selectedMonth]) {
+      setCategoryData(allCategoryData[selectedMonth])
+    } else if (selectedMonth === 'all' && allCategoryData['all']) {
+      setCategoryData(allCategoryData['all'])
+    }
+  }, [selectedMonth, allCategoryData])
 
   return (
     <div className="space-y-6">
@@ -196,8 +289,8 @@ const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: Res
                   data={resourceDistribution}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  outerRadius={60}
+                  labelLine={true}
+                  outerRadius={80}
                   dataKey="value"
                   label={({ name, percent }) => {
                     return `${name}\n${(percent * 100).toFixed(0)}%`;
@@ -233,7 +326,7 @@ const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: Res
             <CardTitle>Resource Allocation</CardTitle>
             <CardDescription>How your resources are currently allocated</CardDescription>
           </CardHeader>
-          <CardContent className="h-64">
+          <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -241,7 +334,7 @@ const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: Res
                   cx="50%"
                   cy="50%"
                   labelLine={true}
-                  outerRadius={60}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                   label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
@@ -271,6 +364,75 @@ const OverviewTab = ({ resourceData, requestData, charity }: { resourceData: Res
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div>
+            <CardTitle>Sales by Category</CardTitle>
+            <CardDescription>Breakdown of sales across categories</CardDescription>
+          </div>
+          <div className="flex space-x-1">
+            {availableMonths.length > 0 && (
+              <div className="flex items-center rounded-md border bg-background p-1 text-sm">
+                <button
+                  onClick={() => setSelectedMonth('all')}
+                  className={`rounded-sm px-2.5 py-0.5 ${
+                    selectedMonth === 'all' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  All Time
+                </button>
+                {availableMonths.map((month) => (
+                  <button
+                    key={month}
+                    onClick={() => setSelectedMonth(month)}
+                    className={`rounded-sm px-2.5 py-0.5 ${
+                      selectedMonth === month 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    {month}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[500px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={categoryData} 
+                margin={{ top: 20, right: 40, left: 0, bottom: 0 }} 
+                layout="vertical"
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                <XAxis type="number" tickFormatter={formatCurrency} />
+                <YAxis 
+                  dataKey="category" 
+                  type="category" 
+                  width={150}
+                  tick={{ fontSize: 12 }} 
+                />
+                <Tooltip
+                  formatter={(value) => formatCurrency(Number(value))}
+                  labelFormatter={(label) => `Category: ${label}`}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="amount" 
+                  name="Amount" 
+                  fill="#0f4c81" 
+                  radius={[0, 4, 4, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+        </Card>
     </div>
   );
 };

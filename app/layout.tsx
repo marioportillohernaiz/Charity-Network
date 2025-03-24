@@ -24,13 +24,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const userIsBusiness = user?.user_metadata.display_name === "eatery";
-
   // CHANGE THIS VARIABLE TO TRUE IF YOU WISH TO LEAVE THE WEBSITE ON MAINTENANCE MODE
   const is_maintenance = false;
   
