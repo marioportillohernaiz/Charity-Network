@@ -7,20 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { format, subMonths, differenceInDays, parse } from 'date-fns';
 
-const chartColors = [
-  "#4f46e5", // indigo
-  "#0ea5e9", // sky
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#14b8a6", // teal
-  "#f97316", // orange
-  "#6366f1", // indigo
-  "#84cc16", // lime
-]
-
 const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData; salesData: Sales[] }) => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
 
@@ -119,7 +105,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  // const [monthlySalesData, setMonthlySalesData] = useState<any[]>([]);
 
   // Process sales data by category and month
   useEffect(() => {
@@ -447,41 +432,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
             </ResponsiveContainer>
           </div>
         </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle>Monthly Sales Trends</CardTitle>
-              <CardDescription>Track sales performance over time</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" angle={0} textAnchor="middle" height={40} tick={{ fontSize: 12 }} />
-                  <YAxis tickFormatter={formatCurrency} />
-                  <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                  <Legend />
-                  {/* Dynamically create bars for each sales category */}
-                  {Array.from(
-                    new Set(categoryData.flatMap((item) => Object.keys(item).filter((key) => key !== "month"))),
-                  ).map((category, index) => (
-                    <Bar
-                      key={category}
-                      dataKey={category}
-                      name={category}
-                      stackId="a"
-                      fill={chartColors[index % chartColors.length]}
-                      radius={index === 0 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
         </Card>
     </div>
   );
