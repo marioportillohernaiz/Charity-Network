@@ -126,7 +126,7 @@ function summarizeResourceHistory(history: any[]) {
 
 export async function POST(request: Request) {
   try {
-    const { description, tags, categories, resources, resourceHistory } = await request.json();
+    const { description, tags, categories, resources, resourceHistory, availableResources } = await request.json();
     
     // ChatGPT API configuration
     const apiKey = process.env.OPENAI_API_KEY;
@@ -137,12 +137,7 @@ export async function POST(request: Request) {
     // Process resource data for the prompt
     const currentResourcesSummary = resources ? summarizeResources(resources) : 'No current resource data available';
     const resourceHistorySummary = resourceHistory ? summarizeResourceHistory(resourceHistory) : 'No historical data available';
-
-
-    console.log("========================")
-    console.log(resourceHistorySummary)
-    console.log("========================")
-    console.log(resourceHistory)
+    const availableResourcesFromOtherCharities = availableResources ? summarizeResources(availableResources) : 'No available resources data available';
 
     // Format the prompt for more structured and useful predictions
     const prompt = `
@@ -158,7 +153,12 @@ export async function POST(request: Request) {
       ${currentResourcesSummary}
 
       Resource History:
-      ${resourceHistory}
+      ${resourceHistorySummary}
+
+     Resources Available From Other Charities:
+      ${availableResourcesFromOtherCharities}
+
+     Today's Date: ${new Date().toLocaleDateString()}
 
       Provide a structured monthly forecast for the following resource categories:
       1. Food
@@ -191,6 +191,7 @@ export async function POST(request: Request) {
           ...and so on
         },
         "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors."
+        "recommendation": "Given ONLY the resources available from other charities, can you give me ONLY ONE charity that might be able to help TODAY with the predicted demand?"
       }
 
       Consider the following factors in your prediction:

@@ -12,6 +12,7 @@ export type SeasonalPrediction = {
   medical: Record<string, number>;
   housing: Record<string, number>;
   explanation?: string;
+  recommendation?: string;
 };
 
 export async function fetchSeasonalPredictions(charityData: CharityData, resourceData: ResourcesData[], transitData: TransitData[]): Promise<SeasonalPrediction | null> {
@@ -28,6 +29,7 @@ export async function fetchSeasonalPredictions(charityData: CharityData, resourc
         categories: charityData.category_and_tags,
         resources: resourceData.filter(resource => resource.charity_id === charityData.id),
         resourceHistory: transitData.filter(transit => (transit.charity_from === charityData.id || transit.charity_to === charityData.id) && transit.status === 'Received'),
+        availableResources: resourceData.filter(resource => resource.charity_id !== charityData.id && resource.shareable_quantity > 0),
       }),
     });
 

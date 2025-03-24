@@ -3,7 +3,8 @@
 import React, { useState, useTransition } from 'react';
 import { 
   TrendingUp, ArrowLeft, Loader2, BarChart4,
-  RefreshCw
+  RefreshCw,
+  TriangleAlert
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
         const chartData = transformPredictionsToChartData(predictions);
         setSeasonalTrendsData(chartData);
         setPredictionExplanation(predictions.explanation || null);
+        setRecommendation(predictions.recommendation || null);
       } else {
         // Fallback to default data if predictions fail
         setSeasonalTrendsData(defaultSeasonalTrendsData);
@@ -74,6 +76,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
 
   // Default fallback data
   const [predictionExplanation, setPredictionExplanation] = useState<string | null>(null);
+  const [recommendation, setRecommendation] = useState<string | null>(null);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const defaultSeasonalTrendsData = months.map(month => {
@@ -128,7 +131,34 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
         </div>
 
         <div className="space-y-5 overflow-hidden">
-          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} />
+          <div className="grid grid-cols-4 gap-6">
+            <Card className="col-span-1 p-2 my-auto bg-blue-50 rounded-md border border-blue-100 text-xs text-center h-1/2">
+              <CardHeader className="p-1">
+                <CardTitle className="font-semibold text-blue-900 mb-2 items-center ">
+                  <TrendingUp className="h-7 w-7 mx-auto text-blue-800" />
+                  AI Prediction Explanation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-1">
+                <p className="text-blue-800">
+                  {recommendation ? (
+                    <p className="text-blue-800 text-md">
+                      {recommendation}
+                    </p>
+                  ) : (
+                    <div className="flex flex-col space-y-2 items-center text-gray-500 text-lg">
+                      {isLoadingPredictions ? <Loader2 className="h-8 w-8 animate-spin" /> : <TriangleAlert className="w-8 h-8"/>}
+                      <p>No recommendation available</p>
+                    </div>
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="col-span-3">
+              <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} />
+            </div>
+          </div>
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>

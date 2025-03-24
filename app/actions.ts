@@ -94,6 +94,18 @@ export const getNotificationData = async () => {
   return notifications;
 };
 
+export const getSalesData = async () => {
+  const supabase = await createClient();
+  const charity = await getRegisteredCharity();
+
+  const { data: sales } = await supabase
+    .from("sales_register")
+    .select("*")
+    .eq("charity_id", charity?.id) as { data: Sales[]; error: any };
+  
+  return sales;
+};
+
 // Any sort of form actions & database insert/update/delete
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();

@@ -1,5 +1,5 @@
 
-import { getAllCharities, getAuthUser, getCharityResourceData, getRegisteredCharity, getResourceTransitData } from "@/app/actions";
+import { getAllCharities, getAllResourceData, getAuthUser, getCharityResourceData, getRegisteredCharity, getResourceTransitData, getSalesData } from "@/app/actions";
 import ResourcePage from "./ResourcePage"
 import { redirect } from "next/navigation";
 
@@ -8,13 +8,15 @@ export default async function DashboardPage() {
   const charityData = await getAllCharities();
   const charity = await getRegisteredCharity();
   const resourceData = await getCharityResourceData();
+  const allResourcesData = await getAllResourceData();
   const transitData = await getResourceTransitData();
+  const salesData = await getSalesData();
 
   if (!user) {
     return redirect("/sign-in");
   }
   
   return (
-    <ResourcePage charity={charity} charityData={charityData} resourceData={resourceData} transitData={transitData} />
+    <ResourcePage charity={charity} charityData={charityData} resourceData={resourceData} allResourcesData={allResourcesData} transitData={transitData} salesData={salesData} />
   )
 }

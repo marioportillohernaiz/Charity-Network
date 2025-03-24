@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Calendar, Download, Filter, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -9,8 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns-tz';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TransitStatus } from '@/types/TransitStatus';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-const HistoryTab = ({charity,charityData,resourceData,transitData}:{charity: CharityData;charityData: CharityData[];resourceData: ResourcesData[]; transitData:TransitData[];}) => {
+const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{charity: CharityData;charityData: CharityData[];resourceData: ResourcesData[]; transitData:TransitData[];salesData: Sales[];}) => {
   const sentTransitData = transitData.filter(item => item.charity_from === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
   const receivedTransitData = transitData.filter(item => item.charity_to === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
 
@@ -20,7 +23,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData}:{charity: Cha
         <h1 className="text-3xl font-bold tracking-tight">Sharing History</h1>
       </div>
 
-      <TransitHistoryTable
+      <HistoryTable
         title="Resources Sent To Charities"
         description="History of resources you shared with other charities"
         charityData={charityData}
@@ -28,18 +31,28 @@ const HistoryTab = ({charity,charityData,resourceData,transitData}:{charity: Cha
         transitData={sentTransitData}
       />
 
-      <TransitHistoryTable
+      <HistoryTable
         title="Resources Received From Charities"
         description="History of resources shared to your charity"
         charityData={charityData}
         resourceData={resourceData}
         transitData={receivedTransitData}
       />
+
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight pt-5">Sales History</h1>
+      </div>
+
+      <SalesTable
+        charity={charity}
+        salesData={salesData}
+      />
+
     </div>
   );
 };
 
-const TransitHistoryTable = ({ title, description, charityData, resourceData, transitData} : 
+const HistoryTable = ({ title, description, charityData, resourceData, transitData} : 
   {title: string; description: string; charityData: CharityData[]; resourceData: ResourcesData[]; transitData: TransitData[];}
 ) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -169,10 +182,6 @@ const TransitHistoryTable = ({ title, description, charityData, resourceData, tr
             const resourceDetails = resourceData.find(resource => 
               resource.id === history.resource_id
             );
-            console.log("============");
-            console.log(history.resource_id);
-            console.log("============");
-            console.log(resourceData);
 
             return (
               <Card key={history.id} className="p-4 grid grid-cols-6 gap-4">
@@ -277,6 +286,250 @@ const TransitHistoryTable = ({ title, description, charityData, resourceData, tr
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+const SalesTable = ({charity, salesData} : 
+  {charity: CharityData; salesData: Sales[];}
+) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('all');
+
+  const [filteredData, setFilteredData] = useState<Sales[]>(salesData);
+  const [itemsPerPage] = useState(5);
+  const [dateFilter, setDateFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let result = salesData
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter((sale) => {
+        const categoriesMatch = sale.sales_data?.some(
+          (item) => item.category.toLowerCase().includes(query) || item.amount.toString().includes(query),
+        )
+
+        const totalAmount = calculateTotal(sale)
+        const totalMatch = totalAmount.toString().includes(query)
+
+        return categoriesMatch || totalMatch
+      })
+    }
+
+    if (dateFilter !== "all") {
+      const currentDate = new Date()
+      const currentMonth = currentDate.getMonth()
+      const currentYear = currentDate.getFullYear()
+
+      switch (dateFilter) {
+        case "thisMonth":
+          result = result.filter((sale) => {
+            const saleDate = new Date(sale.date)
+            return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear
+          })
+          break
+        case "lastMonth":
+          result = result.filter((sale) => {
+            const saleDate = new Date(sale.date)
+            const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
+            const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
+            return saleDate.getMonth() === lastMonth && saleDate.getFullYear() === lastMonthYear
+          })
+          break
+        case "thisYear":
+          result = result.filter((sale) => {
+            const saleDate = new Date(sale.date)
+            return saleDate.getFullYear() === currentYear
+          })
+          break
+      }
+    }
+
+    setFilteredData(result)
+    setCurrentPage(1)
+  }, [searchQuery, dateFilter, salesData])
+
+  // Calculate total amount for a sale
+  const calculateTotal = (sale: Sales): number => {
+    return sale.sales_data?.reduce((sum, item) => sum + item.amount, 0) || 0
+  }
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+  const currentItems = filteredData.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredData, totalPages, currentPage]);
+  
+
+
+  // Format currency
+  const formatCurrency = (amount: number): string => {
+    return `£${amount.toFixed(2)}`
+  }
+
+  // Format date for display (keeping the original Date object as requested)
+  const formatDateDisplay = (date: Date): string => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  }
+
+  return (
+    <div className="w-full max-w-7xl mx-auto">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div>
+              <CardTitle className="text-2xl font-bold">Sales History</CardTitle>
+              <CardDescription>Record of all your charity sales</CardDescription>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search sales history..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="All Dates" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Dates</SelectItem>
+                <SelectItem value="thisMonth">This Month</SelectItem>
+                <SelectItem value="lastMonth">Last Month</SelectItem>
+                <SelectItem value="thisYear">This Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : currentItems.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No sales records found matching your criteria</div>
+          ) : (
+            <div className="space-y-4">
+              {currentItems.map((sale) => (
+                <Card key={sale.id} className="overflow-hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 md:border-r">
+                      <h3 className="font-semibold text-lg">{charity.name}</h3>
+                    </div>
+                    <div className="p-4 md:border-r">
+                      <div className="text-sm text-muted-foreground">Date</div>
+                      <div className="font-medium">{formatDateDisplay(sale.date)}</div>
+                    </div>
+                    <div className="p-4 bg-muted/10">
+                      <div className="text-sm text-muted-foreground">Total Amount</div>
+                      <div className="font-bold text-lg">{formatCurrency(calculateTotal(sale))}</div>
+                    </div>
+                  </div>
+                  <div className="border-t">
+                    <Table>
+                      <TableBody>
+                        {sale.sales_data?.map((item, index) => (
+                          <TableRow key={index} className="hover:bg-muted/5">
+                            <TableCell className="font-medium">{item.category}:</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6">
+            <div className="text-sm text-muted-foreground">
+              Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredData.length)} of {filteredData.length}{" "}
+              sales records
+            </div>
+
+            <Pagination className="mt-2">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (currentPage > 1) setCurrentPage(currentPage - 1)
+                    }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(
+                    (page) => page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1),
+                  )
+                  .map((page, i, array) => {
+                    // Add ellipsis if there are gaps in the sequence
+                    if (i > 0 && page > array[i - 1] + 1) {
+                      return (
+                        <PaginationItem key={`ellipsis-${page}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )
+                    }
+
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setCurrentPage(page)
+                          }}
+                          isActive={page === currentPage}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  })}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
