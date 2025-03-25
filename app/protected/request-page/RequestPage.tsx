@@ -125,7 +125,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
         </div>
 
         <div className="space-y-5 overflow-hidden">
-          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} />
+          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} />
 
 
           <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">

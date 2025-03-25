@@ -1,14 +1,18 @@
 "use client"
 
-import { Input } from "../ui/input";
-import { MapPin, Search } from "lucide-react";
-import { useState } from "react";
-import { format } from "date-fns";
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationEllipsis, PaginationLink, PaginationNext } from "../ui/pagination";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import React, { useState, useEffect } from 'react';
+import { MapPin, Search } from 'lucide-react';
+import { format } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { requestResource } from '@/app/actions';
 import {
   Dialog,
   DialogContent,
@@ -16,16 +20,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
-import { Slider } from "../ui/slider";
-import { Textarea } from "../ui/textarea";
-import { toast } from "sonner";
-import { requestResource } from "@/app/actions";
-import { RESOURCE_CATEGORIES } from "@/types/Categories";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
+} from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { RESOURCE_CATEGORIES } from '@/types/Categories';
 
-export function SharedResourcesTable({resourceData, charityData} : {resourceData: ResourcesData[]; charityData: CharityData[]}) {
+export function SharedResourcesTable({resourceData, charityData, charity} : {resourceData: ResourcesData[]; charityData: CharityData[]; charity: CharityData}) {
   const sharedResources = resourceData.filter(item => item.shareable_quantity > 0);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -40,6 +47,51 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
   const [requestQuantity, setRequestQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const ITEMS_PER_PAGE = 10;
+
+  // Location filtering state
+  const [searchRadius, setSearchRadius] = useState<number>(0);
+  const [filteredByDistance, setFilteredByDistance] = useState<ResourcesData[]>([]);
+
+  // Calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+
+  // Handle radius slider change
+  const handleRadiusChange = (value: number) => {
+    setSearchRadius(value);
+    if (value === 0) {
+      // If radius is 0, don't filter by distance
+      setFilteredByDistance([]);
+    } else {
+      // Filter resources by distance
+      const resourcesWithinRadius = sharedResources.filter(resource => {
+        const resourceCharity = charityData.find(c => c.id === resource.charity_id);
+        if (!resourceCharity) return false;
+        
+        const distance = calculateDistance(
+          charity.latitude, 
+          charity.longitude, 
+          resourceCharity.latitude, 
+          resourceCharity.longitude
+        );
+        
+        return distance <= value;
+      });
+      
+      setFilteredByDistance(resourcesWithinRadius);
+    }
+    setCurrentPage(1);
+  };
 
   const getExpirationBadge = (expiryDate: Date | undefined) => {
     if (!expiryDate) {
@@ -78,7 +130,8 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
     }
   }
 
-  const filteredResources = sharedResources.filter(resource => {
+  // Apply filters with radius consideration
+  const filteredResources = (searchRadius > 0 ? filteredByDistance : sharedResources).filter(resource => {
     const matchesSearch = 
       resource.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       resource.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,6 +159,10 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
   });
   
   const totalPages = Math.ceil(sortedResources.length / ITEMS_PER_PAGE);
+  const paginatedResources = sortedResources.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const generatePaginationItems = () => {
     const pageNumbers = [];
@@ -127,6 +184,20 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
     if (page < 1) page = 1;
     if (page > totalPages) page = totalPages;
     setCurrentPage(page);
+  };
+
+  // For showing distance in the table
+  const getDistanceFromCharity = (resourceCharity: CharityData) => {
+    if (!charity || !resourceCharity) return null;
+    
+    const distance = calculateDistance(
+      charity.latitude,
+      charity.longitude,
+      resourceCharity.latitude,
+      resourceCharity.longitude
+    );
+    
+    return distance.toFixed(1);
   };
 
   return (
@@ -167,6 +238,40 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
           </div>
         </div>
 
+        <div className="bg-gray-100 p-4 my-5 rounded-md w-full sm:w-auto">
+          <div className="flex items-center mb-2">
+            <MapPin className="mr-2 h-4 w-4 text-blue-500" />
+            <Label htmlFor="radius-slider" className="font-medium">
+              Distance: {searchRadius === 0 ? "All locations" : `${searchRadius} km radius`}
+            </Label>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-gray-500">Off</span>
+            <Slider
+              id="radius-slider"
+              min={0}
+              max={50}
+              step={1}
+              value={[searchRadius]}
+              onValueChange={(values) => handleRadiusChange(values[0])}
+              className="flex-1"
+            />
+            <span className="text-xs text-gray-500">50km</span>
+          </div>
+
+          {searchRadius > 0 && (
+            <div className="mt-2 text-sm text-gray-600">
+              <div>
+                Showing resources within {searchRadius} km of your charity
+                {filteredByDistance.length === 0 && (
+                  <div className="mt-1 text-amber-600">No resources found within this radius</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Resources Table */}
         <div className="rounded-md border overflow-hidden">
           <div className="overflow-x-auto">
@@ -183,6 +288,9 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
                     Charity
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Distance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Expiration
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -191,11 +299,12 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredResources.map(resource => {
-
+                {paginatedResources.length > 0 ? paginatedResources.map(resource => {
                   const charityDetails = charityData.find(charitySingle => 
                     charitySingle.id === resource.charity_id
                   );
+
+                  const distance = charityDetails ? getDistanceFromCharity(charityDetails) : null;
 
                   return (
                   <React.Fragment key={resource.id}>
@@ -227,14 +336,29 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
                         <p className="text-xs text-gray-500 max-w-xs break-words">{charityDetails?.address}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        {distance ? (
+                          <Badge className="bg-blue-100 text-blue-800">
+                            {distance} km
+                          </Badge>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         {getExpirationBadge(resource?.expiry_date)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{format(resource.updated_at, "dd/mm/yyyy hh:mm")}</div>
+                        <div className="text-sm text-gray-900">{format(resource.updated_at, "dd/MM/yyyy HH:mm")}</div>
                       </td>
                     </tr>
                   </React.Fragment>
-                )})}
+                )}) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      No resources found matching your criteria
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -242,7 +366,7 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
 
         <div className="flex flex-col sm:flex-row justify-between mt-4 gap-2">
           <div className="text-sm text-gray-500">
-            Showing {Math.min(filteredResources.length, (currentPage - 1) * ITEMS_PER_PAGE + 1)}-
+            Showing {filteredResources.length > 0 ? Math.min(filteredResources.length, (currentPage - 1) * ITEMS_PER_PAGE + 1) : 0}-
             {Math.min(currentPage * ITEMS_PER_PAGE, filteredResources.length)} of {filteredResources.length} resources
           </div>
           
