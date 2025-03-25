@@ -32,12 +32,12 @@ export default function Login() {
           // className="dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-      <div className="flex items-center justify-center py-12">
-        <form className="mx-auto grid w-[350px] gap-2">
+      <div className="flex items-center justify-center py-12 bg-[#064789] rounded-lg mx-5">
+        <form className="mx-auto grid w-[350px] gap-2 text-white">
           <h1 className="text-2xl font-medium">Sign in</h1>
-          <p className="text-sm text-foreground">
+          <p className="text-sm">
             Don't have an account?{" "}
-            <Link className="text-foreground font-medium underline" href="/sign-up">
+            <Link className="font-medium underline" href="/sign-up">
               Sign up
             </Link>
           </p>
@@ -47,7 +47,7 @@ export default function Login() {
             <div className="flex justify-between items-center">
               <Label htmlFor="password">Password</Label>
               <Link
-                className="text-xs text-foreground underline"
+                className="text-xs underline"
                 href="/forgot-password"
               >
                 Forgot Password?
@@ -76,7 +76,7 @@ export default function Login() {
                 </span>
               </Button>
             </div>
-            <SubmitButton pendingText="Signing In..." type="submit" formAction={handleSubmit} className="mt-5">
+            <SubmitButton pendingText="Signing In..." type="submit" formAction={handleSubmit} className="mt-5 text-black" variant="secondary">
               Sign in
             </SubmitButton>
             <Toaster richColors />

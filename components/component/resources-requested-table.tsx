@@ -14,10 +14,9 @@ import { Separator } from "../ui/separator";
 import { TransitStatus } from "@/types/TransitStatus";
 import RejectRequest from "./reject-request";
 import HandleDispatch from "./handle-dispatch";
+import HandleReceieved from "./handle-received";
 
-export function ResourcesRequestedTable({resourceData, transitData, charityData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]}) {
-  const requestedResources = transitData.filter(item => item.status == TransitStatus.REQUESTED || item.status == TransitStatus.IN_TRANSIT);
-
+export function ResourcesRequestedTable({resourceData, transitData, charityData, isReciever} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; isReciever: boolean}) {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof TransitData; direction: 'asc' | 'desc' }>({ 
@@ -94,20 +93,33 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
         );
       case 'In transit':
         return (
-          <Button 
-            variant="outline" 
-            className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 w-full"
-            onClick={() => setShowTransitInfo(showTransitInfo === request.id ? "" : request.id)}
-          >
-            {showTransitInfo === request.id ? "Hide Tracking" : "Track Shipment"}
-          </Button>
+          isReciever ? (
+            <div>
+              <Button 
+                variant="outline" 
+                className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+                onClick={() => setShowTransitInfo(showTransitInfo === request.id ? "" : request.id)}
+              >
+                {showTransitInfo === request.id ? "Hide Tracking" : "Track Shipment"}
+              </Button>
+              <HandleReceieved request={request} resourceData={resourceData} />
+            </div>
+          ) : (
+            <Button 
+              variant="outline" 
+              className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200 w-full"
+              onClick={() => setShowTransitInfo(showTransitInfo === request.id ? "" : request.id)}
+            >
+              {showTransitInfo === request.id ? "Hide Tracking" : "Track Shipment"}
+            </Button>
+          )
         );
       default:
         return (<></>);
     }
   };
 
-  const filteredResources = requestedResources.filter(transit => {
+  const filteredResources = transitData.filter(transit => {
     const resourceDetails = resourceData.find(resource => 
       resource.id === transit.resource_id
     );
@@ -160,7 +172,7 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
 
 
   return (
-    <Card>
+    <Card className="bg-secondary">
       <CardHeader className="pb-3">
         <CardTitle hidden></CardTitle>
       </CardHeader>
@@ -226,7 +238,7 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData}
                 {filteredResources.map(request => {
 
                   const charityDetails = charityData.find(charitySingle => 
-                    charitySingle.id === request.charity_to
+                    charitySingle.id === request.charity_to || charitySingle.id === request.charity_from
                   );
 
                   const resourceDetails = resourceData.find(resource => 

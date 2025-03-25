@@ -1,7 +1,7 @@
 "use client"
 
 import { Input } from "../ui/input";
-import { Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import React from "react";
@@ -17,12 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Label } from "../ui/label";
 import { Slider } from "../ui/slider";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { requestResource } from "@/app/actions";
 import { RESOURCE_CATEGORIES } from "@/types/Categories";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 export function SharedResourcesTable({resourceData, charityData} : {resourceData: ResourcesData[]; charityData: CharityData[]}) {
   const sharedResources = resourceData.filter(item => item.shareable_quantity > 0);
@@ -171,71 +172,71 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Resource
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Charity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expiration
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Updated Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredResources.map(resource => {
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Resource
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Charity
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Expiration
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Updated Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredResources.map(resource => {
 
-                    const charityDetails = charityData.find(charitySingle => 
-                      charitySingle.id === resource.charity_id
-                    );
+                  const charityDetails = charityData.find(charitySingle => 
+                    charitySingle.id === resource.charity_id
+                  );
 
-                    return (
-                    <React.Fragment key={resource.id}>
-                      <tr className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-center space-x-2">
-                            <Button 
-                              variant="outline" 
-                              className="bg-green-100 text-green-800 hover:bg-green-100 border-green-400 w-full"
-                              onClick={() => handleRequestClick(resource)}
-                            >
-                              Request
-                            </Button>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex flex-col">
-                            <h3 className="text-base font-bold text-gray-900">{resource.name}</h3>
-                            <p className="text-sm font-medium text-gray-600 mt-1">
-                              {resource.shareable_quantity} {resource.unit} available
-                            </p>
-                            {resource.description && (
-                              <p className="text-xs text-gray-500 max-w-xs mt-1 truncate">{resource.description}</p>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-900">{charityDetails?.name}</p>
-                          <p className="text-xs text-gray-500 max-w-xs break-words">{charityDetails?.address}</p>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getExpirationBadge(resource?.expiry_date)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{format(resource.updated_at, "dd/mm/yyyy hh:mm")}</div>
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  )})}
-                </tbody>
-              </table>
+                  return (
+                  <React.Fragment key={resource.id}>
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-center space-x-2">
+                          <Button 
+                            variant="outline" 
+                            className="bg-green-100 text-green-800 hover:bg-green-100 border-green-400 w-full"
+                            onClick={() => handleRequestClick(resource)}
+                          >
+                            Request
+                          </Button>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col">
+                          <h3 className="text-base font-bold text-gray-900">{resource.name}</h3>
+                          <p className="text-sm font-medium text-gray-600 mt-1">
+                            {resource.shareable_quantity} {resource.unit} available
+                          </p>
+                          {resource.description && (
+                            <p className="text-xs text-gray-500 max-w-xs mt-1 truncate">{resource.description}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-gray-900">{charityDetails?.name}</p>
+                        <p className="text-xs text-gray-500 max-w-xs break-words">{charityDetails?.address}</p>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getExpirationBadge(resource?.expiry_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{format(resource.updated_at, "dd/mm/yyyy hh:mm")}</div>
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                )})}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -319,57 +320,83 @@ export function SharedResourcesTable({resourceData, charityData} : {resourceData
 
       {/* Request Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Request: {selectedResource?.name}</DialogTitle>
+            <DialogTitle>Request Resource</DialogTitle>
             <DialogDescription>
               Specify how many units you would like to request.
             </DialogDescription>
           </DialogHeader>
+          
+          {selectedResource && (
+            <div className="py-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium mb-1">{selectedResource.name}</h4>
+                    <Badge variant="outline">{selectedResource.category}</Badge>
+                  </div>
 
-          <div className="grid gap-6">
-            <div className="flex flex-col gap-2 w-full">
-              <Label htmlFor="quantity" className="font-medium">
-                Quantity
-              </Label>
-              <div className="w-full">
-                <Slider
-                  id="quantity"
-                  min={1}
-                  max={selectedResource?.shareable_quantity || 1}
-                  step={1}
-                  value={[requestQuantity]}
-                  onValueChange={(value) => setRequestQuantity(value[0])}
-                  className="my-2"
-                />
-                <div className="flex justify-between mt-1">
-                  <p className="text-xs text-gray-500">
-                    {requestQuantity} {selectedResource?.unit}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Max: {selectedResource?.shareable_quantity} {selectedResource?.unit}
-                  </p>
+                  <div>
+                    <label className="text-sm font-medium">Available</label>
+                    <p>{selectedResource.shareable_quantity} {selectedResource.unit}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Request Quantity</label>
+                  <div className="w-full">
+                    <Slider
+                      id="quantity"
+                      min={1}
+                      max={selectedResource?.shareable_quantity || 1}
+                      step={1}
+                      value={[requestQuantity]}
+                      onValueChange={(value) => setRequestQuantity(value[0])}
+                      className="my-2"
+                    />
+                    <div className="flex justify-between mt-1">
+                      <p className="text-xs text-gray-500">
+                        {requestQuantity} {selectedResource?.unit}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Max: {selectedResource?.shareable_quantity} {selectedResource?.unit}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Reason for Request</label>
+                  <Textarea 
+                    placeholder="Add a note to the charity (optional)"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Checkbox id="terms" />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="terms"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      I confirm this request is for charitable purposes
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      Your organization will be responsible for arranging pickup or delivery.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <div className="flex flex-col gap-2 w-full">
-              <Label htmlFor="note" className="font-medium">
-                Notes
-              </Label>
-              <Textarea
-                id="note"
-                placeholder="Add a note to the charity (optional)"
-                className="w-full border rounded-md p-2"
-                rows={3}
-                value={[notes]}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
-          </div>
-
+          )}
+          
           <DialogFooter>
-            <Button variant="link" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSubmit}>

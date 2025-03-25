@@ -127,7 +127,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
   };
 
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 bg-secondary">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
           <div>
@@ -296,7 +296,6 @@ const SalesTable = ({charity, salesData} :
   const ITEMS_PER_PAGE = 5;
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDate, setSelectedDate] = useState('all');
 
   const [filteredData, setFilteredData] = useState<Sales[]>(salesData);
   const [itemsPerPage] = useState(5);
@@ -328,13 +327,13 @@ const SalesTable = ({charity, salesData} :
       switch (dateFilter) {
         case "thisMonth":
           result = result.filter((sale) => {
-            const saleDate = new Date(sale.date)
+            const saleDate = new Date(sale.date_to)
             return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear
           })
           break
         case "lastMonth":
           result = result.filter((sale) => {
-            const saleDate = new Date(sale.date)
+            const saleDate = new Date(sale.date_to)
             const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
             const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
             return saleDate.getMonth() === lastMonth && saleDate.getFullYear() === lastMonthYear
@@ -342,7 +341,7 @@ const SalesTable = ({charity, salesData} :
           break
         case "thisYear":
           result = result.filter((sale) => {
-            const saleDate = new Date(sale.date)
+            const saleDate = new Date(sale.date_to)
             return saleDate.getFullYear() === currentYear
           })
           break
@@ -391,7 +390,7 @@ const SalesTable = ({charity, salesData} :
 
   return (
     <div className="w-full max-w-7xl mx-auto">
-      <Card className="shadow-sm">
+      <Card className="shadow-sm bg-secondary">
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row gap-4">
             <div>
@@ -435,13 +434,17 @@ const SalesTable = ({charity, salesData} :
             <div className="space-y-4">
               {currentItems.map((sale) => (
                 <Card key={sale.id} className="overflow-hidden">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="p-4 md:border-r">
                       <h3 className="font-semibold text-lg">{charity.name}</h3>
                     </div>
                     <div className="p-4 md:border-r">
-                      <div className="text-sm text-muted-foreground">Date</div>
-                      <div className="font-medium">{formatDateDisplay(sale.date)}</div>
+                      <div className="text-sm text-muted-foreground">Date From</div>
+                      <div className="font-medium">{formatDateDisplay(sale.date_from)}</div>
+                    </div>
+                    <div className="p-4 md:border-r">
+                      <div className="text-sm text-muted-foreground">Date To</div>
+                      <div className="font-medium">{formatDateDisplay(sale.date_to)}</div>
                     </div>
                     <div className="p-4 bg-muted/10">
                       <div className="text-sm text-muted-foreground">Total Amount</div>

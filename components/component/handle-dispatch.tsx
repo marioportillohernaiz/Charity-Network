@@ -7,7 +7,7 @@ import { PackageCheck } from "lucide-react";
 import { dispatchTransit } from "@/app/actions";
 import { toast } from "sonner";
 
-export default function handleDispatch({ request, resourceData } : { request: TransitData; resourceData: ResourcesData[] }) {
+export default function HandleDispatch({ request, resourceData } : { request: TransitData; resourceData: ResourcesData[] }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const resource = resourceData.find(r => r.id == request.resource_id);
 
@@ -40,7 +40,7 @@ export default function handleDispatch({ request, resourceData } : { request: Tr
         </div>
         <DialogFooter>
           <DialogClose className="mr-3">Cancel</DialogClose>
-          <Button className="bg-green-100 text-green-600 border-green-200 hover:bg-green-100 " onClick={handleSubmit}>Dispatch</Button>
+          <Button className="bg-green-100 text-green-600 border-green-200 hover:bg-green-100" onClick={handleSubmit}>Dispatch</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

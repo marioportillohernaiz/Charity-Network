@@ -141,7 +141,7 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
           <ResourcesList resourceData={resourceData} />
         </TabsContent>
         <TabsContent value="requests" className="space-y-4">
-          <RequestsList charity={charity} charityData={charityData} resourceData={resourceData} transitData={transitData} />
+          <RequestsList charity={charity} charityData={charityData} resourceData={allResourcesData} transitData={transitData} />
         </TabsContent>
         <TabsContent value="history" className="space-y-4">
           <HistoryTab charity={charity} charityData={charityData} resourceData={allResourcesData} transitData={transitData} salesData={salesData} />

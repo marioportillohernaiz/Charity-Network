@@ -129,7 +129,7 @@ export default function UserMenu({ registeredCharity, notificationData }: { regi
           </DropdownMenuContent>
         </DropdownMenu>
         <form action={signOutAction}>
-          <Button type="submit" variant="link" className="pl-0 text-white">
+          <Button type="submit" variant="link" className="pl-3 text-white">
             Sign out
           </Button>
         </form>

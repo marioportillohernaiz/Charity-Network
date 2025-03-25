@@ -1,5 +1,5 @@
 
-import { getAllCharities, getAllResourceData, getAuthUser, getRegisteredCharity, getResourceTransitData } from "@/app/actions";
+import { getAllCharities, getAllResourceData, getAuthUser, getRegisteredCharity, getResourceTransitData, getSalesData } from "@/app/actions";
 import { redirect } from "next/navigation";
 import RequestResourcesPage from "./RequestPage";
 
@@ -9,12 +9,13 @@ export default async function RequestPage() {
   const transitData = await getResourceTransitData();
   const charityData = await getAllCharities();
   const charity = await getRegisteredCharity();
+  const salesData = await getSalesData();
 
   if (!user) {
     return redirect("/sign-in");
   }
 
   return (
-    <RequestResourcesPage resourceData={resourceData} transitData={transitData} charityData={charityData} charity={charity} />
+    <RequestResourcesPage resourceData={resourceData} transitData={transitData} charityData={charityData} charity={charity} salesData={salesData} />
   )
 }
