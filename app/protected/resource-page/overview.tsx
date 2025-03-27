@@ -432,7 +432,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
             </ResponsiveContainer>
           </div>
         </CardContent>
-        </Card>
+      </Card>
     </div>
   );
 };

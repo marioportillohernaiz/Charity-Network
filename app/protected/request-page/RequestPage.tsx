@@ -125,9 +125,6 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
         </div>
 
         <div className="space-y-5 overflow-hidden">
-          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} />
-
-
           <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
             <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
               {isLoadingPredictions ? <Loader2 className="h-4 w-4 animate-spin" /> :  <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />}
@@ -139,6 +136,8 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
               <p className="text-gray-500">No recommendation available</p>
             )}
           </div>
+
+          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} />
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>

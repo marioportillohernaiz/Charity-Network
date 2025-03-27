@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, Download, Filter, Search } from 'lucide-react';
+import { Calendar, Download, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TransitStatus } from '@/types/TransitStatus';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{charity: CharityData;charityData: CharityData[];resourceData: ResourcesData[]; transitData:TransitData[];salesData: Sales[];}) => {
   const sentTransitData = transitData.filter(item => item.charity_from === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
@@ -126,6 +127,41 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
     return pages.sort((a, b) => a - b);
   };
 
+  const exportTransitToPDF = (transitData: TransitData[], resourceData: ResourcesData[], charityData: CharityData[],title: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text(title, 14, 22);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 30);
+    
+    const tableRows = transitData.map(transit => {
+      const resource = resourceData.find(r => r.id === transit.resource_id) || { name: 'Unknown', unit: '' };
+      const charityId = title.includes("Sent To") ? transit.charity_to : transit.charity_from;
+      const charity = charityData.find(c => c.id === charityId) || { name: 'Unknown' };
+      
+      return [
+        resource.name,
+        `${transit.quantity} ${resource.unit}`,
+        charity.name,
+        transit.status,
+        transit.time_sent ? format(new Date(transit.time_sent), 'dd/MM/yyyy HH:mm') : 'N/A',
+        transit.time_received ? format(new Date(transit.time_received), 'dd/MM/yyyy HH:mm') : 'N/A'
+      ];
+    });
+    
+    autoTable(doc, {
+      head: [['Resource', 'Quantity', 'Charity', 'Status', 'Time Sent', 'Time Received']],
+      body: tableRows,
+      startY: 35,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      alternateRowStyles: { fillColor: [240, 240, 240] }
+    });
+    
+    doc.save(`${title.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  };
+
   return (
     <Card className="mb-4 bg-secondary">
       <CardHeader className="pb-3">
@@ -134,6 +170,14 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
             <CardTitle className="text-2xl font-bold">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportTransitToPDF(transitData, resourceData, charityData, title)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export PDF
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -289,9 +333,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
   );
 };
 
-const SalesTable = ({charity, salesData} : 
-  {charity: CharityData; salesData: Sales[];}
-) => {
+const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sales[];}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
   
@@ -350,12 +392,12 @@ const SalesTable = ({charity, salesData} :
 
     setFilteredData(result)
     setCurrentPage(1)
-  }, [searchQuery, dateFilter, salesData])
+  }, [searchQuery, dateFilter, salesData]);
 
   // Calculate total amount for a sale
   const calculateTotal = (sale: Sales): number => {
     return sale.sales_data?.reduce((sum, item) => sum + item.amount, 0) || 0
-  }
+  };
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage
@@ -377,7 +419,7 @@ const SalesTable = ({charity, salesData} :
   // Format currency
   const formatCurrency = (amount: number): string => {
     return `£${amount.toFixed(2)}`
-  }
+  };
 
   // Format date for display (keeping the original Date object as requested)
   const formatDateDisplay = (date: Date): string => {
@@ -386,17 +428,105 @@ const SalesTable = ({charity, salesData} :
       month: "2-digit",
       year: "numeric",
     })
-  }
+  };
+
+  const exportSalesToPDF = (salesData: Sales[],charity: CharityData) => {
+    // Create a new PDF document
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Sales History Report", 14, 22);
+    
+    // Add charity name and timestamp
+    doc.setFontSize(12);
+    doc.text(`Charity: ${charity.name}`, 14, 30);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 36);
+    
+    // Calculate totals by category
+    const categoryTotals: Record<string, number> = {};
+    let grandTotal = 0;
+    
+    salesData.forEach(sale => {
+      sale.sales_data?.forEach(item => {
+        if (!categoryTotals[item.category]) {
+          categoryTotals[item.category] = 0;
+        }
+        categoryTotals[item.category] += item.amount;
+        grandTotal += item.amount;
+      });
+    });
+    
+    // Prepare table data for sales by category
+    const categoryRows = Object.entries(categoryTotals).map(([category, amount]) => [
+      category, 
+      `£${amount.toFixed(2)}`,
+      `${((amount / grandTotal) * 100).toFixed(1)}%`
+    ]);
+    
+    // Add category summary table
+    autoTable(doc, {
+      head: [['Category', 'Total Amount', 'Percentage']],
+      body: categoryRows,
+      startY: 45,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [46, 139, 87], textColor: 255 },
+      alternateRowStyles: { fillColor: [240, 240, 240] }
+    });
+    
+    // Get end Y position after first table to place the next table
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    
+    // Prepare table data for individual sales
+    const salesRows = salesData.map(sale => {
+      const saleTotal = sale.sales_data?.reduce((sum, item) => sum + item.amount, 0) || 0;
+      return [
+        format(new Date(sale.date_from), 'dd/MM/yyyy'),
+        format(new Date(sale.date_to), 'dd/MM/yyyy'),
+        `£${saleTotal.toFixed(2)}`,
+        sale.sales_data?.length || 0
+      ];
+    });
+    
+    // Add detailed sales table
+    autoTable(doc, {
+      head: [['Date From', 'Date To', 'Total Amount', 'Number of Items']],
+      body: salesRows,
+      startY: finalY,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [46, 139, 87], textColor: 255 },
+      alternateRowStyles: { fillColor: [240, 240, 240] }
+    });
+    
+    // Grand total
+    const finalY2 = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Grand Total: £${grandTotal.toFixed(2)}`, 14, finalY2);
+    
+    // Save the PDF
+    doc.save(`sales-history-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto">
       <Card className="shadow-sm bg-secondary">
         <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-2xl font-bold">Sales History</CardTitle>
               <CardDescription>Record of all your charity sales</CardDescription>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportSalesToPDF(salesData, charity)}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export PDF
+            </Button>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <div className="relative flex-1">

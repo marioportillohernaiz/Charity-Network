@@ -91,7 +91,11 @@ export const getNotificationData = async () => {
     .select("*")
     .eq("charity_id", charity?.id) as { data: NotificationData[]; error: any };
   
-  return notifications;
+  const sortedNotifications = notifications?.sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  }) || [];
+  
+  return sortedNotifications;
 };
 
 export const getSalesData = async () => {
@@ -518,6 +522,47 @@ export async function dispatchTransit(id: string, resource: ResourcesData | unde
   }  
 }
 
+export async function receiveTransit(id: string, resource: ResourcesData | undefined) {
+  const supabase = await createClient();
+  const user = await getAuthUser(); 
+
+  if (!user) {
+    return redirect("/sign-in");
+  } else {
+    const { data: existingTransit } = await supabase
+      .from("resource_transit")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    const { data: existingResource } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("id", resource?.id)
+      .single();
+
+    if (existingTransit && existingResource) {
+      const { error } = await supabase
+        .from("resource_transit")
+        .update({
+          status: "Received",
+          time_received: now,
+          updated_at: now,
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.log(error);
+        return { success: false, message: "Error Receiveing Transit" };
+      } else {
+        return { success: true, message: "Transit Received" };
+      }
+    } else {
+      return { success: false, message: "Error Fetching Transit" };
+    }
+  }  
+}
+
 export async function requestResource(resource: ResourcesData | null, requestQuantity: number, notes: string) {
   const supabase = await createClient();
   const user = await getAuthUser(); 
@@ -551,9 +596,19 @@ export async function requestResource(resource: ResourcesData | null, requestQua
         })
         .eq("id", resource.id);
 
-      if (error || errorCharity) {
+      const { error: notifError } = await supabase
+        .from("notifications")
+        .insert({
+          charity_id: resource.charity_id,
+          title: "Resource Requested",
+          description: `${charity.name} has requested ${requestQuantity} ${resource.name}`,
+          created_at: now,
+        });
+
+      if (error || errorCharity ||notifError) { 
         console.log(error);
         console.log(errorCharity);
+        console.log(notifError);
         return { success: false, message: "Error Requesting Resrource" };
       } else {
         return { success: true, message: "Resource Requested" };
@@ -570,6 +625,8 @@ export async function submitSales(formData: FormData) {
   const charity = await getRegisteredCharity();
 
   const sales_data = JSON.parse(formData.get("sales_data") as string || `["{}"]`);
+  const date_from = formData.get("date_from");
+  const date_to = formData.get("date_to");
 
   if (!user) {
     return redirect("/sign-in");
@@ -578,8 +635,10 @@ export async function submitSales(formData: FormData) {
     .from("sales_register")
     .insert({
       charity_id: charity.id,
-      date: now,
       sales_data: sales_data,
+      date_from: date_from,
+      date_to: date_to,
+      created_at: now,
     });
 
     if (error) {
