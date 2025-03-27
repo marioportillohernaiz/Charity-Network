@@ -3,8 +3,9 @@
 import type React from "react"
 
 import { useState } from "react"
-import { DollarSign, PlusCircle, Trash2 } from "lucide-react"
+import { Calendar, DollarSign, PlusCircle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { format } from "date-fns"
 
 import { Button } from "../ui/button"
 import {
@@ -24,10 +25,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { SubmitButton } from "../submit-button"
 import { submitSales } from "@/app/actions"
 import { RESOURCE_CATEGORIES } from "@/types/Categories"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { cn } from "@/lib/utils"
+import { Calendar as CalendarComponent } from "../ui/calendar"
 
 export function RegisterSales() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [salesItems, setSalesItems] = useState([{ category: "", amount: 0 }])
+  const [dateFrom, setDateFrom] = useState<Date>()
+  const [dateTo, setDateTo] = useState<Date>()
 
   // Add a new sales item
   const addSalesItem = () => {
@@ -61,15 +67,35 @@ export function RegisterSales() {
       toast.error("Please add at least one valid sales item with category and amount");
       return;
     }
+
+    if (!dateFrom) {
+      toast.error("Please select a start date");
+      return;
+    }
+    
+    if (!dateTo) {
+      toast.error("Please select an end date");
+      return;
+    }
+
+    if (dateFrom > dateTo) {
+      toast.error("Start date cannot be after end date");
+      return;
+    }
     
     const salesFormData = new FormData();
     salesFormData.append("sales_data", JSON.stringify(validSalesItems));
+    salesFormData.append("date_from", dateFrom.toISOString());
+    salesFormData.append("date_to", dateTo.toISOString());
+    
     const result = await submitSales(salesFormData);
     
     if (result.success) {
       toast.success(result.message);
       setIsDialogOpen(false);
       setSalesItems([{ category: "", amount: 0 }]);
+      setDateFrom(undefined);
+      setDateTo(undefined);
     } else {
       toast.error(result.message);
     }
@@ -86,10 +112,65 @@ export function RegisterSales() {
       <DialogContent className="sm:max-w-[600px] px-4">
         <DialogHeader>
           <DialogTitle>Register Sales</DialogTitle>
-          <DialogDescription>Register your sales for the day/week/month to keep track of your charity's income.</DialogDescription>
+          <DialogDescription>Register your sales for a specific period to keep track of your charity's income.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <ScrollArea className="grid flex-1 max-h-[60vh] overflow-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pt-2">
+              <div>
+                <Label htmlFor="date-from">Date From</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date-from"
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateFrom && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {dateFrom ? format(dateFrom, "PPP") : <span>Select start date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateFrom}
+                      onSelect={setDateFrom}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label htmlFor="date-to">Date To</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date-to"
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateTo && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {dateTo ? format(dateTo, "PPP") : <span>Select end date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateTo}
+                      onSelect={setDateTo}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
             <div className="space-y-4">
               {salesItems.map((item, index) => (
                 <Card key={index}>

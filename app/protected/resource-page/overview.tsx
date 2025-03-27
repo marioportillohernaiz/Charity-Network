@@ -6,6 +6,7 @@ import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Ca
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, subMonths, differenceInDays, parse } from 'date-fns';
+import { TransitStatus } from '@/types/TransitStatus';
 
 const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData; salesData: Sales[] }) => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
@@ -45,7 +46,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
       const monthName = format(monthDate, 'MMM');
       
       // Simulate resource and request numbers based on the current data
-      // In a real app, this would come from historical data
       const baseResources = totalResources * (0.85 + Math.random() * 0.3);
       const baseRequests = requestData ? requestData.length * (0.7 + Math.random() * 0.6) : 15 + Math.round(Math.random() * 10);
       
@@ -54,7 +54,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
         result.push({
           name: monthName,
           resources: totalResources,
-          requests: requestData ? requestData.filter(r => r.status === 'Pending' || r.status === 'Approved').length : baseRequests,
+          requests: requestData ? requestData.filter(r => r.status === TransitStatus.REQUESTED).length : baseRequests,
           shareablePercentage: Math.round((totalShareable / totalResources) * 100)
         });
       } else {
@@ -101,10 +101,10 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
   }
   
   // State for all category data and filtered data
-  const [allCategoryData, setAllCategoryData] = useState<Record<string, any[]>>({})
-  const [categoryData, setCategoryData] = useState<any[]>([])
-  const [availableMonths, setAvailableMonths] = useState<string[]>([])
-  const [selectedMonth, setSelectedMonth] = useState<string>('all')
+  const [allCategoryData, setAllCategoryData] = useState<Record<string, any[]>>({});
+  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
   // Process sales data by category and month
   useEffect(() => {
@@ -114,7 +114,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
     
     // Process all sales
     salesData.forEach((sale) => {
-      const date = new Date(sale.date)
+      const date = new Date(sale.date_to)
       const monthYear = format(date, 'MMM yyyy')
       
       // Add to available months
@@ -432,7 +432,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
             </ResponsiveContainer>
           </div>
         </CardContent>
-        </Card>
+      </Card>
     </div>
   );
 };

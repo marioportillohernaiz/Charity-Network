@@ -486,7 +486,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h3 className="text-sm font-medium text-blue-800 mb-1">Total Resources</h3>
-                      <p className="text-2xl font-bold">{resources?.reduce((total, resource) => total + (resource.quantity - resource.quantity_reserved), 0) || 0}</p>
+                      <p className="text-2xl font-bold">{resources?.reduce((total, resource) => total + (resource.quantity), 0) || 0}</p>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h3 className="text-sm font-medium text-green-800 mb-1">Shareable Quantity</h3>
@@ -521,7 +521,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                                         : "bg-amber-100 text-amber-800 hover:bg-amber-200"
                                     }
                                   >
-                                    {resource.shareable_quantity - resource.quantity_reserved} available
+                                    {resource.shareable_quantity} available
                                   </Badge>
                                 </div>
 
@@ -533,7 +533,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                                   <div className="mb-2">
                                     <div className="flex justify-start text-xs mb-1">
                                       <span>
-                                        Total: {resource.quantity - resource.quantity_reserved} {resource.unit}
+                                        Total: {resource.quantity} {resource.unit}
                                       </span>
                                     </div>
                                     <Progress value={availablePercentage} className="h-2" />
@@ -557,8 +557,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
             </Card>
 
             <Card className="p-6">
-            <div className="flex justify-between">
-                <h2 className="mb-2 text-2xl font-bold">Comments</h2>
+              <div className="flex justify-between">
+                <h2 className="mb-4 text-2xl font-bold">Comments</h2>
                 {selectedCharity && <div className="flex justify-end"><AddCharityReviewDialog selectedCharityId={selectedCharity.id} /></div>}
               </div>
               

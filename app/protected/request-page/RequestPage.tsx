@@ -29,13 +29,7 @@ interface MonthData {
   [key: string]: number | string;
 }
 
-const RequestResourcesPage = ({resourceData, transitData, charityData, charity} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; charity: CharityData}) => {
-  // State variables would be defined in the first part
-  const [selectedResource, setSelectedResource] = useState<ResourcesData | null>(null);
-  const [requestQuantity, setRequestQuantity] = useState(1);
-  const [requestReason, setRequestReason] = useState('');
-  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
-
+const RequestResourcesPage = ({resourceData, transitData, charityData, charity, salesData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; charity: CharityData, salesData: Sales[]}) => {
   const [seasonalTrendsData, setSeasonalTrendsData] = useState<any[]>([]);
   const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
   const [predictionError, setPredictionError] = useState<string | null>(null);
@@ -48,7 +42,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
     setPredictionError(null);
     
     try {      
-      const predictions = await fetchSeasonalPredictions(charity || null, resourceData, transitData);
+      const predictions = await fetchSeasonalPredictions(charity || null, resourceData, transitData, salesData);
       
       if (predictions) {
         const chartData = transformPredictionsToChartData(predictions);
@@ -131,34 +125,19 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
         </div>
 
         <div className="space-y-5 overflow-hidden">
-          <div className="grid grid-cols-4 gap-6">
-            <Card className="col-span-1 p-2 my-auto bg-blue-50 rounded-md border border-blue-100 text-xs text-center h-1/2">
-              <CardHeader className="p-1">
-                <CardTitle className="font-semibold text-blue-900 mb-2 items-center ">
-                  <TrendingUp className="h-7 w-7 mx-auto text-blue-800" />
-                  AI Prediction Explanation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-1">
-                <p className="text-blue-800">
-                  {recommendation ? (
-                    <p className="text-blue-800 text-md">
-                      {recommendation}
-                    </p>
-                  ) : (
-                    <div className="flex flex-col space-y-2 items-center text-gray-500 text-lg">
-                      {isLoadingPredictions ? <Loader2 className="h-8 w-8 animate-spin" /> : <TriangleAlert className="w-8 h-8"/>}
-                      <p>No recommendation available</p>
-                    </div>
-                  )}
-                </p>
-              </CardContent>
-            </Card>
-
-            <div className="col-span-3">
-              <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} />
-            </div>
+          <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
+              {isLoadingPredictions ? <Loader2 className="h-4 w-4 animate-spin" /> :  <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />}
+              AI Prediction Explanation
+            </h3>
+            {recommendation ? (
+              <p className="text-sm text-blue-800">{recommendation}</p>
+            ) : (
+              <p className="text-gray-500">No recommendation available</p>
+            )}
           </div>
+
+          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} />
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
@@ -210,123 +189,6 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity} 
           </Card>
         </div>
       </div>
-      
-      {/* Resource Request Dialog */}
-      <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Request Resource</DialogTitle>
-            <DialogDescription>
-              Submit a request for this resource to the charity.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedResource && (
-            <div className="py-4">
-              <div className="flex items-start gap-4 mb-4">
-                <Avatar>
-                  <AvatarImage />
-                  <AvatarFallback>CharityName</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-medium">CharityName</h3>
-                  <div className="text-sm text-gray-500">CharityLocation</div>
-                </div>
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-1">{selectedResource.name}</h4>
-                  <Badge variant="outline">{selectedResource.category}</Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Available</label>
-                    <div>{selectedResource.quantity} {selectedResource.unit}</div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Condition</label>
-                    <div>Not specified</div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Request Quantity</label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => setRequestQuantity(Math.max(1, requestQuantity - 1))}
-                      disabled={requestQuantity <= 1}
-                    >
-                      -
-                    </Button>
-                    <Input 
-                      type="number" 
-                      value={requestQuantity}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        if (!isNaN(value) && value > 0 && value <= selectedResource.quantity) {
-                          setRequestQuantity(value);
-                        }
-                      }}
-                      min="1"
-                      max={selectedResource.quantity}
-                      className="text-center"
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => setRequestQuantity(Math.min(selectedResource.quantity, requestQuantity + 1))}
-                      disabled={requestQuantity >= selectedResource.quantity}
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Reason for Request</label>
-                  <Textarea 
-                    placeholder="Briefly explain how you'll use these resources..."
-                    value={requestReason}
-                    onChange={(e) => setRequestReason(e.target.value)}
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Checkbox id="terms" />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor="terms"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      I confirm this request is for charitable purposes
-                    </label>
-                    <p className="text-sm text-muted-foreground">
-                      Your organization will be responsible for arranging pickup or delivery.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button>
-              Submit Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

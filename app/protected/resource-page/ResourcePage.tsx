@@ -9,7 +9,7 @@ import ResourcesList from "./resources-list"
 import { AddResources } from "@/components/component/add-resources-dialog"
 import OverviewTab from "./overview"
 import HistoryTab from "./history"
-import { Toaster } from "sonner"
+import { toast, Toaster } from "sonner"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { RegisterSales } from "@/components/component/register-sales-dialog"
@@ -38,6 +38,62 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Handle sending a message to the chatbot
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isProcessing) return;
+    
+    // Add user message to chat
+    const userMessage = { role: 'user' as const, content: inputMessage.trim() };
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage('');
+    setIsProcessing(true);
+    
+    try {
+      // Format messages for API (exclude the initial greeting)
+      const apiMessages = messages.slice(1).concat(userMessage).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      // Call API
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: apiMessages,
+          charityData: charity,
+          resourceData: resourceData
+          // salesData: salesData
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get response from chatbot');
+      }
+      
+      const data = await response.json();
+      
+      // Add assistant response to chat
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.response }
+      ]);
+    } catch (error) {
+      console.error('Chatbot error:', error);
+      toast.error('Sorry, I had trouble responding. Please try again.');
+      
+      // Add error message
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again or check your connection.' }
+      ]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleNavigation = (event: React.MouseEvent, path: string) => {
     event.preventDefault();
@@ -85,7 +141,7 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
           <ResourcesList resourceData={resourceData} />
         </TabsContent>
         <TabsContent value="requests" className="space-y-4">
-          <RequestsList charity={charity} charityData={charityData} resourceData={resourceData} transitData={transitData} />
+          <RequestsList charity={charity} charityData={charityData} resourceData={allResourcesData} transitData={transitData} />
         </TabsContent>
         <TabsContent value="history" className="space-y-4">
           <HistoryTab charity={charity} charityData={charityData} resourceData={allResourcesData} transitData={transitData} salesData={salesData} />
@@ -93,7 +149,7 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
       </Tabs>
       
       {/* AI Chatbot Dialog */}
-      {/* <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center">
@@ -150,7 +206,7 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
             </div>
           </DialogFooter>
         </DialogContent>
-      </Dialog> */}
+      </Dialog>
       
       <Toaster richColors />
     </div>

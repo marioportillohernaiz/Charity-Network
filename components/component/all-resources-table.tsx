@@ -105,7 +105,7 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
   };
 
   return (
-    <Card>
+    <Card className="bg-secondary">
       <CardHeader className="pb-3">
         <CardTitle hidden></CardTitle>
       </CardHeader>
@@ -203,7 +203,7 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge className="text-sm" variant="outline">{resource.category}</Badge>
+                    <Badge className="text-sm">{resource.category}</Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>

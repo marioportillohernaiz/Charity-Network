@@ -15,7 +15,7 @@ export type SeasonalPrediction = {
   recommendation?: string;
 };
 
-export async function fetchSeasonalPredictions(charityData: CharityData, resourceData: ResourcesData[], transitData: TransitData[]): Promise<SeasonalPrediction | null> {
+export async function fetchSeasonalPredictions(charityData: CharityData, resourceData: ResourcesData[], transitData: TransitData[], salesData: Sales[]): Promise<SeasonalPrediction | null> {
 
   try {
     const response = await fetch('/api/predictions', {
@@ -30,6 +30,7 @@ export async function fetchSeasonalPredictions(charityData: CharityData, resourc
         resources: resourceData.filter(resource => resource.charity_id === charityData.id),
         resourceHistory: transitData.filter(transit => (transit.charity_from === charityData.id || transit.charity_to === charityData.id) && transit.status === 'Received'),
         availableResources: resourceData.filter(resource => resource.charity_id !== charityData.id && resource.shareable_quantity > 0),
+        salesData: salesData
       }),
     });
 
@@ -46,7 +47,6 @@ export async function fetchSeasonalPredictions(charityData: CharityData, resourc
   }
 }
 
-// Transform the API prediction data into the format expected by the chart
 export function transformPredictionsToChartData(predictions: SeasonalPrediction) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
