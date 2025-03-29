@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PRIMARY_CATEGORIES } from "@/types/Categories";
 import { Progress } from "@/components/ui/progress";
+import RequestResource from "@/components/component/request-resource";
 
 export default function Map({ charitiesData, currentCharity, commentsData, transitData, resourcesData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; resourcesData: ResourcesData[] }) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -278,10 +279,12 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
   }, [showResults]);
 
   const resourcesByCategory = resources?.reduce((acc, resource) => {
-    if (!acc[resource.category]) {
-      acc[resource.category] = [];
+    if (resource.shareable_quantity > 0) {
+      if (!acc[resource.category]) {
+        acc[resource.category] = [];
+      }
+      acc[resource.category].push(resource);
     }
-    acc[resource.category].push(resource);
     return acc;
   }, {} as Record<string, ResourcesData[]>) || {};
 
@@ -384,15 +387,60 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col bg-muted">
           <div className="max-w-7xl w-full mx-auto h-[calc(90vh-100px)] overflow-y-auto p-2 md:p-6 space-y-4">
             
-            <Card className="overflow-hidden p-6 grid grid-cols-2">
-              <div>
+            <Card>
+              <div className="overflow-hidden p-6 grid grid-cols-2">
                 {selectedCharity?.src_charity_img ? (
                   <img className="mb-6 h-[300px] w-full max-w-full rounded-lg object-cover" src={selectedCharity?.src_charity_img}/>
                 ) : (
                   <img className="mb-6 h-[200px] w-full max-w-full rounded-lg object-cover" src="/placeholder.png"/>
                 ) }
-                
-                
+
+                <div className="pl-4">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="mt-1 h-4 w-4 shrink-0" />
+                      <p>{selectedCharity?.address || <span className="text-muted-foreground italic">No address given</span>}</p>
+                    </div>
+                    {selectedCharity?.settings.show_phone &&
+                      <div className="flex items-start gap-2">
+                        <Phone className="mt-1 h-4 w-4 shrink-0" />
+                        <p>{selectedCharity?.phone_number || <span className="text-muted-foreground italic">No phone given</span>}</p>
+                      </div>
+                    }
+                    {selectedCharity?.settings.show_website &&
+                      <div className="flex items-start gap-2">
+                        <Globe className="mt-1 h-4 w-4 shrink-0" />
+                        {selectedCharity?.website_link ? (
+                          <a href={selectedCharity.website_link} target="_blank" className="text-blue-500 hover:underline">
+                            {selectedCharity.website_link.slice(0, 35)}...
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground italic">No website link given</span>
+                        )}
+                      </div>
+                    }
+                    <div className="flex items-start gap-2">
+                      <Clock className="mt-1 h-4 w-4 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Opening Hours</p>
+                        <div className="grid grid-rows-7">
+                          {selectedCharity?.opening_hours ? (
+                            Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
+                              <div key={day} className="grid grid-cols-2">
+                                <p>{day}:</p>
+                                <p>{isOpen ? `${start} - ${end}` : "Closed"}</p>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-muted-foreground italic">No opening hours available</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">{selectedCharity?.name}</h1>
@@ -416,7 +464,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                 <p className="text-gray-600 mb-4">{selectedCharity?.description}</p>
 
                 <Badge className="bg-blue-100 text-blue-800 mb-2">
-                {PRIMARY_CATEGORIES.find(cat => cat.value === selectedCharity?.category_and_tags.primary)?.label}
+                  {PRIMARY_CATEGORIES.find(cat => cat.value === selectedCharity?.category_and_tags.primary)?.label}
                 </Badge>
 
                 <div className="mb-4 flex flex-wrap gap-1">
@@ -425,51 +473,6 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                       {tag}
                     </Badge>
                   ))}
-                </div>
-              </div>
-
-              <div className="pl-4">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                    <p>{selectedCharity?.address || <span className="text-muted-foreground italic">No address given</span>}</p>
-                  </div>
-                  {selectedCharity?.settings.show_phone &&
-                    <div className="flex items-start gap-2">
-                      <Phone className="mt-1 h-4 w-4 shrink-0" />
-                      <p>{selectedCharity?.phone_number || <span className="text-muted-foreground italic">No phone given</span>}</p>
-                    </div>
-                  }
-                  {selectedCharity?.settings.show_website &&
-                    <div className="flex items-start gap-2">
-                      <Globe className="mt-1 h-4 w-4 shrink-0" />
-                      {selectedCharity?.website_link ? (
-                        <a href={selectedCharity.website_link} target="_blank" className="text-blue-500 hover:underline">
-                          {selectedCharity.website_link.slice(0, 35)}...
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground italic">No website link given</span>
-                      )}
-                    </div>
-                  }
-                  <div className="flex items-start gap-2">
-                    <Clock className="mt-1 h-4 w-4 shrink-0" />
-                    <div>
-                      <p className="font-semibold">Opening Hours</p>
-                      <div className="grid grid-rows-7">
-                        {selectedCharity?.opening_hours ? (
-                          Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
-                            <div key={day} className="grid grid-cols-2">
-                              <p>{day}:</p>
-                              <p>{isOpen ? `${start} - ${end}` : "Closed"}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground italic">No opening hours available</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </Card>
@@ -485,14 +488,10 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               ) : (
                 <>
                   {/* Resource Summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h3 className="text-sm font-medium text-blue-800 mb-1">Total Resources</h3>
-                      <p className="text-2xl font-bold">{resources?.reduce((total, resource) => total + (resource.quantity), 0) || 0}</p>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h3 className="text-sm font-medium text-green-800 mb-1">Shareable Quantity</h3>
-                      <p className="text-2xl font-bold">{resources?.reduce((total, resource) => total + resource.shareable_quantity, 0) || 0}</p>
+                      <p className="text-2xl font-bold">{resources?.filter(r => r.shareable_quantity > 0).reduce((total, resource) => total + resource.shareable_quantity, 0) || 0}</p>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <h3 className="text-sm font-medium text-purple-800 mb-1">Categories</h3>
@@ -500,55 +499,58 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                     </div>
                   </div>
 
-                  {/* Resources by Category */}
                   <div className="space-y-6">
                     {Object.entries(resourcesByCategory).map(([category, categoryResources]) => (
                       <div key={category}>
                         <h3 className="text-lg font-medium mb-3 border-b pb-2">{category}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {categoryResources.map((resource) => {
-                            const availablePercentage = Math.round(
-                              ((resource.shareable_quantity - resource.quantity_reserved) / resource.shareable_quantity) * 100,
-                            )
-
+                            const availabilityLevel = 
+                              resource.shareable_quantity > 10 ? "high" : 
+                              resource.shareable_quantity > 5 ? "medium" : "low";
+                                
                             return (
-                              <div key={resource.id} className="border rounded-lg p-4 transition-shadow">
-                                <div className="flex justify-between items-start mb-2">
-                                  <h4 className="font-medium">{resource.name}</h4>
-                                  <Badge
-                                    variant={availablePercentage > 50 ? "default" : "outline"}
-                                    className={
-                                      availablePercentage > 50
-                                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                        : "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                                    }
-                                  >
-                                    {resource.shareable_quantity} available
-                                  </Badge>
-                                </div>
-
-                                {resource.description && (
-                                  <p className="text-sm text-gray-600 mb-3">{resource.description}</p>
-                                )}
-
-                                {availablePercentage > 0 && 
-                                  <div className="mb-2">
-                                    <div className="flex justify-start text-xs mb-1">
-                                      <span>
-                                        Total: {resource.quantity} {resource.unit}
-                                      </span>
+                              <div key={resource.id} className="border rounded-lg overflow-hidden transition-shadow hover:shadow-md">
+                                <div className={`h-1 w-full ${
+                                  availabilityLevel === "high" ? "bg-green-500" : 
+                                  availabilityLevel === "medium" ? "bg-amber-500" : "bg-red-500"
+                                }`} />
+                                
+                                <div className="p-4">
+                                  <div className="flex justify-between items-start mb-3">
+                                    <h4 className="font-medium">{resource.name}</h4>
+                                    <div className="flex items-center">
+                                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                                        availabilityLevel === "high" ? "bg-green-500" : 
+                                        availabilityLevel === "medium" ? "bg-amber-500" : "bg-red-500"
+                                      }`}></span>
+                                      <Badge
+                                        variant="outline"
+                                        className={
+                                          availabilityLevel === "high" ? "border-green-500 text-green-700" : 
+                                          availabilityLevel === "medium" ? "border-amber-500 text-amber-700" : "border-red-500 text-red-700"
+                                        }
+                                      >
+                                        {resource.shareable_quantity} {resource.unit}
+                                      </Badge>
                                     </div>
-                                    <Progress value={availablePercentage} className="h-2" />
                                   </div>
-                                }
 
-                                <div className="flex justify-between text-xs text-gray-500 mt-3">
-                                  {resource.expiry_date && (
-                                    <Badge variant="destructive"><Calendar size={12} className="mr-1" /> Expires: {new Date(resource.expiry_date).toLocaleDateString()}</Badge>
+                                  {resource.description && (
+                                    <p className="text-sm text-gray-600 mb-3">{resource.description}</p>
                                   )}
+
+                                  {resource.expiry_date && (
+                                    <div className="my-3">
+                                      <Badge variant="destructive" className="text-xs">
+                                        <Calendar size={12} className="mr-1" /> Expires: {new Date(resource.expiry_date).toLocaleDateString()}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  <RequestResource selectedResource={resource} className="bg-blue-50 text-blue-600 hover:bg-blue-50 border-blue-200 w-full" />
                                 </div>
                               </div>
-                            )
+                            );
                           })}
                         </div>
                       </div>

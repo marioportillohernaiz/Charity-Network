@@ -1,26 +1,13 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MapPin, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { requestResource } from '@/app/actions';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   Pagination,
   PaginationContent,
@@ -32,6 +19,7 @@ import {
 } from '@/components/ui/pagination';
 import { RESOURCE_CATEGORIES } from '@/types/Categories';
 import { MatchScore } from './match-score-column';
+import RequestResource from './request-resource';
 
 export function SharedResourcesTable({resourceData, charityData, charity} : {resourceData: ResourcesData[]; charityData: CharityData[]; charity: CharityData}) {
   const sharedResources = resourceData.filter(item => item.shareable_quantity > 0);
@@ -43,10 +31,6 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
     direction: 'desc' 
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<ResourcesData | null>(null);
-  const [requestQuantity, setRequestQuantity] = useState(1);
-  const [notes, setNotes] = useState("");
   const ITEMS_PER_PAGE = 10;
 
   // Location filtering state
@@ -114,22 +98,6 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
       }
     }
   };
-
-  const handleRequestClick = (resource: ResourcesData) => {
-    setSelectedResource(resource);
-    setRequestQuantity(1);
-    setIsDialogOpen(true);
-  };
-
-  const handleSubmit = async () => {
-    const response = await requestResource(selectedResource, requestQuantity, notes);
-    if (response.success) {
-      toast.success(response.message);
-      setIsDialogOpen(false);
-    } else {
-      toast.error(response.message);
-    }
-  }
 
   // Apply filters with radius consideration
   const filteredResources = (searchRadius > 0 ? filteredByDistance : sharedResources).filter(resource => {
@@ -315,13 +283,7 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
                     <tr className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-center space-x-2">
-                          <Button 
-                            variant="outline" 
-                            className="bg-green-100 text-green-800 hover:bg-green-100 border-green-400 w-full"
-                            onClick={() => handleRequestClick(resource)}
-                          >
-                            Request
-                          </Button>
+                          <RequestResource selectedResource={resource} className="bg-green-100 text-green-800 hover:bg-green-100 border-green-400 w-full" />
                         </div>
                       </td>
                       <td className="px-4 py-4">
@@ -451,94 +413,6 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
         </div></>
       ) : (<p className="text-center py-8 text-gray-500">No resources available for sharing from other charities</p>)}
       </CardContent>
-
-      {/* Request Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Request Resource</DialogTitle>
-            <DialogDescription>
-              Specify how many units you would like to request.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedResource && (
-            <div className="py-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium mb-1">{selectedResource.name}</h4>
-                    <Badge variant="outline">{selectedResource.category}</Badge>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Available</label>
-                    <p>{selectedResource.shareable_quantity} {selectedResource.unit}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Request Quantity</label>
-                  <div className="w-full">
-                    <Slider
-                      id="quantity"
-                      min={1}
-                      max={selectedResource?.shareable_quantity || 1}
-                      step={1}
-                      value={[requestQuantity]}
-                      onValueChange={(value) => setRequestQuantity(value[0])}
-                      className="my-2"
-                    />
-                    <div className="flex justify-between mt-1">
-                      <p className="text-xs text-gray-500">
-                        {requestQuantity} {selectedResource?.unit}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Max: {selectedResource?.shareable_quantity} {selectedResource?.unit}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Reason for Request</label>
-                  <Textarea 
-                    placeholder="Add a note to the charity (optional)"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Checkbox id="terms" />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor="terms"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      I confirm this request is for charitable purposes
-                    </label>
-                    <p className="text-sm text-muted-foreground">
-                      Your organization will be responsible for arranging pickup or delivery.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>
-              Submit Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
