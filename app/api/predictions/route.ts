@@ -124,9 +124,125 @@ function summarizeResourceHistory(history: any[]) {
   return summary;
 }
 
+// Helper function to summarize sales register data
+function summarizeSalesData(salesData: Sales[]) {
+  if (!salesData || salesData.length === 0) {
+    return 'No sales data available';
+  }
+  
+  let summary = '';
+  
+  try {
+    // Extract date range
+    const dates = salesData.map(sale => new Date(sale.date_to));
+    const oldestDate = new Date(Math.min(...dates.map(d => d.getTime())));
+    const newestDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    const dateRangeInDays = Math.ceil((newestDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Calculate total sales
+    let totalSalesAmount = 0;
+    let categorySales: Record<string, number> = {};
+    let monthlySales: Record<string, number> = {};
+    
+    // Process all sales data
+    salesData.forEach(sale => {
+      if (!sale.sales_data) return;
+      
+      // Get month for monthly tracking
+      const saleDate = new Date(sale.date_to);
+      const monthKey = saleDate.toLocaleString('default', { month: 'short' });
+      
+      // Process each sale item
+      sale.sales_data.forEach(item => {
+        // Add to total
+        totalSalesAmount += item.amount;
+        
+        // Add to category totals
+        if (!categorySales[item.category]) {
+          categorySales[item.category] = 0;
+        }
+        categorySales[item.category] += item.amount;
+        
+        // Add to monthly totals
+        if (!monthlySales[monthKey]) {
+          monthlySales[monthKey] = 0;
+        }
+        monthlySales[monthKey] += item.amount;
+      });
+    });
+    
+    // Build comprehensive summary
+    summary += `Sales data shows ${salesData.length} records spanning ${dateRangeInDays} days (from ${oldestDate.toLocaleDateString()} to ${newestDate.toLocaleDateString()}). `;
+    summary += `Total sales amount: £${totalSalesAmount.toFixed(2)}. `;
+    
+    // Add category breakdown
+    const sortedCategories = Object.entries(categorySales)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    
+    if (sortedCategories.length > 0) {
+      summary += `Top selling categories: `;
+      summary += sortedCategories
+        .map(([category, amount]) => `${category} (£${amount.toFixed(2)})`)
+        .join(', ');
+      summary += `. `;
+    }
+    
+    // Add monthly analysis
+    const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const sortedMonthlyData = Object.entries(monthlySales)
+      .sort((a, b) => monthOrder.indexOf(a[0]) - monthOrder.indexOf(b[0]));
+    
+    if (sortedMonthlyData.length > 0) {
+      const highestMonth = Object.entries(monthlySales).reduce((prev, current) => 
+        (current[1] > prev[1]) ? current : prev
+      );
+      
+      const lowestMonth = Object.entries(monthlySales).reduce((prev, current) => 
+        (current[1] < prev[1]) ? current : prev
+      );
+      
+      summary += `Highest sales were in ${highestMonth[0]} (£${highestMonth[1].toFixed(2)}), `;
+      summary += `and lowest in ${lowestMonth[0]} (£${lowestMonth[1].toFixed(2)}). `;
+    }
+    
+    // Identify trends
+    if (sortedMonthlyData.length >= 2) {
+      // Simple trend analysis
+      let increases = 0;
+      let decreases = 0;
+      
+      for (let i = 1; i < sortedMonthlyData.length; i++) {
+        const current = sortedMonthlyData[i][1];
+        const previous = sortedMonthlyData[i-1][1];
+        
+        if (current > previous) increases++;
+        else if (current < previous) decreases++;
+      }
+      
+      if (increases > decreases) {
+        summary += `Sales show an overall increasing trend. `;
+      } else if (decreases > increases) {
+        summary += `Sales show an overall decreasing trend. `;
+      } else {
+        summary += `Sales show a stable pattern without clear trending. `;
+      }
+    }
+    
+    // Calculate average sale amount
+    const avgSaleAmount = totalSalesAmount / salesData.length;
+    summary += `Average transaction amount: £${avgSaleAmount.toFixed(2)}. `;
+    
+    return summary;
+  } catch (error) {
+    console.error('Error summarizing sales data:', error);
+    return 'Error processing sales data summary';
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const { description, tags, categories, resources, resourceHistory, availableResources } = await request.json();
+    const { description, tags, categories, resources, resourceHistory, availableResources, salesData } = await request.json();
     
     // ChatGPT API configuration
     const apiKey = process.env.OPENAI_API_KEY;
@@ -138,11 +254,21 @@ export async function POST(request: Request) {
     const currentResourcesSummary = resources ? summarizeResources(resources) : 'No current resource data available';
     const resourceHistorySummary = resourceHistory ? summarizeResourceHistory(resourceHistory) : 'No historical data available';
     const availableResourcesFromOtherCharities = availableResources ? summarizeResources(availableResources) : 'No available resources data available';
+    const salesSummary = salesData ? summarizeSalesData(salesData) : 'No current sales data available';
+
+    // console.log("=====================================");
+    // console.log(currentResourcesSummary);
+    // console.log("=====================================");
+    // console.log(resourceHistorySummary);
+    // console.log("=====================================");
+    // console.log(availableResourcesFromOtherCharities);
+    // console.log("=====================================");
+    // console.log(salesSummary);
 
     // Format the prompt for more structured and useful predictions
     const prompt = `
       You are an AI that specializes in charity resource demand forecasting.
-      Based on the following charity information, predict the seasonal demand trends (monthly) for different resource categories.
+      Based on the following charity information, current resources and sales data predict the seasonal demand trends (monthly) for different resource categories.
 
       Charity Description: ${description || 'No description provided'}
       Primary Category: ${categories?.primary || 'Not specified'}
@@ -155,7 +281,10 @@ export async function POST(request: Request) {
       Resource History:
       ${resourceHistorySummary}
 
-     Resources Available From Other Charities:
+      Charity's sales data:
+      ${salesSummary}
+
+      Resources Available From Other Charities:
       ${availableResourcesFromOtherCharities}
 
      Today's Date: ${new Date().toLocaleDateString()}
@@ -166,32 +295,33 @@ export async function POST(request: Request) {
       3. Medical & Health Supplies
       4. Housing & Homelessness
 
-      For each month (January through December), provide numeric values representing relative demand (scale of 0-100, where 100 is peak demand).
+      For each month (January through December), provide CLEAR distinct numeric value representing relative demand (scale of 0-10 where 10 is peak demand).
       
       Format your response as a valid JSON object like this:
       {
         "food": {
-          "Jan": 70,
-          "Feb": 65,
+          "Jan": 8,
+          "Feb": 7,
           ...and so on
         },
         "clothing": {
-          "Jan": 85,
-          "Feb": 75,
+          "Jan": 4,
+          "Feb": 7,
           ...and so on
         },
         "medical": {
-          "Jan": 50,
-          "Feb": 55,
+          "Jan": 1,
+          "Feb": 3,
           ...and so on
         },
         "housing": {
-          "Jan": 50,
-          "Feb": 55,
+          "Jan": 9,
+          "Feb": 7,
           ...and so on
         },
         "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors."
-        "recommendation": "Given ONLY the resources available from other charities, can you give me ONLY ONE charity that might be able to help TODAY with the predicted demand?"
+        "recommendation": "Given ONLY the resources available from other charities, can you give me only ONE charity that might be able to help TODAY with the predicted demand?"
+        "impact": "A sentence explaining the impact this recommendation will affect this charity (the one you are recommending the resources to)."
       }
 
       Consider the following factors in your prediction:

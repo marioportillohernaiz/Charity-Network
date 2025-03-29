@@ -86,7 +86,8 @@ export async function POST(request: Request) {
       `Charity Name: ${charityData.name}
       Charity Description: ${charityData.description || 'Not provided'}
       Primary Category: ${charityData.category_and_tags?.primary || 'Not specified'}
-      Secondary Categories: ${charityData.category_and_tags?.secondary?.join(', ') || 'None'}`
+      Secondary Categories: ${charityData.category_and_tags?.secondary?.join(', ') || 'None'}
+      Location: ${charityData.location || 'Not specified'}`
       : 'No charity information available';
     
     const resourceSummary = resourceData?.length > 0 ? summarizeResources(resourceData) : 'No resources data available';
@@ -95,7 +96,8 @@ export async function POST(request: Request) {
     // Format the prompt
     const systemMessage = {
       role: 'system',
-      content: `You are an AI assistant for charity organizations, specializing in resource management, fundraising, and charity operations. 
+      content: `
+        You are an AI assistant for charity organizations, specializing in resource management, fundraising, and charity operations. 
       
         Today's date is ${new Date().toLocaleDateString()}.
             
@@ -109,8 +111,14 @@ export async function POST(request: Request) {
         RESOURCE INVENTORY:
         ${resourceSummary}
 
-        Provide helpful, practical advice based on this context. When responding:
-        1. Be specific about resource allocation and management strategies
+        When responding:
+        1. Respond in one short sentence as if you were having a conversation.
+        2. Do not add titles or sections to your sentences.
+        3. Ask a short question relating the subject of the conversation
+        4. Do not use bullet points or lists or symbols such as '*' in your responses.
+
+        As the conversation goes on, provide:
+        1. Specific resource allocation and management strategies
         2. Suggest fundraising approaches tailored to their primary category
         3. Offer event planning ideas relevant to their focus areas
         4. Recommend ways to optimize resource sharing with other charities
@@ -118,11 +126,9 @@ export async function POST(request: Request) {
 
         IMPORTANT FORMATTING INSTRUCTIONS:
         - Use markdown formatting in your responses to improve readability
-        - Use breaks to separate paragraphs for better structure
-        - Keep paragraphs short and concise
+        - Keep sentences short and concise
 
-        If you don't know the answer to a specific question, suggest general best practices that most charities could benefit from.
-        Keep responses clear, actionable, and focused on practical solutions.`
+        If you don't know the answer to a specific question, suggest general best practices that most charities could benefit from.`
     };
 
     // Combine system message with user history

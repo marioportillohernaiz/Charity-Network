@@ -4,17 +4,11 @@ import React, { useState, useTransition } from 'react';
 import { 
   TrendingUp, ArrowLeft, Loader2, BarChart4,
   RefreshCw,
-  TriangleAlert
+  Clock,
+  Users
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, LineChart, Line
 } from 'recharts';
@@ -49,6 +43,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
         setSeasonalTrendsData(chartData);
         setPredictionExplanation(predictions.explanation || null);
         setRecommendation(predictions.recommendation || null);
+        setImpact(predictions.impact || null);
       } else {
         // Fallback to default data if predictions fail
         setSeasonalTrendsData(defaultSeasonalTrendsData);
@@ -71,6 +66,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
   // Default fallback data
   const [predictionExplanation, setPredictionExplanation] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [impact, setImpact] = useState<string | null>(null);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const defaultSeasonalTrendsData = months.map(month => {
@@ -127,11 +123,41 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
         <div className="space-y-5 overflow-hidden">
           <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
             <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
-              {isLoadingPredictions ? <Loader2 className="h-4 w-4 animate-spin" /> :  <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />}
+              {isLoadingPredictions ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> :  <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />}
               AI Prediction Explanation
             </h3>
             {recommendation ? (
-              <p className="text-sm text-blue-800">{recommendation}</p>
+              <div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card className="bg-blue-100 border-blue-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Temporal Urgency
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-blue-900 ">
+                        REQUEST NOW: {recommendation}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-blue-100 border-blue-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Impact Quantification
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-blue-900 ">
+                        {impact}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             ) : (
               <p className="text-gray-500">No recommendation available</p>
             )}

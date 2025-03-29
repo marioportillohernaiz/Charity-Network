@@ -13,6 +13,7 @@ export type SeasonalPrediction = {
   housing: Record<string, number>;
   explanation?: string;
   recommendation?: string;
+  impact?: string;
 };
 
 export async function fetchSeasonalPredictions(charityData: CharityData, resourceData: ResourcesData[], transitData: TransitData[], salesData: Sales[]): Promise<SeasonalPrediction | null> {
