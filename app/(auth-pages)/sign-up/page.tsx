@@ -6,17 +6,54 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, InfoIcon } from "lucide-react";
+import { Eye, EyeOff, Check, X } from "lucide-react";
 import Image from 'next/image';
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast, Toaster } from "sonner";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showRepeatedPassword, setRepeatedShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [passwordMatches, setPasswordMatches] = useState(false);
+  const [passwordValid, setPasswordValid] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false
+  });
+
+  useEffect(() => {
+    setPasswordValid({
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password)
+    });
+    
+    setPasswordMatches(password === repeatPassword && password !== "");
+  }, [password, repeatPassword]);
+
+  const isPasswordStrong = () => {
+    return (
+      passwordValid.length &&
+      passwordValid.uppercase &&
+      passwordValid.lowercase &&
+      passwordValid.number &&
+      passwordValid.special
+    );
+  };
 
   const handleSubmit = async (formData: FormData) => {
+    if (!isPasswordStrong() || !passwordMatches) {
+      toast.error("Please ensure your password meets all requirements and both passwords match.");
+      return;
+    }
+    
     const response = await signUpAction(formData);
     if (response.success) {
       toast.success(response.message);
@@ -47,7 +84,9 @@ export default function Signup() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="•••••••••"
-                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-black"
                 required
               />
               <Button
@@ -67,14 +106,64 @@ export default function Signup() {
                 </span>
               </Button>
             </div>
+            
+            {/* Password requirements checklist */}
+            <div className="bg-white/10 p-3 rounded-md text-xs my-2">
+              <p className="font-medium mb-2">Password must include:</p>
+              <ul className="space-y-1">
+                <li className="flex items-center">
+                  {passwordValid.length ? (
+                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                  ) : (
+                    <X className="h-3 w-3 mr-2 text-red-400" />
+                  )}
+                  At least 8 characters
+                </li>
+                <li className="flex items-center">
+                  {passwordValid.uppercase ? (
+                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                  ) : (
+                    <X className="h-3 w-3 mr-2 text-red-400" />
+                  )}
+                  At least one uppercase letter (A-Z)
+                </li>
+                <li className="flex items-center">
+                  {passwordValid.lowercase ? (
+                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                  ) : (
+                    <X className="h-3 w-3 mr-2 text-red-400" />
+                  )}
+                  At least one lowercase letter (a-z)
+                </li>
+                <li className="flex items-center">
+                  {passwordValid.number ? (
+                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                  ) : (
+                    <X className="h-3 w-3 mr-2 text-red-400" />
+                  )}
+                  At least one number (0-9)
+                </li>
+                <li className="flex items-center">
+                  {passwordValid.special ? (
+                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                  ) : (
+                    <X className="h-3 w-3 mr-2 text-red-400" />
+                  )}
+                  At least one special character (!@#$%^&*)
+                </li>
+              </ul>
+            </div>
+            
             <Label htmlFor="repeatPassword">Repeat Password</Label>
             <div className="relative">
               <Input
                 type={showRepeatedPassword ? "text" : "password"}
                 name="repeatPassword"
                 placeholder="•••••••••"
-                minLength={6}
+                value={repeatPassword}
+                onChange={(e) => setRepeatPassword(e.target.value)}
                 required
+                className={repeatPassword && !passwordMatches ? "text-black border-red-400" : "text-black"}
               />
               <Button
                 type="button"
@@ -93,13 +182,37 @@ export default function Signup() {
                 </span>
               </Button>
             </div>
+            
+            {repeatPassword && (
+              <div className={`text-xs ${passwordMatches ? 'text-green-400' : 'text-red-400'} flex items-center`}>
+                {passwordMatches ? (
+                  <>
+                    <Check className="h-3 w-3 mr-1" />
+                    Passwords match
+                  </>
+                ) : (
+                  <>
+                    <X className="h-3 w-3 mr-1" />
+                    Passwords do not match
+                  </>
+                )}
+              </div>
+            )}
+            
             <div className="flex items-center space-x-2 my-4">
               <Checkbox id="consent" name="consent" required className="bg-white" />
               <Label htmlFor="consent" className="text-xs leading-none">
                 * I confirm this account is for a registered charitable organisation.
               </Label>
             </div>
-            <SubmitButton type="submit" formAction={handleSubmit} pendingText="Signing up..." variant="secondary">
+            
+            <SubmitButton 
+              type="submit" 
+              formAction={handleSubmit} 
+              pendingText="Signing up..." 
+              variant="secondary"
+              disabled={!isPasswordStrong() || !passwordMatches}
+            >
               Sign up
             </SubmitButton>
           </form>

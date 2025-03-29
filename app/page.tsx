@@ -1,21 +1,62 @@
 "use client"
 
-import { useState, } from 'react'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, Check, ChevronRight } from "lucide-react"
+import { Check, ChevronRight, CircleCheck } from "lucide-react"
 import Link from "next/link";
-import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { cn } from "@/lib/utils";
 
 export default function LandingPage() {
-  const [email, setEmail] = useState("");
-
   const features = [
       { title: "Charity Finder", description: "Locate charities based on cause, location, and needs to connect with organizations that align with your mission." },
       { title: "Resource Viewing and Sharing", description: "Browse available resources, share surplus supplies, and collaborate with other charities to maximize impact." },
       { title: "AI-Powered Recommendations", description: "Get smart suggestions for partnerships, resources, and funding opportunities tailored to your charity’s needs."}
+  ];
+
+  const plans = [
+    {
+      name: "Starter",
+      price: 19,
+      description:
+        "Basic features for small charities just getting started with resource sharing and networking.",
+      features: [
+        "Charity Finder access",
+        "Basic resource management",
+        "5 resource requests per month",
+        "Single location tracking"
+      ],
+      buttonText: "Start Your Journey",
+    },
+    {
+      name: "Advanced",
+      price: 29,
+      isRecommended: true,
+      description:
+        "Enhanced features for growing charities with moderate resource sharing needs.",
+      features: [
+        "AI-powered resource recommendations",
+        "Up to 50 resources cataloged",
+        "15 resource requests per month",
+        "Multiple location tracking"
+      ],
+      buttonText: "Upgrade Your Impact",
+      isPopular: true,
+    },
+    {
+      name: "Premium",
+      price: 49,
+      description:
+        "Comprehensive solution for established charities with complex resource sharing requirements.",
+      features: [
+        "Advanced AI prediction analytics",
+        "Unlimited resource catalog",
+        "Unlimited resource requests",
+        "Multi-branch location management"
+      ],
+      buttonText: "Maximize Your Reach",
+    },
   ];
 
   return (
@@ -114,6 +155,56 @@ export default function LandingPage() {
                 {feature.title == "Filtered Menu" ? <p className="text-center text-muted-foreground italic pt-4">Coming soon...</p> : <p></p>}
               </CardContent>
             </Card>
+          ))}
+        </div>
+      </section>
+
+      <section id="pricing" className="max-w-screen-lg mx-auto py-12 xs:py-20 px-6">
+        <h1 className="text-4xl xs:text-5xl font-bold text-center tracking-tight">
+          Pricing
+        </h1>
+        <div className="mt-8 xs:mt-14 grid grid-cols-1 lg:grid-cols-3 items-center gap-8 lg:gap-0">
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className={cn(
+                "relative bg-accent/50 border p-7 rounded-xl lg:rounded-none lg:first:rounded-l-xl lg:last:rounded-r-xl",
+                {
+                  "bg-background border-[2px] border-primary py-12 !rounded-xl":
+                    plan.isPopular,
+                }
+              )}
+            >
+              {plan.isPopular && (
+                <Badge className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2">
+                  Most Popular
+                </Badge>
+              )}
+              <h3 className="text-lg font-medium">{plan.name}</h3>
+              <p className="mt-2 text-4xl font-bold">
+                ${plan.price} 
+                <span className="mt-4 text-lg font-medium text-muted-foreground">/month</span>
+              </p>
+              <p className="mt-4 font-medium text-muted-foreground">
+                {plan.description}
+              </p>
+              <Separator className="my-6" />
+              <ul className="space-y-2">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <CircleCheck className="h-4 w-4 mt-1 text-green-600" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                variant={plan.isPopular ? "default" : "outline"}
+                size="lg"
+                className="w-full mt-6 rounded-full"
+              >
+                {plan.buttonText}
+              </Button>
+            </div>
           ))}
         </div>
       </section>
