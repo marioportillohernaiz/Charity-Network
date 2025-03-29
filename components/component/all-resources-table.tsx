@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationEllipsis, PaginationLink, PaginationNext } from "../ui/pagination";
 import { AddResources } from "./add-resources-dialog";
 import { Badge } from "../ui/badge";
-import { Progress } from "../ui/progress";
 import { RESOURCE_CATEGORIES } from "@/types/Categories";
 
 export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[];}) {

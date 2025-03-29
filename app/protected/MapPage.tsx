@@ -132,15 +132,13 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               </div>
             ` : ''}
   
-            ${charity.address && charity.settings.show_address ? `
-              <div style="display: flex; align-items: flex-start; margin-bottom: 0.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem; margin-top: 0.25rem; flex-shrink: 0; color: #718096;">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span style="font-size: 0.875rem;">${charity.address}</span>
-              </div>
-            ` : ''}
+            <div style="display: flex; align-items: flex-start; margin-bottom: 0.5rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem; margin-top: 0.25rem; flex-shrink: 0; color: #718096;">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <span style="font-size: 0.875rem;">${charity.address}</span>
+            </div>
   
             ${charity.opening_hours ? `
               <div style="display: flex; align-items: flex-start; margin-bottom: 0.5rem;">
@@ -436,20 +434,24 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                     <MapPin className="mt-1 h-4 w-4 shrink-0" />
                     <p>{selectedCharity?.address || <span className="text-muted-foreground italic">No address given</span>}</p>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Phone className="mt-1 h-4 w-4 shrink-0" />
-                    <p>{selectedCharity?.phone_number || <span className="text-muted-foreground italic">No phone given</span>}</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Globe className="mt-1 h-4 w-4 shrink-0" />
-                    {selectedCharity?.website_link ? (
-                      <a href={selectedCharity.website_link} target="_blank" className="text-blue-500 hover:underline">
-                        {selectedCharity.website_link.slice(0, 35)}...
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground italic">No website link given</span>
-                    )}
-                  </div>
+                  {selectedCharity?.settings.show_phone &&
+                    <div className="flex items-start gap-2">
+                      <Phone className="mt-1 h-4 w-4 shrink-0" />
+                      <p>{selectedCharity?.phone_number || <span className="text-muted-foreground italic">No phone given</span>}</p>
+                    </div>
+                  }
+                  {selectedCharity?.settings.show_website &&
+                    <div className="flex items-start gap-2">
+                      <Globe className="mt-1 h-4 w-4 shrink-0" />
+                      {selectedCharity?.website_link ? (
+                        <a href={selectedCharity.website_link} target="_blank" className="text-blue-500 hover:underline">
+                          {selectedCharity.website_link.slice(0, 35)}...
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground italic">No website link given</span>
+                      )}
+                    </div>
+                  }
                   <div className="flex items-start gap-2">
                     <Clock className="mt-1 h-4 w-4 shrink-0" />
                     <div>

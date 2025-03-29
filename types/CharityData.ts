@@ -21,7 +21,7 @@ interface CharityData {
   src_charity_img?: string;
 
   category_and_tags: {primary: string; secondary: string[]; tags: string[]};
-  settings: {show_email: boolean; show_phone: boolean; email_notif: boolean; show_address: boolean; resource_alert: boolean; resource_request: boolean;};
+  settings: {show_phone: boolean; show_website: boolean; resource_alert: boolean; resource_request: boolean;};
 
   created_date?: Date;
   updated_date?: Date;

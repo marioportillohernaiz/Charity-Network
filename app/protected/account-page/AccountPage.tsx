@@ -53,10 +53,8 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
   const [newTag, setNewTag] = useState('');
 
   // Settings
-  const [showEmail, setShowEmail] = useState(accountData?.settings?.show_email);
   const [showPhone, setShowPhone] = useState(accountData?.settings?.show_phone);
-  const [showAddress, setShowAddress] = useState(accountData?.settings?.show_address);
-  const [emailNotifications, setEmailNotifications] = useState(accountData?.settings?.email_notif);
+  const [showWebsite, setShowWebsite] = useState(accountData?.settings?.show_website);
   const [resourceAlerts, setResourceAlerts] = useState(accountData?.settings?.resource_alert);
   const [resourceRequests, setResourceRequests] = useState(accountData?.settings?.resource_request);
   
@@ -154,10 +152,8 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
         tags: tags
       });
       const settingsJSON = JSON.stringify({
-        show_email: showEmail,
         show_phone: showPhone,
-        email_notif: emailNotifications,
-        show_address: showAddress,
+        show_address: showWebsite,
         resource_alert: resourceAlerts,
         resource_request: resourceRequests
       });
@@ -717,19 +713,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="font-medium">Email Notifications</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Receive email updates about your account
-                          </p>
-                        </div>
-                        <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications}
-                        />
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="flex justify-between items-center">
-                        <div>
                           <h3 className="font-medium">Resource Alerts</h3>
                           <p className="text-sm text-muted-foreground">
                             Get notified when new resources are available
@@ -769,21 +752,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="font-medium">Show Email Address</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Display your email address on your public profile
-                          </p>
-                        </div>
-                        <Switch 
-                          checked={showEmail}
-                          onCheckedChange={() => setShowEmail(!showEmail)}
-                        />
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="flex justify-between items-center">
-                        <div>
                           <h3 className="font-medium">Show Phone Number</h3>
                           <p className="text-sm text-muted-foreground">
                             Display your phone number on your public profile
@@ -799,14 +767,14 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                       
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="font-medium">Show Address</h3>
+                          <h3 className="font-medium">Show Website</h3>
                           <p className="text-sm text-muted-foreground">
-                            Display your full address on your public profile
+                            Display your website link on your public profile
                           </p>
                         </div>
                         <Switch 
-                          checked={showAddress} 
-                          onCheckedChange={() => setShowAddress(!showAddress)}
+                          checked={showWebsite} 
+                          onCheckedChange={() => setShowWebsite(!showWebsite)}
                         />
                       </div>
                     </div>

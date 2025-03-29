@@ -31,6 +31,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { RESOURCE_CATEGORIES } from '@/types/Categories';
+import { MatchScore } from './match-score-column';
 
 export function SharedResourcesTable({resourceData, charityData, charity} : {resourceData: ResourcesData[]; charityData: CharityData[]; charity: CharityData}) {
   const sharedResources = resourceData.filter(item => item.shareable_quantity > 0);
@@ -285,6 +286,9 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
                     Resource
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Match Score
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Charity
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -330,6 +334,12 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
                             <p className="text-xs text-gray-500 max-w-xs mt-1 truncate">{resource.description}</p>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <MatchScore 
+                          resource={resource} 
+                          charity={charity}
+                        />
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-sm text-gray-900">{charityDetails?.name}</p>
