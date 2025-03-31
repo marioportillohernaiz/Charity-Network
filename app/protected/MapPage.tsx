@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Calendar, ChevronLeft, ChevronRight, Clock, ExternalLink, Globe, MapPin, MessageSquareOff, Package, Phone, Search, Star, StarHalf, X } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Clock, Globe, LayersIcon, MapPin, MessageSquareOff, Package, Phone, Search, Star, StarHalf, X } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PRIMARY_CATEGORIES } from "@/types/Categories";
-import { Progress } from "@/components/ui/progress";
 import RequestResource from "@/components/component/request-resource";
 
 export default function Map({ charitiesData, currentCharity, commentsData, transitData, resourcesData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; resourcesData: ResourcesData[] }) {
@@ -478,7 +477,37 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
             </Card>
 
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Charity Resources</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center mb-3">
+                  <LayersIcon className="h-5 w-5 mr-2 text-blue-500" />
+                  <h2 className="text-xl font-semibold">All Available Resources</h2>
+                </div>
+                {resources.length > 0 && (
+                  <Badge variant="outline" className="bg-primary/10 text-primary">
+                    {resources.length} {resources.length === 1 ? "Resource" : "Resources"}
+                  </Badge>
+                )}
+              </div>
+              
+              {resources.length === 0 ? (
+                <div className="text-center py-6 text-gray-500">
+                  <Package size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>No resources available from this charity</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {resources.map((resource, index) => (
+                    <div key={index} className="bg-blue-50 rounded-md p-3 flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                      <span className="text-blue-800">{resource.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Shareable Resources</h2>
 
               {resources.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">

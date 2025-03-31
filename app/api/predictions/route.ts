@@ -268,7 +268,7 @@ export async function POST(request: Request) {
     // Format the prompt for more structured and useful predictions
     const prompt = `
       You are an AI that specializes in charity resource demand forecasting.
-      Based on the following charity information, current resources and sales data predict the seasonal demand trends (monthly) for different resource categories.
+      Based on the following charity information, current resources and sales data predict the seasonal demand trends (monthly) for each different resource category.
 
       Charity Description: ${description || 'No description provided'}
       Primary Category: ${categories?.primary || 'Not specified'}
@@ -296,7 +296,15 @@ export async function POST(request: Request) {
       4. Housing & Homelessness
 
       For each month (January through December), provide CLEAR distinct numeric value representing relative demand (scale of 0-10 where 10 is peak demand).
-      
+      Consider the following factors in your prediction:
+      - The charity's current resource levels and where they might be lacking
+      - Historical resource usage patterns from the provided history
+      - Seasonal factors like weather patterns and holidays
+      - School terms/holidays in the region
+      - Typical donation cycles
+      - Economic patterns
+      - The specific needs based on the charity's categories and tags
+
       Format your response as a valid JSON object like this:
       {
         "food": {
@@ -320,18 +328,9 @@ export async function POST(request: Request) {
           ...and so on
         },
         "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors."
-        "recommendation": "Given ONLY the resources available from other charities, can you give me only ONE charity that might be able to help TODAY with the predicted demand?"
-        "impact": "A sentence explaining the impact this recommendation will affect this charity (the one you are recommending the resources to)."
+        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand."
+        "impact": "A sentence explaining the impact this recommendation will affect this charity in the next 1 to 3 months (the one you are recommending the resources to)."
       }
-
-      Consider the following factors in your prediction:
-      - The charity's current resource levels and where they might be lacking
-      - Historical resource usage patterns from the provided history
-      - Seasonal factors like weather patterns and holidays
-      - School terms/holidays in the region
-      - Typical donation cycles
-      - Economic patterns
-      - The specific needs based on the charity's categories and tags
     `;
 
     // Call OpenAI API

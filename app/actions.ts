@@ -408,7 +408,7 @@ export async function submitResource(formData: FormData) {
 
       if (error) {
         console.log(error);
-        return { success: false, message: "Error Adding Resource" };
+        return { success: false, message: "Error Updating Resource" };
       } else {
         return { success: true, message: "Resource Successfully Updated" };
       }

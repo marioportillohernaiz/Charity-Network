@@ -21,7 +21,7 @@ import { RESOURCE_CATEGORIES } from '@/types/Categories';
 import { MatchScore } from './match-score-column';
 import RequestResource from './request-resource';
 
-export function SharedResourcesTable({resourceData, charityData, charity} : {resourceData: ResourcesData[]; charityData: CharityData[]; charity: CharityData}) {
+export function SharedResourcesTable({resourceData, charityData, charity, recommendation} : {resourceData: ResourcesData[]; charityData: CharityData[]; charity: CharityData; recommendation: string | null;}) {
   const sharedResources = resourceData.filter(item => item.shareable_quantity > 0);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -301,6 +301,7 @@ export function SharedResourcesTable({resourceData, charityData, charity} : {res
                         <MatchScore 
                           resource={resource} 
                           charity={charity}
+                          recommendation={recommendation}
                         />
                       </td>
                       <td className="px-6 py-4">
