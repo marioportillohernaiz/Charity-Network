@@ -3,10 +3,6 @@ import { NextResponse } from 'next/server';
 
 // Helper function to summarize current resources
 function summarizeResources(resources: ResourcesData[]) {
-  if (!resources || resources.length === 0) {
-    return 'No resources data available';
-  }
-
   // Group resources by category
   const categorySummary: Record<string, { total: number, items: string[] }> = {};
   
@@ -73,7 +69,7 @@ function getResourceStats(resources: ResourcesData[]) {
 
 export async function POST(request: Request) {
   try {
-    const { messages, charityData, resourceData } = await request.json();
+    const { messages, charityData, resourceData, availableResources } = await request.json();
     
     // API configuration
     const apiKey = process.env.OPENAI_API_KEY;
@@ -87,11 +83,12 @@ export async function POST(request: Request) {
       Charity Description: ${charityData.description || 'Not provided'}
       Primary Category: ${charityData.category_and_tags?.primary || 'Not specified'}
       Secondary Categories: ${charityData.category_and_tags?.secondary?.join(', ') || 'None'}
-      Location: ${charityData.location || 'Not specified'}`
+      Location: ${charityData.address || 'Not specified'}`
       : 'No charity information available';
     
     const resourceSummary = resourceData?.length > 0 ? summarizeResources(resourceData) : 'No resources data available';
-    const resourceStats = resourceData?.length > 0 ? getResourceStats(resourceData) : '';
+    const resourceStats = resourceData?.length > 0 ? getResourceStats(resourceData) : 'No resource stats';
+    const availableResourcesFromOtherCharities = availableResources ? summarizeResources(availableResources) : 'No available resources data available';
 
     // Format the prompt
     const systemMessage = {
@@ -110,6 +107,9 @@ export async function POST(request: Request) {
 
         RESOURCE INVENTORY:
         ${resourceSummary}
+
+        AVAILABLE RESOURCES TO REQUEST
+        ${availableResourcesFromOtherCharities}
 
         When responding:
         1. Respond in one short sentence as if you were having a conversation.

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRightLeft, ArrowUpDown, BarChart4, Headset, History, Loader2, Package, TrendingUp, X } from "lucide-react"
+import { ArrowRightLeft, ArrowUpDown, BarChart4, Headset, History, Loader2, Package, SendHorizonal, TrendingUp, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import RequestsList from "./requests-list"
@@ -65,8 +65,8 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
         body: JSON.stringify({
           messages: apiMessages,
           charityData: charity,
-          resourceData: resourceData
-          // salesData: salesData
+          resourceData: resourceData,
+          availableResources: allResourcesData.filter(resource => resource.charity_id !== charity.id && resource.shareable_quantity > 0)
         }),
       });
       
@@ -200,8 +200,9 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
                 type="submit" 
                 disabled={!inputMessage.trim() || isProcessing}
                 onClick={handleSendMessage}
+                className="rounded-full px-2"
               >
-                Send
+                <SendHorizonal />
               </Button>
             </div>
           </DialogFooter>

@@ -249,12 +249,39 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         }).addTo(map);
         
         truckMarker.bindTooltip(`
-          <div style="padding: 8px;">
-            <p style="margin: 0; font-weight: bold; font-size: 15px;">Resource in Transit</p>
-            <p style="margin: 5px 0 0;">Charity to: ${charityTo?.name}</p>
-            <p style="margin: 5px 0 0;">Item: ${transit.resource_id}</p>
-            <p style="margin: 2px 0 0;">Quantity: ${transit.quantity}</p>
-            <p style="margin: 2px 0 0;">${transit.description || 'No description'}</p>
+          <div style="width: 100%; max-width: 28rem;">
+            <div style="padding: 1.25rem 1.5rem 0rem; display: flex; flex-direction: row; align-items: center; justify-content: space-between; background-color: rgba(241, 245, 249, 0.3);">
+              <div style="display: flex; flex-direction: column;">
+                <div style="font-size: 1.125rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+                    <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
+                    <path d="M12 3v6"></path>
+                  </svg>
+                  Resource in Transit
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Item ID:</span>
+                <span style="font-family: monospace; font-size: 0.875rem; background-color: #f1f5f9; padding: 0.125rem 0.5rem; border-radius: 0.25rem;">${transit.id}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Destination:</span>
+                <span style="font-weight: 600;">${charityTo?.name || transit.charity_to}</span>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Quantity:</span>
+                <span>${transit.quantity}</span>
+              </div>
+              
+              <div style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
+                <p style="font-size: 0.875rem; margin: 0;">${transit.description || 'No description'}</p>
+              </div>
+            </div>
           </div>
         `);
         

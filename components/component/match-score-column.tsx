@@ -3,19 +3,19 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
   // Calculate match score based on resource category, charity needs, and AI recommendation
   const calculateMatchScore = () => {
     // Start with base scoring logic
-    let score = 50; // Base score
+    let score = 35;
     
     // Category matching - increase score if resource category matches charity's primary category
     if (charity.category_and_tags?.primary && 
         resource.category.toLowerCase().includes(charity.category_and_tags.primary.toLowerCase())) {
-      score += 30;
+      score += 50;
     }
     
     // Secondary category matching
     if (charity.category_and_tags?.secondary) {
       for (const tag of charity.category_and_tags.secondary) {
         if (resource.category.toLowerCase().includes(tag.toLowerCase())) {
-          score += 15;
+          score += 30;
           break;
         }
       }
@@ -26,7 +26,7 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
       for (const tag of charity.category_and_tags.tags) {
         if (resource.name.toLowerCase().includes(tag.toLowerCase()) ||
             (resource.description && resource.description.toLowerCase().includes(tag.toLowerCase()))) {
-          score += 10;
+          score += 20;
           break;
         }
       }
@@ -48,7 +48,7 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
         // Skip very short or common words
         if (keyword.length > 3 && !['and', 'the', 'for', 'from', 'with'].includes(keyword)) {
           if (recommendationLower.includes(keyword)) {
-            score += 20; // Significant boost for keyword match
+            score += 30; // Significant boost for keyword match
             break;
           }
         }
@@ -56,7 +56,7 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
       
       // Check for category mentions in the recommendation
       if (recommendationLower.includes(resource.category.toLowerCase())) {
-        score += 15;
+        score += 30;
       }
     }
     
@@ -83,10 +83,7 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
   };
   
   // Calculate circle properties
-  const radius = 16;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference * (1 - matchScore / 100);
+  const circumference = 2 * Math.PI * 16;
   
   return (
     <div className="flex items-center justify-center">
@@ -103,8 +100,8 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
             fill="none"
             stroke={getScoreColor()} 
             strokeWidth="4" 
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
+            strokeDasharray={2 * Math.PI * 16}
+            strokeDashoffset={circumference * (1 - matchScore / 100)}
             strokeLinecap="round"
           />
         </svg>
