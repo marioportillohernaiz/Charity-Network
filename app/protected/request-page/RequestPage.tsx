@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { SharedResourcesTable } from '@/components/component/request-recources-table';
 import { fetchSeasonalPredictions, transformPredictionsToChartData } from '@/lib/utils';
 import { RESOURCE_CATEGORIES_MAP } from '@/types/Categories';
+import { Toaster } from 'sonner';
 
 interface MonthData {
   month: string;
@@ -232,6 +233,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
           </Card>
         </div>
       </div>
+      <Toaster richColors expand={true} />
     </div>
   );
 };

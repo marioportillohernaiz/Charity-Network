@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, Search } from 'lucide-react';
+import { BookOpenText, Calendar, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -181,7 +181,8 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
         </div>
 
         <div className="space-y-4">
-          {currentItems.map(history => {
+          {currentItems.length > 0 ? (
+            currentItems.map(history => {
             const charityDetails = charityData.find(charity => 
               charity.id === (title.includes("Sent To") ? history.charity_to : history.charity_from));
             
@@ -222,7 +223,12 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                 </div>
               </Card>
             );
-          })}
+          })) : (
+            <div className="text-center py-8 text-gray-500">
+              <BookOpenText size={48} className="mx-auto mb-4 opacity-30" />
+              <p>No available history</p>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end mt-4">
@@ -437,7 +443,10 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : currentItems.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No sales records found matching your criteria</div>
+            <div className="text-center py-8 text-gray-500">
+              <BookOpenText size={48} className="mx-auto mb-4 opacity-30" />
+              <p>No sales records found</p>
+            </div>
           ) : (
             <div className="space-y-4">
               {currentItems.map((sale) => (

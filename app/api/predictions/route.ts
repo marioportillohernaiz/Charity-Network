@@ -328,7 +328,7 @@ export async function POST(request: Request) {
           ...and so on
         },
         "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors."
-        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand."
+        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand. Start with 'Based on the available resources...'"
         "impact": "A sentence explaining the impact this recommendation will affect this charity in the next 1 to 3 months (the one you are recommending the resources to)."
       }
     `;

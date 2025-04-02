@@ -2,7 +2,7 @@
 "use client"
 
 import { Input } from "../ui/input";
-import { ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Package, Search } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import React from "react";
@@ -355,7 +355,12 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
           </Pagination>
         )}
       </div></>
-      ) : (<p>No available resources</p>)}
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          <Package size={48} className="mx-auto mb-4 opacity-30" />
+          <p>No available resources</p>
+        </div>
+      )}
       </CardContent>
     </Card>
   );

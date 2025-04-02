@@ -12,7 +12,7 @@ export default function HandleReceived({ request, resourceData } : { request: Tr
   const resource = resourceData.find(r => r.id == request.resource_id);
 
   const handleSubmit = async () => {
-    const response = await receiveTransit(request.id, resource);
+    const response = await receiveTransit(request.id, request.quantity, resource);
     if (response.success) {
       toast.success(response.message);
       setIsDialogOpen(false);

@@ -2,7 +2,7 @@
 "use client"
 
 import { Input } from "../ui/input";
-import { Calendar, CheckSquare, Clock, Search, Truck, XCircle } from "lucide-react";
+import { Calendar, CheckSquare, Clock, Package, Search, Truck, XCircle } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import React from "react";
@@ -85,12 +85,20 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData,
   const getActionButton = (request: TransitData) => {
     switch(request.status) {
       case 'Requested':
-        return (
-          <div>
-            <RejectRequest request={request} resourceData={resourceData} />
-            <HandleDispatch request={request} resourceData={resourceData} />
-          </div>
-        );
+        if (isReciever) {
+          return (
+            <div>
+              <Badge className="bg-gray-200 text-gray-800">Pending Request</Badge>
+            </div>
+          );
+        } else {
+          return (
+            <div>
+              <RejectRequest request={request} resourceData={resourceData} />
+              <HandleDispatch request={request} resourceData={resourceData} />
+            </div>
+          );
+        }
       case 'In transit':
         return (
           isReciever ? (
@@ -173,11 +181,9 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData,
 
   return (
     <Card className="bg-secondary">
-      <CardHeader className="pb-3">
-        <CardTitle hidden></CardTitle>
-      </CardHeader>
+      <CardHeader className="pb-3"><CardTitle hidden></CardTitle></CardHeader>
       <CardContent>
-        {resourceData.length > 0 ? (
+        {filteredResources.length > 0 ? (
         <><div className="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <div className="flex flex-grow flex-wrap gap-2">
             <div className="relative flex-grow max-w-sm">
@@ -429,7 +435,12 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData,
             </Pagination>
           )}
         </div></>
-      ) : (<p>No available resources</p>)}
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          <Package size={48} className="mx-auto mb-4 opacity-30" />
+          <p>No available resources</p>
+        </div>
+      )}
       </CardContent>
     </Card>
   );

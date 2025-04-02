@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowUpDown, Package2, CalendarClock, Share2 } from 'lucide-react';
+import { ArrowUpDown, Package2, CalendarClock, Share2, ChartPie } from 'lucide-react';
 import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,41 +35,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
     })).sort((a, b) => b.value - a.value);
   }, [resourceData]);
 
-  // Generate monthly trends data (mocked based on current data)
-  const monthlyTrendsData = useMemo(() => {
-    const today = new Date();
-    const result = [];
-    
-    // Get an array of last 6 months
-    for (let i = 6; i >= 0; i--) {
-      const monthDate = subMonths(today, i);
-      const monthName = format(monthDate, 'MMM');
-      
-      // Simulate resource and request numbers based on the current data
-      const baseResources = totalResources * (0.85 + Math.random() * 0.3);
-      const baseRequests = requestData ? requestData.length * (0.7 + Math.random() * 0.6) : 15 + Math.round(Math.random() * 10);
-      
-      // For the current month, use actual numbers
-      if (i === 0) {
-        result.push({
-          name: monthName,
-          resources: totalResources,
-          requests: requestData ? requestData.filter(r => r.status === TransitStatus.REQUESTED).length : baseRequests,
-          shareablePercentage: Math.round((totalShareable / totalResources) * 100)
-        });
-      } else {
-        result.push({
-          name: monthName,
-          resources: Math.round(baseResources * (1 - i * 0.03)),
-          requests: Math.round(baseRequests * (1 - i * 0.04)),
-          shareablePercentage: Math.round(((totalShareable / totalResources) * (0.9 + Math.random() * 0.2)) * 100)
-        });
-      }
-    }
-    
-    return result;
-  }, [totalResources, totalShareable, requestData]);
-
   // Calculate resource allocation data
   const resourceAllocationData = useMemo(() => [
     { name: 'Available', value: totalAvailable, color: '#00C49F' },
@@ -87,14 +52,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
       return diffDays >= 0 && diffDays <= 30;
     }).length;
   }, [resourceData]);
-
-  // Calculate month-over-month change
-  const monthOverMonthChange = useMemo(() => {
-    if (monthlyTrendsData.length < 2) return 0;
-    const currentMonth = monthlyTrendsData[monthlyTrendsData.length - 1].resources;
-    const previousMonth = monthlyTrendsData[monthlyTrendsData.length - 2].resources;
-    return previousMonth === 0 ? 100 : Math.round(((currentMonth - previousMonth) / previousMonth) * 100);
-  }, [monthlyTrendsData]);
 
   const formatCurrency = (amount: number): string => {
     return `£${amount.toFixed(2)}`
@@ -214,8 +171,8 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
           <CardContent>
             <div className="text-2xl font-bold">{totalResources.toLocaleString()}</div>
             <div className="flex items-center mt-1">
-              <Badge className={`${monthOverMonthChange >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} hover:bg-green-100`}>
-                {monthOverMonthChange >= 0 ? '+' : ''}{monthOverMonthChange}%
+              <Badge className="bg-red-100 text-red-800 hover:bg-green-100">
+                0%
               </Badge>
               <span className="text-xs text-muted-foreground ml-1">from last month</span>
             </div>
@@ -230,13 +187,13 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
           <CardContent>
             <div className="text-2xl font-bold">
               {requestData 
-                ? requestData.filter(r => r.status === 'Requested' || r.status === 'In transit').length 
+                ? requestData.filter(r => (r.status === 'Requested' || r.status === 'In transit') && (r.charity_from === charity.id || r.charity_to === charity.id)).length 
                 : 0}
             </div>
             <div className="flex items-center mt-1">
               <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
                 {requestData 
-                  ? requestData.filter(r => r.status === 'Requested').length 
+                  ? requestData.filter(r => r.status === 'Requested' && (r.charity_from === charity.id || r.charity_to === charity.id)).length 
                   : 0} new
               </Badge>
               <span className="text-xs text-muted-foreground ml-1">pending requests</span>
@@ -253,7 +210,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
             <div className="text-2xl font-bold">{totalShareable.toLocaleString()}</div>
             <div className="flex items-center mt-1">
               <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
-                {Math.round((totalShareable / totalResources) * 100)}%
+                {totalShareable > 0 ? Math.round((totalShareable / totalResources) * 100) : 0}%
               </Badge>
               <span className="text-xs text-muted-foreground ml-1">of total inventory</span>
             </div>
@@ -284,39 +241,46 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
           </CardHeader>
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={resourceDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, percent }) => {
-                    return `${name}\n${(percent * 100).toFixed(0)}%`;
-                  }}
-                >
-                  {resourceDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value} items`, 'Quantity']}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-white p-2 border shadow-sm rounded-md">
-                          <p className="font-medium">{data.name}</p>
-                          <p className="text-sm">{data.value} items ({(data.value / totalResources * 100).toFixed(1)}%)</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Legend layout="horizontal" verticalAlign="bottom" align="center" />
-              </PieChart>
+              {resourceDistribution.length > 0 ? (
+                <PieChart>
+                  <Pie
+                    data={resourceDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    outerRadius={80}
+                    dataKey="value"
+                    label={({ name, percent }) => {
+                      return `${name}\n${(percent * 100).toFixed(0)}%`;
+                    }}
+                  >
+                    {resourceDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value} items`, 'Quantity']}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-white p-2 border shadow-sm rounded-md">
+                            <p className="font-medium">{data.name}</p>
+                            <p className="text-sm">{data.value} items ({(data.value / totalResources * 100).toFixed(1)}%)</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                </PieChart>
+              ) : (
+                <div className="text-center grid h-full place-content-center text-gray-500">
+                  <ChartPie size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>No data available</p>
+                </div>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -328,38 +292,45 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
           </CardHeader>
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={resourceAllocationData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {resourceAllocationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value} items`, 'Quantity']}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-white p-2 border shadow-sm rounded-md">
-                          <p className="font-medium">{data.name}</p>
-                          <p className="text-sm">{data.value} items ({(data.value / totalResources * 100).toFixed(1)}%)</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Legend />
-              </PieChart>
+              {totalResources > 0 ? (
+                <PieChart>
+                  <Pie
+                    data={resourceAllocationData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {resourceAllocationData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value} items`, 'Quantity']}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-white p-2 border shadow-sm rounded-md">
+                            <p className="font-medium">{data.name}</p>
+                            <p className="text-sm">{data.value} items ({(data.value / totalResources * 100).toFixed(1)}%)</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              ) : (
+                <div className="text-center grid h-full place-content-center text-gray-500">
+                  <ChartPie size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>No data available</p>
+                </div>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -404,31 +375,38 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
         <CardContent>
           <div className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={categoryData} 
-                margin={{ top: 20, right: 40, left: 0, bottom: 0 }} 
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" tickFormatter={formatCurrency} />
-                <YAxis 
-                  dataKey="category" 
-                  type="category" 
-                  width={150}
-                  tick={{ fontSize: 12 }} 
-                />
-                <Tooltip
-                  formatter={(value) => formatCurrency(Number(value))}
-                  labelFormatter={(label) => `Category: ${label}`}
-                />
-                <Legend />
-                <Bar 
-                  dataKey="amount" 
-                  name="Amount" 
-                  fill="#0f4c81" 
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
+              {categoryData && categoryData.length > 0 ? (
+                <BarChart 
+                  data={categoryData} 
+                  margin={{ top: 20, right: 40, left: 0, bottom: 0 }} 
+                  layout="vertical"
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis type="number" tickFormatter={formatCurrency} />
+                  <YAxis 
+                    dataKey="category" 
+                    type="category" 
+                    width={150}
+                    tick={{ fontSize: 12 }} 
+                  />
+                  <Tooltip
+                    formatter={(value) => formatCurrency(Number(value))}
+                    labelFormatter={(label) => `Category: ${label}`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="amount" 
+                    name="Amount" 
+                    fill="#0f4c81" 
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              ) : (
+                <div className="text-center grid h-full place-content-center text-gray-500">
+                  <ChartPie size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>No data available</p>
+                </div>
+              )}
             </ResponsiveContainer>
           </div>
         </CardContent>

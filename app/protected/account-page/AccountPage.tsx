@@ -153,7 +153,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
       });
       const settingsJSON = JSON.stringify({
         show_phone: showPhone,
-        show_address: showWebsite,
+        show_website: showWebsite,
         resource_alert: resourceAlerts,
         resource_request: resourceRequests
       });

@@ -10,7 +10,7 @@ const RequestsTab = ({charity, charityData, resourceData, transitData}:{charity:
 
   const requestedResources = transitData.filter(item => (item.status == TransitStatus.IN_TRANSIT || item.status == TransitStatus.REQUESTED) && item.charity_from == charity.id);
   const yourRequests = transitData.filter(item => (item.status == TransitStatus.IN_TRANSIT || item.status == TransitStatus.REQUESTED) && item.charity_to == charity.id);
-  const yourTransitRequests = transitData.filter(item => (item.status == TransitStatus.IN_TRANSIT) && item.charity_to == charity.id);
+  const yourTransitRequests = transitData.filter(item => (item.status == TransitStatus.IN_TRANSIT || item.status == TransitStatus.REQUESTED) && item.charity_to == charity.id);
 
   return (
     <div className="space-y-4">

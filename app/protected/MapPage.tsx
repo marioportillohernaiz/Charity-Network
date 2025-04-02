@@ -624,6 +624,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               )}
             </Card>
           </div>
+          <Toaster richColors expand={true} />
         </DrawerContent>
       </Drawer>
       <Toaster richColors expand={true} />
