@@ -140,7 +140,6 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
           </Button>
         </div>
 
-        {/* AI Prediction section */}
         <div className="space-y-4 md:space-y-5 overflow-hidden">
           <div className="mt-2 md:mt-4 bg-blue-50 p-3 md:p-4 rounded-md border border-blue-100">
             <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
