@@ -1,11 +1,14 @@
-'use client'
+"use client"
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Calendar, ChevronLeft, ChevronRight, Clock, Globe, LayersIcon, MapPin, MessageSquareOff, Package, Phone, Search, Star, StarHalf, X } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
-import L from "leaflet";
+let L: typeof import('leaflet');
+if (typeof window !== 'undefined') {
+  L = require('leaflet');
+}
 import AddCharityDialog from "@/components/component/add-charity-dialog";
 import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
