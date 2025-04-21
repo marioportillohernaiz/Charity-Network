@@ -12,9 +12,10 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { TransitStatus } from "@/types/TransitStatus";
-import RejectRequest from "./reject-request";
 import HandleDispatch from "./handle-dispatch";
 import HandleReceieved from "./handle-received";
+import HandleReject from "./handle-reject";
+import HandleCancel from "./handle-cancel";
 
 export function ResourcesRequestedTable({resourceData, transitData, charityData, isReciever} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; isReciever: boolean}) {
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -88,13 +89,14 @@ export function ResourcesRequestedTable({resourceData, transitData, charityData,
         if (isReciever) {
           return (
             <div>
-              <Badge className="bg-gray-200 text-gray-800">Pending Request</Badge>
+              <Badge className="bg-gray-200 hover:bg-gray-500 text-gray-800 !my-auto">Pending Request</Badge>
+              <HandleCancel request={request} resourceData={resourceData} />
             </div>
           );
         } else {
           return (
             <div>
-              <RejectRequest request={request} resourceData={resourceData} />
+              <HandleReject request={request} resourceData={resourceData} />
               <HandleDispatch request={request} resourceData={resourceData} />
             </div>
           );

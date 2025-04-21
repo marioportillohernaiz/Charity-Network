@@ -57,7 +57,7 @@ export const getCharityResourceData = async () => {
   const { data: resources } = await supabase
     .from("resources")
     .select("*") 
-    .eq("charity_id", charity.id) as { data: ResourcesData[] | []; error: any };;
+    .eq("charity_id", charity?.id) as { data: ResourcesData[] | []; error: any };;
   
   return resources;
 };
@@ -141,6 +141,7 @@ export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const supabase = await createClient();
+  const charity = await getRegisteredCharity();
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -151,7 +152,11 @@ export const signInAction = async (formData: FormData) => {
     return { success: false, message: error.toString() };
   }
 
-  return redirect("/protected");
+  if (charity) {
+    return redirect("/protected");
+  } else {
+    return redirect("/protected/account-page");
+  }
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -441,7 +446,7 @@ export async function submitResource(formData: FormData) {
   }  
 }
 
-export async function rejectTransit(id: string) {
+export async function rejectTransit(id: string, option: string) {
   const supabase = await createClient();
   const user = await getAuthUser(); 
 
@@ -458,18 +463,18 @@ export async function rejectTransit(id: string) {
       const { error } = await supabase
         .from("resource_transit")
         .update({
-          status: "Rejected"
+          status: option
         })
         .eq("id", id);
 
       if (error) {
         console.log(error);
-        return { success: false, message: "Error Rejecting Transit" };
+        return { success: false, message: `Error ${option} Transit` };
       } else {
-        return { success: true, message: "Transit Rejected" };
+        return { success: true, message: `Transit ${option}` };
       }
     } else {
-      return { success: false, message: "Error Fetching Transit" };
+      return { success: false, message: `Error ${option} Transit` };
     }
   }  
 }

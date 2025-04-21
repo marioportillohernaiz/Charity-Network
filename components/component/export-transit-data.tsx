@@ -16,7 +16,7 @@ const exportTransitToPDF = (transitData: TransitData[], resourceData: ResourcesD
   
   if (startDate || endDate) {
     filteredData = transitData.filter(transit => {
-      const transitDate = transit.time_sent ? new Date(transit.time_sent) : null;
+      const transitDate = transit.updated_at ? new Date(transit.updated_at) : null;
       
       if (!transitDate) return false;
       

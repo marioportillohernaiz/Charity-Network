@@ -205,13 +205,14 @@ export default function Signup() {
                 * I confirm this account is for a registered charitable organisation.
               </Label>
             </div>
-            
+            {/* formAction={handleSubmit}  */}
+            {/* disabled={!isPasswordStrong() || !passwordMatches}  */}
             <SubmitButton 
               type="submit" 
               formAction={handleSubmit} 
               pendingText="Signing up..." 
               variant="secondary"
-              disabled={!isPasswordStrong() || !passwordMatches}
+              disabled={true}
             >
               Sign up
             </SubmitButton>

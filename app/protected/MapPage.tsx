@@ -64,7 +64,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
 
   useEffect(() => {
     if (!mapInstanceRef.current && mapRef.current) {
-      const map = L.map(mapRef.current).setView([52.7721, -1.2062], 15);
+      const map = L.map(mapRef.current).setView([currentCharity.latitude, currentCharity.longitude], 15);
       mapInstanceRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     }

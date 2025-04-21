@@ -131,7 +131,7 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
         <TabsList className="w-full grid grid-cols-4">
           <TabsTrigger value="overview" className="text-xs md:text-sm"><BarChart4 className="mr-2 w-4 h-4" />Overview</TabsTrigger>
           <TabsTrigger value="resources" className="text-xs md:text-sm"><Package className="mr-2 w-4 h-4" />Resources</TabsTrigger>
-          <TabsTrigger value="requests" className="text-xs md:text-sm"><ArrowRightLeft className="mr-2 w-4 h-4" />Requests</TabsTrigger>
+          <TabsTrigger value="requests" className="text-xs md:text-sm"><ArrowRightLeft className="mr-2 w-4 h-4" />Transits</TabsTrigger>
           <TabsTrigger value="history" className="text-xs md:text-sm"><History className="mr-2 w-4 h-4" />History</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">

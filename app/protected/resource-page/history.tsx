@@ -14,8 +14,8 @@ import { ExportTransit } from '@/components/component/export-transit-data';
 import { ExportSales } from '@/components/component/export-sales-data';
 
 const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{charity: CharityData;charityData: CharityData[];resourceData: ResourcesData[]; transitData:TransitData[];salesData: Sales[];}) => {
-  const sentTransitData = transitData.filter(item => item.charity_from === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
-  const receivedTransitData = transitData.filter(item => item.charity_to === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED));
+  const sentTransitData = transitData.filter(item => item.charity_from === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED || item.status === TransitStatus.CANCELLED));
+  const receivedTransitData = transitData.filter(item => item.charity_to === charity.id && (item.status === TransitStatus.RECEIVED || item.status === TransitStatus.REJECTED || item.status === TransitStatus.CANCELLED));
 
   return (
     <div className="space-y-4">
@@ -215,8 +215,10 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                 </div>
                 
                 <div className="my-auto">
-                  {history.status === "Received" ? (
+                  {history.status === TransitStatus.REJECTED ? (
                     <Badge className="bg-green-200 text-green-800 hover:bg-green-200">Received</Badge>
+                  ) : history.status === TransitStatus.CANCELLED ? (
+                    <Badge className="bg-yellow-200 text-yellow-800 hover:bg-yellow-200">Cancelled</Badge>
                   ) : (
                     <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Rejected</Badge>
                   )}

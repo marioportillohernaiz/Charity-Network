@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { Bell, Loader2, Menu, X } from "lucide-react";
+import { BadgeCheck, Bell, Loader2, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { deleteNotification, signOutAction } from "@/app/actions";
 import { Badge } from "./ui/badge";
@@ -18,6 +18,7 @@ import {
 } from "./ui/dropdown-menu";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 export default function UserMenu({ registeredCharity, notificationData }: { registeredCharity: CharityData; notificationData: NotificationData[]; }) {
   const router = useRouter();
@@ -48,19 +49,34 @@ export default function UserMenu({ registeredCharity, notificationData }: { regi
     <>
       <Badge variant="secondary" className="mr-2">Hi {registeredCharity?.name}</Badge>
 
-      <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected")}>
-        <span className="flex items-center">
-          {loading && clickedItem === "/protected" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}
-          <Link href="/protected">Map</Link>
-        </span>
-      </Button>
-      
-      <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected/resource-page")}>
-        <span className="flex items-center">
-          {loading && clickedItem === "/protected/resource-page" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}
-          <Link href="/protected/resource-page">Resources</Link>
-        </span>
-      </Button>
+      {registeredCharity?.admin_verified && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span><BadgeCheck className="text-white" /></span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Verified</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      {registeredCharity &&
+        <><Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected")}>
+          <span className="flex items-center">
+            {loading && clickedItem === "/protected" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}
+            <Link href="/protected">Map</Link>
+          </span>
+        </Button>
+        
+        <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected/resource-page")}>
+          <span className="flex items-center">
+            {loading && clickedItem === "/protected/resource-page" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}
+            <Link href="/protected/resource-page">Resources</Link>
+          </span>
+        </Button></>
+      }
       
       <Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected/account-page")}>
         <span className="flex items-center">

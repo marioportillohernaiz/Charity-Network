@@ -93,7 +93,7 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
     if (diffDays < 0) {
       return <Badge className="bg-red-100 text-red-800">Expired</Badge>;
     } else {
-      return <Badge className="bg-yellow-100 text-yellow-800">Can Expire</Badge>;
+      return <Badge className="bg-yellow-100 text-yellow-800">Expires: {format(expiryDate, 'dd/MM/yyyy')}</Badge>;
     }
   };
 
@@ -167,13 +167,16 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Available Quantity
+                  Total Stock
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reserved Quantity
+                  Charity Stock
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Shareable Quantity
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Reserved Quantity
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Location
@@ -210,36 +213,10 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
                     <Badge className="text-sm">{resource.category}</Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <p className="font-semibold">{resource.quantity - resource.quantity_reserved - resource.shareable_quantity} {resource.unit}</p>
-                      <div className="text-xs text-gray-500">Total Units: {resource.quantity}</div>
-                    </div>
+                    <p className="font-semibold">{resource.quantity} {resource.unit}</p>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-14 w-14 flex-shrink-0">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-sm font-bold">{getPercentage(resource, resource.quantity_reserved)}%</span>
-                        </div>
-                        <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
-                          <circle cx="18" cy="18" r="16" fill="none" className="stroke-gray-200" strokeWidth="3" />
-                          {getPercentage(resource, resource.quantity_reserved) > 0 && (
-                            <circle
-                              cx="18"
-                              cy="18"
-                              r="16"
-                              fill="none"
-                              className="stroke-amber-500"
-                              strokeWidth="3"
-                              strokeDasharray={`${getPercentage(resource, resource.quantity_reserved)} 100`}
-                            />
-                          )}
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{resource.quantity_reserved} {resource.unit}</p>
-                      </div>
-                    </div>
+                    <p className="font-semibold">{resource.quantity - resource.quantity_reserved - resource.shareable_quantity} {resource.unit}</p>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
@@ -264,6 +241,32 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
                       </div>
                       <div>
                         <p className="font-semibold text-gray-800">{resource.shareable_quantity} {resource.unit}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-14 w-14 flex-shrink-0">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-sm">{getPercentage(resource, resource.quantity_reserved)}%</span>
+                        </div>
+                        <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="16" fill="none" className="stroke-gray-200" strokeWidth="3" />
+                          {getPercentage(resource, resource.quantity_reserved) > 0 && (
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="16"
+                              fill="none"
+                              className="stroke-amber-500"
+                              strokeWidth="3"
+                              strokeDasharray={`${getPercentage(resource, resource.quantity_reserved)} 100`}
+                            />
+                          )}
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-gray-800">{resource.quantity_reserved} {resource.unit}</p>
                       </div>
                     </div>
                   </td>
