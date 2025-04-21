@@ -1,14 +1,13 @@
 "use client";
 
 import { submitCharity } from '@/app/actions';
-import { SubmitButton } from '@/components/submit-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TimeRangeSelector } from '@/components/component/time-range-selector';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertCircle, CheckCircle, Clock, Compass, Eye, Globe, ImagePlus, Info, KeyRound, Loader2, MapPin, Phone, Save, Settings, User } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Compass, Globe, ImagePlus, Info, KeyRound, Loader2, MapPin, Phone, Save, Settings, User } from 'lucide-react';
 import Link from 'next/link';
 import React, { useState, useEffect, useRef } from 'react';
 import { toast, Toaster } from "sonner";
@@ -82,19 +81,21 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
   const mapInstanceRef = useRef<L.Map | null>(null);
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
-    
-    const map = L.map(mapRef.current).setView([Number(latitude), Number(longitude)], 18);
-    mapInstanceRef.current = map;
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    const customIcon = L.icon({iconUrl: "/pin.png",iconSize: [25, 35],iconAnchor: [16, 40],});
+    if (latitude !== undefined && longitude !== undefined && latitude !== null && longitude !== null && !isNaN(Number(latitude)) && !isNaN(Number(longitude))) {
+      const map = L.map(mapRef.current).setView([Number(latitude), Number(longitude)], 18);
+      mapInstanceRef.current = map;
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    L.marker([Number(latitude), Number(longitude)], { icon: customIcon }).addTo(map);
+      const customIcon = L.icon({iconUrl: "/pin.png",iconSize: [25, 35],iconAnchor: [16, 40],});
 
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-    };
+      L.marker([Number(latitude), Number(longitude)], { icon: customIcon }).addTo(map);
+
+      return () => {
+        map.remove();
+        mapInstanceRef.current = null;
+      };
+    }
   }, [latitude, longitude]);
   
   // Monitor for changes to enable/disable save button
@@ -153,35 +154,39 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
       });
       const settingsJSON = JSON.stringify({
         show_phone: showPhone,
-        show_address: showWebsite,
+        show_website: showWebsite,
         resource_alert: resourceAlerts,
         resource_request: resourceRequests
       });
 
-      const formData = new FormData;
+      if (name !== "" && addressNumber !== "" && addressStreet !== "" && addressCity !== "" && addressPostcode !== "" && latitude !== "0" && longitude !== "0") {
+        const formData = new FormData;
 
-      formData.append("name", name);
-      formData.append("description", description);
-      formData.append("latitude", latitude);
-      formData.append("longitude", longitude);
-      formData.append("address", fullAddress);
-      formData.append("openingHours", JSON.stringify(openingHours));
-      formData.append("phone", phone);
-      formData.append("email", email);
-      formData.append("website", website);
-
-      formData.append("facebook", facebook);
-      formData.append("twitter", twitter);
-      formData.append("instagram", instagram);
-
-      formData.append("category", categoriesAndTags);
-      formData.append("settings", settingsJSON);
-
-      const response = await submitCharity(formData);
-      if (response.success) {
-        toast.success(response.message);
+        formData.append("name", name);
+        formData.append("description", description);
+        formData.append("latitude", latitude);
+        formData.append("longitude", longitude);
+        formData.append("address", fullAddress);
+        formData.append("openingHours", JSON.stringify(openingHours));
+        formData.append("phone", phone);
+        formData.append("email", email);
+        formData.append("website", website);
+  
+        formData.append("facebook", facebook);
+        formData.append("twitter", twitter);
+        formData.append("instagram", instagram);
+  
+        formData.append("category", categoriesAndTags);
+        formData.append("settings", settingsJSON);
+  
+        const response = await submitCharity(formData);
+        if (response.success) {
+          toast.success(response.message);
+        } else {
+          toast.error(response.message);
+        }
       } else {
-        toast.error(response.message);
+        toast.error("Please fill in fields with *");
       }
     } catch (error) {
       toast.error("An error occurred while saving changes");
@@ -256,10 +261,10 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                 <div className="w-full">
                   <div className="flex flex-col w-full h-auto space-y-0 rounded-none bg-transparent">
                     <button onClick={() => setActiveTab("profile")} className={`flex items-center justify-start px-6 py-3 text-left font-medium ${activeTab === "profile" ? "bg-accent text-accent-foreground" : ""}`}>
-                      <User className="w-4 h-4 mr-2" /> Profile
+                      <User className="w-4 h-4 mr-2" /> Profile *
                     </button>
                     <button onClick={() => setActiveTab("location")} className={`flex items-center justify-start px-6 py-3 text-left font-medium ${activeTab === "location" ? "bg-accent text-accent-foreground" : ""}`}>
-                      <MapPin className="w-4 h-4 mr-2" /> Location
+                      <MapPin className="w-4 h-4 mr-2" /> Location *
                     </button>
                     <button onClick={() => setActiveTab("categories")} className={`flex items-center justify-start px-6 py-3 text-left font-medium ${activeTab === "categories" ? "bg-accent text-accent-foreground" : ""}`}>
                       <Compass className="w-4 h-4 mr-2" /> Categories
@@ -320,7 +325,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                       <div className="flex-1 space-y-4 w-full">
                         <div>
-                          <Label htmlFor="name">Charity Name</Label>
+                          <Label htmlFor="name">Charity Name *</Label>
                           <Input 
                             id="name" 
                             name="name" 
@@ -525,7 +530,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div>
-                      <Label htmlFor="address">Address</Label>
+                      <Label htmlFor="address">Address *</Label>
                       <div className="grid grid-cols-4 grid-rows-2 gap-2 mt-2">
                         <Input 
                           id="address_number" 
@@ -567,7 +572,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="latitude">Latitude</Label>
+                        <Label htmlFor="latitude">Latitude *</Label>
                         <Input 
                           id="latitude" 
                           name="latitude" 
@@ -577,7 +582,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                         />
                       </div>
                       <div>
-                        <Label htmlFor="longitude">Longitude</Label>
+                        <Label htmlFor="longitude">Longitude *</Label>
                         <Input 
                           id="longitude" 
                           name="longitude" 

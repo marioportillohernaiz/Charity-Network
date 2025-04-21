@@ -18,27 +18,26 @@ export default function LandingPage() {
   const plans = [
     {
       name: "Starter",
-      price: 19,
+      price: 5,
       description:
         "Basic features for small charities just getting started with resource sharing and networking.",
       features: [
         "Charity Finder access",
         "Basic resource management",
-        "5 resource requests per month",
-        "Single location tracking"
+        "5 resource requests per month"
       ],
       buttonText: "Start Your Journey",
     },
     {
       name: "Advanced",
-      price: 29,
+      price: 20,
       isRecommended: true,
       description:
         "Enhanced features for growing charities with moderate resource sharing needs.",
       features: [
         "AI-powered resource recommendations",
-        "Up to 50 resources cataloged",
-        "15 resource requests per month",
+        "Up to 200 resources cataloged",
+        "20 resource requests per month",
         "Multiple location tracking"
       ],
       buttonText: "Upgrade Your Impact",

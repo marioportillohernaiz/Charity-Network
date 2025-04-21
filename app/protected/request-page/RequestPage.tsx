@@ -10,13 +10,15 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, LineChart, Line
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, LineChart, Line,
+  ReferenceLine
 } from 'recharts';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SharedResourcesTable } from '@/components/component/request-recources-table';
 import { fetchSeasonalPredictions, transformPredictionsToChartData } from '@/lib/utils';
 import { RESOURCE_CATEGORIES_MAP } from '@/types/Categories';
+import { Toaster } from 'sonner';
 
 interface MonthData {
   month: string;
@@ -90,6 +92,12 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
     });
   };
 
+  const getCurrentMonth = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonthIndex = new Date().getMonth();
+    return months[currentMonthIndex];
+  };
+
   return (
     <div className="container mx-auto py-6 max-w-7xl">
       <div className="grid gap-6">
@@ -137,9 +145,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-blue-900 ">
-                        REQUEST NOW: {recommendation}
-                      </p>
+                      <p className="text-sm text-blue-900 ">{recommendation}</p>
                     </CardContent>
                   </Card>
 
@@ -163,7 +169,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
             )}
           </div>
 
-          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} />
+          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} recommendation={recommendation} />
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
@@ -193,6 +199,18 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
                     <YAxis />
                     <RechartsTooltip />
                     <Legend />
+                    <ReferenceLine
+                      x={getCurrentMonth()}
+                      stroke="#8884d8"
+                      strokeWidth={2}
+                      strokeDasharray="3 3"
+                      label={{
+                        value: "Current Month",
+                        position: "insideTopRight",
+                        fill: "#8884d8",
+                        fontSize: 12
+                      }}
+                    />
                     {seasonalTrendsData[0]?.food !==0 && <Line type="monotone" dataKey="food" name={RESOURCE_CATEGORIES_MAP[0].label} stroke="#0088FE" activeDot={{ r: 8 }} />}
                     {seasonalTrendsData[0]?.clothing !==0 && <Line type="monotone" dataKey="clothing" name={RESOURCE_CATEGORIES_MAP[1].label} stroke="#00C49F" />}
                     {seasonalTrendsData[0]?.medical !==0 && <Line type="monotone" dataKey="medical" name={RESOURCE_CATEGORIES_MAP[2].label} stroke="#FF8042" />}
@@ -215,6 +233,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
           </Card>
         </div>
       </div>
+      <Toaster richColors expand={true} />
     </div>
   );
 };

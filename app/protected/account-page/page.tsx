@@ -6,9 +6,9 @@ export default async function AccountLayout() {
   const user = await getAuthUser();
   const registeredCharity = await getRegisteredCharity();
 
-  // if (!user) {
-  //   return redirect("/sign-in");
-  // }
+  if (!user) {
+    return redirect("/sign-in");
+  }
 
   return (
     <AccountPage accountData={registeredCharity!} />

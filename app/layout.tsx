@@ -5,7 +5,6 @@ import Image from 'next/image';
 import "./globals.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/utils/supabase/server";
 import Script from 'next/script';
 import WorkingProgressPage from "./working-progress/page";
 

@@ -46,7 +46,7 @@ const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
                   ))
                 )
               ) : (
-                <p>No items need replenishing</p>
+                <p className="text-center py-8 text-gray-500">No items need replenishing</p>
               )}
             </div>
           </CardContent>
@@ -69,7 +69,7 @@ const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
                 });
                 
                 if (expiringItems.length === 0) {
-                  return <p>No items expiring soon</p>;
+                  return <p className="text-center py-8 text-gray-500">No items expiring soon</p>;
                 }
                 
                 return expiringItems.map(resource => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Calendar, ChevronLeft, ChevronRight, Clock, ExternalLink, Globe, MapPin, MessageSquareOff, Package, Phone, Search, Star, StarHalf, X } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Clock, Globe, LayersIcon, MapPin, MessageSquareOff, Package, Phone, Search, Star, StarHalf, X } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import L from "leaflet";
@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PRIMARY_CATEGORIES } from "@/types/Categories";
-import { Progress } from "@/components/ui/progress";
 import RequestResource from "@/components/component/request-resource";
 
 export default function Map({ charitiesData, currentCharity, commentsData, transitData, resourcesData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; resourcesData: ResourcesData[] }) {
@@ -65,7 +64,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
 
   useEffect(() => {
     if (!mapInstanceRef.current && mapRef.current) {
-      const map = L.map(mapRef.current).setView([52.7721, -1.2062], 15);
+      const map = L.map(mapRef.current).setView([currentCharity.latitude, currentCharity.longitude], 15);
       mapInstanceRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     }
@@ -250,12 +249,39 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         }).addTo(map);
         
         truckMarker.bindTooltip(`
-          <div style="padding: 8px;">
-            <p style="margin: 0; font-weight: bold; font-size: 15px;">Resource in Transit</p>
-            <p style="margin: 5px 0 0;">Charity to: ${charityTo?.name}</p>
-            <p style="margin: 5px 0 0;">Item: ${transit.resource_id}</p>
-            <p style="margin: 2px 0 0;">Quantity: ${transit.quantity}</p>
-            <p style="margin: 2px 0 0;">${transit.description || 'No description'}</p>
+          <div style="width: 100%; max-width: 28rem;">
+            <div style="padding: 1.25rem 1.5rem 0rem; display: flex; flex-direction: row; align-items: center; justify-content: space-between; background-color: rgba(241, 245, 249, 0.3);">
+              <div style="display: flex; flex-direction: column;">
+                <div style="font-size: 1.125rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+                    <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
+                    <path d="M12 3v6"></path>
+                  </svg>
+                  Resource in Transit
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Item ID:</span>
+                <span style="font-family: monospace; font-size: 0.875rem; background-color: #f1f5f9; padding: 0.125rem 0.5rem; border-radius: 0.25rem;">${transit.id}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Destination:</span>
+                <span style="font-weight: 600;">${charityTo?.name || transit.charity_to}</span>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Quantity:</span>
+                <span>${transit.quantity}</span>
+              </div>
+              
+              <div style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
+                <p style="font-size: 0.875rem; margin: 0;">${transit.description || 'No description'}</p>
+              </div>
+            </div>
           </div>
         `);
         
@@ -478,7 +504,37 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
             </Card>
 
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Charity Resources</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center mb-3">
+                  <LayersIcon className="h-5 w-5 mr-2 text-blue-500" />
+                  <h2 className="text-xl font-semibold">All Available Resources</h2>
+                </div>
+                {resources.length > 0 && (
+                  <Badge variant="outline" className="bg-primary/10 text-primary">
+                    {resources.length} {resources.length === 1 ? "Resource" : "Resources"}
+                  </Badge>
+                )}
+              </div>
+              
+              {resources.length === 0 ? (
+                <div className="text-center py-6 text-gray-500">
+                  <Package size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>No resources available from this charity</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {resources.map((resource, index) => (
+                    <div key={index} className="bg-blue-50 rounded-md p-3 flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                      <span className="text-blue-800">{resource.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Shareable Resources</h2>
 
               {resources.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
@@ -595,6 +651,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               )}
             </Card>
           </div>
+          <Toaster richColors expand={true} />
         </DrawerContent>
       </Drawer>
       <Toaster richColors expand={true} />

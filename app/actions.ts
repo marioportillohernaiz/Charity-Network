@@ -57,7 +57,7 @@ export const getCharityResourceData = async () => {
   const { data: resources } = await supabase
     .from("resources")
     .select("*") 
-    .eq("charity_id", charity.id) as { data: ResourcesData[] | []; error: any };;
+    .eq("charity_id", charity?.id) as { data: ResourcesData[] | []; error: any };;
   
   return resources;
 };
@@ -141,6 +141,7 @@ export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const supabase = await createClient();
+  const charity = await getRegisteredCharity();
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -151,7 +152,11 @@ export const signInAction = async (formData: FormData) => {
     return { success: false, message: error.toString() };
   }
 
-  return redirect("/protected");
+  if (charity) {
+    return redirect("/protected");
+  } else {
+    return redirect("/protected/account-page");
+  }
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -261,6 +266,7 @@ export async function submitCharity(formData: FormData) {
         .from("registered_charities")
         .insert({
           name: name,
+          owner_id: user.id,
           description: description,
           latitude: latitude,
           longitude: longitude,
@@ -408,7 +414,7 @@ export async function submitResource(formData: FormData) {
 
       if (error) {
         console.log(error);
-        return { success: false, message: "Error Adding Resource" };
+        return { success: false, message: "Error Updating Resource" };
       } else {
         return { success: true, message: "Resource Successfully Updated" };
       }
@@ -440,7 +446,7 @@ export async function submitResource(formData: FormData) {
   }  
 }
 
-export async function rejectTransit(id: string) {
+export async function rejectTransit(id: string, option: string) {
   const supabase = await createClient();
   const user = await getAuthUser(); 
 
@@ -457,18 +463,18 @@ export async function rejectTransit(id: string) {
       const { error } = await supabase
         .from("resource_transit")
         .update({
-          status: "Rejected"
+          status: option
         })
         .eq("id", id);
 
       if (error) {
         console.log(error);
-        return { success: false, message: "Error Rejecting Transit" };
+        return { success: false, message: `Error ${option} Transit` };
       } else {
-        return { success: true, message: "Transit Rejected" };
+        return { success: true, message: `Transit ${option}` };
       }
     } else {
-      return { success: false, message: "Error Fetching Transit" };
+      return { success: false, message: `Error ${option} Transit` };
     }
   }  
 }
@@ -522,9 +528,10 @@ export async function dispatchTransit(id: string, resource: ResourcesData | unde
   }  
 }
 
-export async function receiveTransit(id: string, resource: ResourcesData | undefined) {
+export async function receiveTransit(id: string, quantity: number, resource: ResourcesData | undefined) {
   const supabase = await createClient();
   const user = await getAuthUser(); 
+  const charity = await getRegisteredCharity();
 
   if (!user) {
     return redirect("/sign-in");
@@ -542,7 +549,7 @@ export async function receiveTransit(id: string, resource: ResourcesData | undef
       .single();
 
     if (existingTransit && existingResource) {
-      const { error } = await supabase
+      const { error: transitError } = await supabase
         .from("resource_transit")
         .update({
           status: "Received",
@@ -551,12 +558,53 @@ export async function receiveTransit(id: string, resource: ResourcesData | undef
         })
         .eq("id", id);
 
-      if (error) {
-        console.log(error);
-        return { success: false, message: "Error Receiveing Transit" };
-      } else {
-        return { success: true, message: "Transit Received" };
+      if (transitError) {
+        console.log(transitError);
+        return { success: false, message: "Error Receiving Transit" };
       }
+
+      const { data: charityResource } = await supabase
+        .from("resources")
+        .select("*")
+        .eq("name", resource?.name)
+        .eq("charity_id", charity.id)
+        .single();
+
+      if (charityResource) {
+        const { error: updateError } = await supabase
+          .from("resources")
+          .update({
+            quantity: charityResource.quantity + quantity,
+            updated_at: now
+          })
+          .eq("id", charityResource.id);
+
+        if (updateError) {
+          console.log(updateError);
+          return { success: false, message: "Error Updating Resource Quantity" };
+        }
+      } else {
+        const { error: resourceError } = await supabase
+        .from("resources")
+        .insert({
+          charity_id: charity.id,
+          name: resource?.name,
+          description: resource?.description,
+          category: resource?.category,
+          quantity: quantity,
+          unit: resource?.unit,
+          expiry_date: resource?.expiry_date ? new Date(resource?.expiry_date) : null,
+          updated_at: now
+        });
+
+        if (resourceError) {
+          console.log(resourceError);
+          return { success: false, message: "Error Inserting Resource Quantity" };
+        }
+      }
+
+      return { success: true, message: "Transit Received" };
+      
     } else {
       return { success: false, message: "Error Fetching Transit" };
     }
