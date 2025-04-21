@@ -51,6 +51,7 @@
     "sonner": "^1.7.4",
     "use-debounce": "^10.0.4",
     "use-media": "^1.5.0",
+    "use-mobile-detect-hook": "^1.0.5",
     "use-places-autocomplete": "^4.0.1",
     "vaul": "^1.1.2",
     "zod": "^3.24.2"

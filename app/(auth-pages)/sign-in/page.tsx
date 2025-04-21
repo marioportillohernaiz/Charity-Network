@@ -22,7 +22,7 @@ export default function Login() {
   }
 
   return (
-    <div className="w-full lg:grid lg:min-h-[500px] lg:grid-cols-2 xl:min-h-[500px]">
+    <div className="w-full min-h-[400px] md:min-h-[450px] lg:grid lg:min-h-[500px] lg:grid-cols-2 xl:min-h-[500px]">
       <div className="hidden lg:flex flex-1 items-center justify-center py-12">
         <Image
           src="/sign_in.svg"
@@ -32,24 +32,25 @@ export default function Login() {
           // className="dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-      <div className="flex items-center justify-center py-12 bg-[#064789] rounded-lg mx-5">
-        <form className="mx-auto grid w-[350px] gap-2 text-white">
-          <h1 className="text-2xl font-medium">Sign in</h1>
+      <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-lg mx-3 sm:mx-5">
+        <form className="mx-auto grid w-full max-w-[350px] gap-2 text-white px-4 sm:px-0">
+          <h1 className="text-xl sm:text-2xl font-medium">Sign in</h1>
           <p className="text-sm">
             Don't have an account?{" "}
             <Link className="font-medium underline" href="/sign-up">
               Sign up
             </Link>
           </p>
-          <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-            <Label htmlFor="email">Email</Label>
-            <Input name="email" placeholder="you@example.com" required />
-            <div className="flex justify-between items-center">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                className="text-xs underline"
-                href="/forgot-password"
-              >
+          <div className="flex flex-col gap-2 [&>input]:mb-3 mt-6 sm:mt-8">
+            <Label htmlFor="email" className="text-sm sm:text-base">
+              Email
+            </Label>
+            <Input name="email" className="text-black h-10 sm:h-11" placeholder="you@example.com" required />
+            <div className="flex justify-between items-center mt-1">
+              <Label htmlFor="password" className="text-sm sm:text-base">
+                Password
+              </Label>
+              <Link className="text-xs underline" href="/forgot-password">
                 Forgot Password?
               </Link>
             </div>
@@ -58,25 +59,27 @@ export default function Login() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="•••••••••"
-                required />
+                className="text-black h-10 sm:h-11"
+                required
+              />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute inset-y-0 right-2 flex items-center text-sm"
+                className="absolute inset-y-0 right-2 flex items-center text-sm text-black"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-                <span className="sr-only">
-                  {showPassword ? 'Hide password' : 'Show password'}
-                </span>
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
               </Button>
             </div>
-            <SubmitButton pendingText="Signing In..." type="submit" formAction={handleSubmit} className="mt-5 text-black" variant="secondary">
+            <SubmitButton
+              pendingText="Signing In..."
+              type="submit"
+              formAction={handleSubmit}
+              className="mt-4 sm:mt-5 text-black h-10 sm:h-11"
+              variant="secondary"
+            >
               Sign in
             </SubmitButton>
             <Toaster richColors />

@@ -322,7 +322,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       <div ref={mapRef} className="h-full w-full bg-muted z-0" />
       
       <div className="flex gap-2 absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md px-4 search-container">
-        <AddCharityDialog />
+        {/* <AddCharityDialog /> */}
 
         <div className="relative flex-1">
           <div className="relative">
@@ -415,44 +415,68 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       <Drawer open={!!selectedCharity} onOpenChange={() => setSelectedCharity(null)}>
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col bg-muted">
           <div className="max-w-7xl w-full mx-auto h-[calc(90vh-100px)] overflow-y-auto p-2 md:p-6 space-y-4">
-            
             <Card>
-              <div className="overflow-hidden p-6 grid grid-cols-2">
-                {selectedCharity?.src_charity_img ? (
-                  <img className="mb-6 h-[300px] w-full max-w-full rounded-lg object-cover" src={selectedCharity?.src_charity_img}/>
-                ) : (
-                  <img className="mb-6 h-[200px] w-full max-w-full rounded-lg object-cover" src="/placeholder.png"/>
-                ) }
-
-                <div className="pl-4">
+              <div className="p-6 flex flex-col md:grid md:grid-cols-2 gap-6">
+                <div>
+                  {selectedCharity?.src_charity_img ? (
+                    <img
+                      className="h-[200px] sm:h-[250px] md:h-[300px] w-full rounded-lg object-cover"
+                      src={selectedCharity?.src_charity_img || "/placeholder.svg"}
+                      alt={selectedCharity?.name || "Charity"}
+                    />
+                  ) : (
+                    <img
+                      className="h-[150px] sm:h-[200px] md:h-[250px] w-full rounded-lg object-cover"
+                      src="/placeholder.png"
+                      alt="Placeholder"
+                    />
+                  )}
+                </div>
+                <div className="mt-4 md:mt-0 md:pl-4">
                   <div className="space-y-4">
                     <div className="flex items-start gap-2">
                       <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                      <p>{selectedCharity?.address || <span className="text-muted-foreground italic">No address given</span>}</p>
+                      <p className="text-sm sm:text-base">
+                        {selectedCharity?.address || <span className="text-muted-foreground italic">No address given</span>}
+                      </p>
                     </div>
-                    {selectedCharity?.settings.show_phone &&
+
+                    {selectedCharity?.settings?.show_phone && (
                       <div className="flex items-start gap-2">
                         <Phone className="mt-1 h-4 w-4 shrink-0" />
-                        <p>{selectedCharity?.phone_number || <span className="text-muted-foreground italic">No phone given</span>}</p>
+                        <p className="text-sm sm:text-base">
+                          {selectedCharity?.phone_number || (
+                            <span className="text-muted-foreground italic">No phone given</span>
+                          )}
+                        </p>
                       </div>
-                    }
-                    {selectedCharity?.settings.show_website &&
+                    )}
+
+                    {selectedCharity?.settings?.show_website && (
                       <div className="flex items-start gap-2">
                         <Globe className="mt-1 h-4 w-4 shrink-0" />
                         {selectedCharity?.website_link ? (
-                          <a href={selectedCharity.website_link} target="_blank" className="text-blue-500 hover:underline">
-                            {selectedCharity.website_link.slice(0, 35)}...
+                          <a
+                            href={selectedCharity.website_link}
+                            target="_blank"
+                            className="text-sm sm:text-base text-blue-500 hover:underline break-words"
+                            rel="noreferrer"
+                          >
+                            {selectedCharity.website_link.length > 35
+                              ? `${selectedCharity.website_link.slice(0, 35)}...`
+                              : selectedCharity.website_link}
                           </a>
                         ) : (
                           <span className="text-muted-foreground italic">No website link given</span>
                         )}
                       </div>
-                    }
+                    )}
+
                     <div className="flex items-start gap-2">
                       <Clock className="mt-1 h-4 w-4 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Opening Hours</p>
-                        <div className="grid grid-rows-7">
+                      <div className="w-full">
+                        <p className="font-semibold text-sm sm:text-base">Opening Hours</p>
+                        <div className="grid grid-rows-7 text-sm sm:text-base">
                           {selectedCharity?.opening_hours ? (
                             Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
                               <div key={day} className="grid grid-cols-2">
@@ -470,35 +494,39 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                 </div>
               </div>
               <div className="px-6 pb-6">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{selectedCharity?.name}</h1>
-                    <div className="mb-2 flex items-center space-x-1">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{selectedCharity?.name}</h1>
+                    <div className="mb-2 flex flex-wrap items-center space-x-1">
                       {[...Array(5)].map((_, index) => {
-                        const isFilled = index < Math.floor(selectedCharity?.rating ?? 0);
-                        const isHalf = index === Math.floor(selectedCharity?.rating ?? 0) && ((selectedCharity?.rating ?? 0) % 1 !== 0);
+                        const isFilled = index < Math.floor(selectedCharity?.rating ?? 0)
+                        const isHalf =
+                          index === Math.floor(selectedCharity?.rating ?? 0) && (selectedCharity?.rating ?? 0) % 1 !== 0
 
                         return isHalf ? (
-                          <StarHalf key={index} className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                          <StarHalf key={index} className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 fill-yellow-400" />
                         ) : (
-                          <Star key={index} className={`w-6 h-6 ${isFilled ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}/>
-                        );
+                          <Star
+                            key={index}
+                            className={`w-5 h-5 sm:w-6 sm:h-6 ${isFilled ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                          />
+                        )
                       })}
-                      <p className="text-gray-400">({selectedCharity?.rating.toFixed(1) ?? "N/A"}/5)</p>
-                      <p className="text-gray-400">Total Ratings: {selectedCharity?.total_rating}</p>
+                      <p className="text-sm sm:text-base text-gray-400">({selectedCharity?.rating?.toFixed(1) ?? "N/A"}/5)</p>
+                      <p className="text-sm sm:text-base text-gray-400">Total Ratings: {selectedCharity?.total_rating}</p>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-gray-600 mb-4">{selectedCharity?.description}</p>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">{selectedCharity?.description}</p>
 
                 <Badge className="bg-blue-100 text-blue-800 mb-2">
-                  {PRIMARY_CATEGORIES.find(cat => cat.value === selectedCharity?.category_and_tags.primary)?.label}
+                  {PRIMARY_CATEGORIES.find((cat) => cat.value === selectedCharity?.category_and_tags?.primary)?.label}
                 </Badge>
 
                 <div className="mb-4 flex flex-wrap gap-1">
-                  {selectedCharity?.category_and_tags.secondary.map((tag, i) => (
-                    <Badge key={i} variant="outline" className="bg-gray-100">
+                  {selectedCharity?.category_and_tags?.secondary?.map((tag, i) => (
+                    <Badge key={i} variant="outline" className="bg-gray-100 text-sm">
                       {tag}
                     </Badge>
                   ))}

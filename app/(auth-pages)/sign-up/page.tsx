@@ -65,20 +65,25 @@ export default function Signup() {
   return (
     <>
     <div className="w-full lg:grid lg:min-h-[500px] lg:grid-cols-2 xl:min-h-[500px]">
-      <div className="flex items-center justify-center py-12 bg-[#064789] rounded-lg mx-5">
-        <div className="mx-auto grid w-[350px] gap-2 text-white">
-          <h1 className="text-2xl font-medium">Sign up</h1>
-          <p className="text-sm text">
+      <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-lg mx-2 sm:mx-5">
+        <div className="w-full max-w-[350px] px-4 sm:px-0 mx-auto grid gap-2 text-white">
+          <h1 className="text-xl sm:text-2xl font-medium">Sign up</h1>
+          <p className="text-xs sm:text-sm">
             Already have an account?{" "}
             <Link className="font-medium underline" href="/sign-in">
               Sign in
             </Link>
           </p>
-          
-          <form className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-            <Label htmlFor="email">Business Email</Label>
-            <Input name="email" placeholder="you@example.com" required />
-            <Label htmlFor="password">Password</Label>
+
+          <form className="flex flex-col gap-2 [&>input]:mb-3 mt-6 sm:mt-8">
+            <Label htmlFor="email" className="text-sm">
+              Business Email
+            </Label>
+            <Input name="email" placeholder="you@example.com" required className="text-sm" />
+
+            <Label htmlFor="password" className="text-sm">
+              Password
+            </Label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
@@ -86,75 +91,75 @@ export default function Signup() {
                 placeholder="•••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="text-black"
+                className="text-black text-sm"
                 required
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute inset-y-0 right-2 flex items-center text-sm"
+                className="absolute inset-y-0 right-1 sm:right-2 flex items-center text-black"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
-                <span className="sr-only">
-                  {showPassword ? 'Hide password' : 'Show password'}
-                </span>
+                <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
               </Button>
             </div>
-            
+
             {/* Password requirements checklist */}
-            <div className="bg-white/10 p-3 rounded-md text-xs my-2">
-              <p className="font-medium mb-2">Password must include:</p>
+            <div className="bg-white/10 p-2 sm:p-3 rounded-md text-xs my-2">
+              <p className="font-medium mb-1 sm:mb-2">Password must include:</p>
               <ul className="space-y-1">
                 <li className="flex items-center">
                   {passwordValid.length ? (
-                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                    <Check className="h-3 w-3 mr-1 sm:mr-2 text-green-400" />
                   ) : (
-                    <X className="h-3 w-3 mr-2 text-red-400" />
+                    <X className="h-3 w-3 mr-1 sm:mr-2 text-red-400" />
                   )}
                   At least 8 characters
                 </li>
                 <li className="flex items-center">
                   {passwordValid.uppercase ? (
-                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                    <Check className="h-3 w-3 mr-1 sm:mr-2 text-green-400" />
                   ) : (
-                    <X className="h-3 w-3 mr-2 text-red-400" />
+                    <X className="h-3 w-3 mr-1 sm:mr-2 text-red-400" />
                   )}
                   At least one uppercase letter (A-Z)
                 </li>
                 <li className="flex items-center">
                   {passwordValid.lowercase ? (
-                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                    <Check className="h-3 w-3 mr-1 sm:mr-2 text-green-400" />
                   ) : (
-                    <X className="h-3 w-3 mr-2 text-red-400" />
+                    <X className="h-3 w-3 mr-1 sm:mr-2 text-red-400" />
                   )}
                   At least one lowercase letter (a-z)
                 </li>
                 <li className="flex items-center">
                   {passwordValid.number ? (
-                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                    <Check className="h-3 w-3 mr-1 sm:mr-2 text-green-400" />
                   ) : (
-                    <X className="h-3 w-3 mr-2 text-red-400" />
+                    <X className="h-3 w-3 mr-1 sm:mr-2 text-red-400" />
                   )}
                   At least one number (0-9)
                 </li>
                 <li className="flex items-center">
                   {passwordValid.special ? (
-                    <Check className="h-3 w-3 mr-2 text-green-400" />
+                    <Check className="h-3 w-3 mr-1 sm:mr-2 text-green-400" />
                   ) : (
-                    <X className="h-3 w-3 mr-2 text-red-400" />
+                    <X className="h-3 w-3 mr-1 sm:mr-2 text-red-400" />
                   )}
                   At least one special character (!@#$%^&*)
                 </li>
               </ul>
             </div>
-            
-            <Label htmlFor="repeatPassword">Repeat Password</Label>
+
+            <Label htmlFor="repeatPassword" className="text-sm">
+              Repeat Password
+            </Label>
             <div className="relative">
               <Input
                 type={showRepeatedPassword ? "text" : "password"}
@@ -163,28 +168,26 @@ export default function Signup() {
                 value={repeatPassword}
                 onChange={(e) => setRepeatPassword(e.target.value)}
                 required
-                className={repeatPassword && !passwordMatches ? "text-black border-red-400" : "text-black"}
+                className={`text-black text-sm ${repeatPassword && !passwordMatches ? "border-red-400" : ""}`}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute inset-y-0 right-2 flex items-center text-sm"
+                className="absolute inset-y-0 right-1 sm:right-2 flex items-center text-black"
                 onClick={() => setRepeatedShowPassword(!showRepeatedPassword)}
               >
                 {showRepeatedPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
-                <span className="sr-only">
-                  {showRepeatedPassword ? 'Hide password' : 'Show password'}
-                </span>
+                <span className="sr-only">{showRepeatedPassword ? "Hide password" : "Show password"}</span>
               </Button>
             </div>
-            
+
             {repeatPassword && (
-              <div className={`text-xs ${passwordMatches ? 'text-green-400' : 'text-red-400'} flex items-center`}>
+              <div className={`text-xs ${passwordMatches ? "text-green-400" : "text-red-400"} flex items-center`}>
                 {passwordMatches ? (
                   <>
                     <Check className="h-3 w-3 mr-1" />
@@ -198,19 +201,18 @@ export default function Signup() {
                 )}
               </div>
             )}
-            
-            <div className="flex items-center space-x-2 my-4">
-              <Checkbox id="consent" name="consent" required className="bg-white" />
-              <Label htmlFor="consent" className="text-xs leading-none">
+
+            <div className="flex items-start space-x-2 my-3 sm:my-4">
+              <Checkbox id="consent" name="consent" required className="bg-white mt-0.5" />
+              <Label htmlFor="consent" className="text-xs leading-tight">
                 * I confirm this account is for a registered charitable organisation.
               </Label>
             </div>
-            {/* formAction={handleSubmit}  */}
-            {/* disabled={!isPasswordStrong() || !passwordMatches}  */}
-            <SubmitButton 
-              type="submit" 
-              formAction={handleSubmit} 
-              pendingText="Signing up..." 
+
+            <SubmitButton
+              type="submit"
+              formAction={handleSubmit}
+              pendingText="Signing up..."
               variant="secondary"
               disabled={true}
             >
@@ -220,13 +222,7 @@ export default function Signup() {
         </div>
       </div>
       <div className="hidden lg:flex flex-1 items-center justify-center py-12">
-        <Image
-          src="/sign_up.svg"
-          alt="Image"
-          width="1920"
-          height="1080"
-          // className="dark:brightness-[0.2] dark:grayscale"
-        />
+        <Image src="/sign_up.svg" alt="Image" width="1920" height="1080" />
       </div>
     </div>
     <Toaster richColors expand={true} />
