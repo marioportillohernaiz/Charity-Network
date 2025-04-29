@@ -801,7 +801,8 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                       <h3 className="font-medium mb-2">Password</h3>
                       <p className="text-sm text-muted-foreground mb-4">It's a good idea to use a strong password that you don't use elsewhere</p>
                       <Link href="/protected/reset-password">
-                        <Button variant="outline">
+
+                        <Button variant="outline" disabled={accountData?.owner_id === "a68946ad-5753-47e0-9dad-76afc4bf870e"} >
                           <KeyRound className="h-4 w-4 mr-2" /> Change Password
                         </Button>
                       </Link>

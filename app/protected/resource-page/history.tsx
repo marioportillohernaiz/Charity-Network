@@ -188,7 +188,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                           history.status === TransitStatus.REJECTED
                             ? "bg-green-200 text-green-800 hover:bg-green-200"
                             : history.status === TransitStatus.CANCELLED
-                              ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-200"
+                              ? "bg-red-200 text-red-800 hover:bg-red-200"
                               : "bg-red-200 text-red-800 hover:bg-red-200"
                         }
                       >
@@ -249,7 +249,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                       {history.status === TransitStatus.REJECTED ? (
                         <Badge className="bg-green-200 text-green-800 hover:bg-green-200">Received</Badge>
                       ) : history.status === TransitStatus.CANCELLED ? (
-                        <Badge className="bg-yellow-200 text-yellow-800 hover:bg-yellow-200">Cancelled</Badge>
+                        <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Cancelled</Badge>
                       ) : (
                         <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Rejected</Badge>
                       )}

@@ -5,7 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-
 export type SeasonalPrediction = {
   food: Record<string, number>;
   clothing: Record<string, number>;

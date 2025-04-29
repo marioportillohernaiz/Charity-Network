@@ -67,6 +67,22 @@ function getResourceStats(resources: ResourcesData[]) {
   return summary;
 }
 
+// Website navigation guide
+const navigationGuide = {
+  main: [
+    { name: "Map Page", path: "/protected", locationDescription: "On the navigation bar", description: "Map page where charities and their resources can be visualised" },
+    { name: "Resources Page", path: "/protected/resource-page", locationDescription: "On the navigation bar", description: "Manage your inventory, view resource statistics, and handle resource requests" },
+    { name: "Request Resources", path: "/protected/request-page", locationDescription: "Inside the Resources Page, then in a button near the top labeled Requests", description: "Request resources from other charities and view AI recommendations" },
+    { name: "Account Settings", path: "/protected/account-page", locationDescription: "On the navigation bar", description: "Update your profile, location, and contact information" },
+  ],
+  resourcePageTabs: [
+    { name: "Overview", description: "View analytics and statistics about your resources" },
+    { name: "Resources", description: "Manage your inventory and mark scarce resources" },
+    { name: "Transits", description: "View and manage ongoing resource transfers" },
+    { name: "History", description: "See past transactions and sales" }
+  ]
+};
+
 export async function POST(request: Request) {
   try {
     const { messages, charityData, resourceData, availableResources } = await request.json();
@@ -94,12 +110,11 @@ export async function POST(request: Request) {
     const systemMessage = {
       role: 'system',
       content: `
-        You are an AI assistant for charity organizations, specializing in resource management, fundraising, and charity operations. 
+        You are an AI assistant for charity organizations, specializing in resource management, fundraising, charity operations and navigation through this platform.
       
         Today's date is ${new Date().toLocaleDateString()}.
-            
+        
         You have the following information about the charity you're assisting:
-
         ${charityContext}
 
         CURRENT RESOURCE INFORMATION:
@@ -110,6 +125,9 @@ export async function POST(request: Request) {
 
         AVAILABLE RESOURCES TO REQUEST
         ${availableResourcesFromOtherCharities}
+
+        WEBSITE NAVIGATION INFORMATION:
+        ${JSON.stringify(navigationGuide, null, 2)}
 
         When responding:
         1. Respond in one short sentence as if you were having a conversation.

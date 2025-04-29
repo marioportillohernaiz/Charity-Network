@@ -8,8 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { format, differenceInDays, parse } from 'date-fns';
 
 const useMobileDetect = () => {
-  const isMobile = () => /Mobi|Android/i.test(navigator.userAgent);
-  return { isMobile };
+  const [isMobileState, setIsMobileState] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobileState(/Mobi|Android/i.test(navigator.userAgent));
+    }
+  }, []);
+  
+  return { isMobile: () => isMobileState };
 };
 
 const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData; salesData: Sales[] }) => {

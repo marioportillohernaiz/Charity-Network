@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { 
   TrendingUp, ArrowLeft, Loader2, BarChart4,
   RefreshCw,
@@ -26,8 +26,15 @@ interface MonthData {
 }
 
 const useMobileDetect = () => {
-  const isMobile = () => /Mobi|Android/i.test(navigator.userAgent);
-  return { isMobile };
+  const [isMobileState, setIsMobileState] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobileState(/Mobi|Android/i.test(navigator.userAgent));
+    }
+  }, []);
+  
+  return { isMobile: () => isMobileState };
 };
 
 const RequestResourcesPage = ({resourceData, transitData, charityData, charity, salesData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; charity: CharityData, salesData: Sales[]}) => {

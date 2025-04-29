@@ -9,7 +9,6 @@ let L: typeof import('leaflet');
 if (typeof window !== 'undefined') {
   L = require('leaflet');
 }
-import AddCharityDialog from "@/components/component/add-charity-dialog";
 import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TransitStatus } from "@/types/TransitStatus";
@@ -70,6 +69,10 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       const map = L.map(mapRef.current).setView([currentCharity.latitude, currentCharity.longitude], 15);
       mapInstanceRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      
+      if (currentCharity) {
+        map.setView([currentCharity.latitude, currentCharity.longitude], 15);
+      }
     }
     
     if (!mapInstanceRef.current) return;
