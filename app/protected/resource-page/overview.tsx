@@ -5,12 +5,17 @@ import { ArrowUpDown, Package2, CalendarClock, Share2, ChartPie } from 'lucide-r
 import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format, subMonths, differenceInDays, parse } from 'date-fns';
-import { TransitStatus } from '@/types/TransitStatus';
+import { format, differenceInDays, parse } from 'date-fns';
+
+const useMobileDetect = () => {
+  const isMobile = () => /Mobi|Android/i.test(navigator.userAgent);
+  return { isMobile };
+};
 
 const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resourceData: ResourcesData[], requestData?: TransitData[]; charity: CharityData; salesData: Sales[] }) => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
-
+  const detectMobile = useMobileDetect();
+  
   // Calculate total resource statistics
   const totalResources = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.quantity, 0), [resourceData]);
   const totalShareable = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.shareable_quantity, 0), [resourceData]);
@@ -337,73 +342,75 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardHeader className="flex flex-col space-y-2 pb-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>
             <CardTitle>Sales by Category</CardTitle>
             <CardDescription>Breakdown of sales across categories</CardDescription>
           </div>
-          <div className="flex space-x-1">
-            {availableMonths.length > 0 && (
-              <div className="flex items-center rounded-md border bg-background p-1 text-sm">
+          {availableMonths.length > 0 && (
+            <div className="w-full sm:w-auto">
+              <div className="flex flex-wrap items-center rounded-md border bg-background p-1 text-sm">
                 <button
-                  onClick={() => setSelectedMonth('all')}
-                  className={`rounded-sm px-2.5 py-0.5 ${
-                    selectedMonth === 'all' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  onClick={() => setSelectedMonth("all")}
+                  className={`mb-1 mr-1 rounded-sm px-2 py-0.5 sm:mb-0 ${
+                    selectedMonth === "all"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   All Time
                 </button>
-                {availableMonths.map((month) => (
-                  <button
-                    key={month}
-                    onClick={() => setSelectedMonth(month)}
-                    className={`rounded-sm px-2.5 py-0.5 ${
-                      selectedMonth === month 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`}
-                  >
-                    {month}
-                  </button>
-                ))}
+                <div className={`flex ${detectMobile.isMobile() ? "flex-wrap" : "overflow-x-auto"}`}>
+                  {availableMonths.map((month) => (
+                    <button
+                      key={month}
+                      onClick={() => setSelectedMonth(month)}
+                      className={`mb-1 mr-1 rounded-sm px-2 py-0.5 sm:mb-0 ${
+                        selectedMonth === month
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {month}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="h-[500px]">
+          <div className={`${detectMobile.isMobile() ? "h-[350px]" : "h-[500px]"}`}>
             <ResponsiveContainer width="100%" height="100%">
               {categoryData && categoryData.length > 0 ? (
-                <BarChart 
-                  data={categoryData} 
-                  margin={{ top: 20, right: 40, left: 0, bottom: 0 }} 
+                <BarChart
+                  data={categoryData}
+                  margin={{
+                    top: 20,
+                    right: detectMobile.isMobile() ? 20 : 40,
+                    left: 0,
+                    bottom: 0,
+                  }}
                   layout="vertical"
                 >
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" tickFormatter={formatCurrency} />
-                  <YAxis 
-                    dataKey="category" 
-                    type="category" 
-                    width={150}
-                    tick={{ fontSize: 12 }} 
+                  <XAxis type="number" tickFormatter={formatCurrency} tick={{ fontSize: detectMobile.isMobile() ? 10 : 12 }} />
+                  <YAxis
+                    dataKey="category"
+                    type="category"
+                    width={detectMobile.isMobile() ? 100 : 150}
+                    tick={{ fontSize: detectMobile.isMobile() ? 10 : 12 }}
                   />
                   <Tooltip
                     formatter={(value) => formatCurrency(Number(value))}
                     labelFormatter={(label) => `Category: ${label}`}
                   />
-                  <Legend />
-                  <Bar 
-                    dataKey="amount" 
-                    name="Amount" 
-                    fill="#0f4c81" 
-                    radius={[0, 4, 4, 0]}
-                  />
+                  <Legend wrapperStyle={{ fontSize: detectMobile.isMobile() ? 10 : 12 }} />
+                  <Bar dataKey="amount" name="Amount" fill="#0f4c81" radius={[0, 4, 4, 0]} />
                 </BarChart>
               ) : (
                 <div className="text-center grid h-full place-content-center text-gray-500">
-                  <ChartPie size={48} className="mx-auto mb-4 opacity-30" />
+                  <ChartPie size={detectMobile.isMobile() ? 36 : 48} className="mx-auto mb-4 opacity-30" />
                   <p>No data available</p>
                 </div>
               )}

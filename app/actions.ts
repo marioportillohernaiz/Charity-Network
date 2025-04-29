@@ -446,6 +446,46 @@ export async function submitResource(formData: FormData) {
   }  
 }
 
+export async function updateScarceResource(selectedResources: string[]) {
+  const supabase = await createClient();
+  const user = await getAuthUser();
+  const charity = await getRegisteredCharity();
+
+
+  if (!user) {
+    return redirect("/sign-in");
+  } 
+  try {
+    const { error: updateAllError } = await supabase
+      .from("resources")
+      .update({ is_scarce: false, updated_at: new Date().toISOString() })
+      .eq("charity_id", charity.id);
+    
+    if (updateAllError) {
+      console.log(updateAllError);
+      return { success: false, message: "Error updating resources" };
+    }
+    
+    if (selectedResources.length > 0) {
+      const { error: updateSelectedError } = await supabase
+        .from("resources")
+        .update({ is_scarce: true, updated_at: new Date().toISOString() })
+        .eq("charity_id", charity.id)
+        .in("id", selectedResources);
+      
+      if (updateSelectedError) {
+        console.log(updateSelectedError);
+        return { success: false, message: "Error updating scarce resources" };
+      }
+    }
+    
+    return { success: true, message: "Resources updated successfully" };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "Error updating resources" };
+  }
+}
+
 export async function rejectTransit(id: string, option: string) {
   const supabase = await createClient();
   const user = await getAuthUser(); 

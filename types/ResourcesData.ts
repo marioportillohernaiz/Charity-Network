@@ -10,5 +10,6 @@ interface ResourcesData {
   shareable_quantity: number;
   location?: string;
   expiry_date?: Date;
+  is_scarce?: boolean;
   updated_at: Date;
 }

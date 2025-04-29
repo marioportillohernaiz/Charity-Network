@@ -61,11 +61,6 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedResource, setSelectedResource] = useState('all');
   const [selectedCharity, setSelectedCharity] = useState('all');
-  
-  const uniqueResourceIds = transitData
-    .map(item => item.resource_id)
-    .filter((value, index, self) => self.indexOf(value) === index);
-  const relevantResources = resourceData.filter(resource => uniqueResourceIds.includes(resource.id));
 
   const charityIdField = title.includes("Sent To") ? 'charity_to' : 'charity_from';
   const uniqueCharityIds = transitData
@@ -129,12 +124,12 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
   return (
     <Card className="mb-4 bg-secondary">
       <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <CardTitle className="text-2xl font-bold">{title}</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-bold">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          <ExportTransit 
+          <ExportTransit
             transitData={transitData}
             resourceData={resourceData}
             charityData={charityData}
@@ -143,29 +138,17 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
         </div>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex flex-wrap gap-2">
-          <div className="relative w-full sm:w-96">
+        <div className="mb-4 flex flex-col sm:flex-row gap-3">
+          <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input 
-              type="search" 
-              placeholder="Search sharing history..." 
+            <Input
+              type="search"
+              placeholder="Search sharing history..."
               className="pl-8 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
-          <Select value={selectedResource} onValueChange={setSelectedResource}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="All Resources" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Resources</SelectItem>
-              {relevantResources.map(resource => (
-                <SelectItem key={resource.id} value={resource.id}>{resource.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           
           <Select value={selectedCharity} onValueChange={setSelectedCharity}>
             <SelectTrigger className="w-48">
@@ -182,50 +165,100 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
 
         <div className="space-y-4">
           {currentItems.length > 0 ? (
-            currentItems.map(history => {
-            const charityDetails = charityData.find(charity => 
-              charity.id === (title.includes("Sent To") ? history.charity_to : history.charity_from));
-            
-            const resourceDetails = resourceData.find(resource => 
-              resource.id === history.resource_id
-            );
+            currentItems.map((history) => {
+              const charityDetails = charityData.find(
+                (charity) => charity.id === (title.includes("Sent To") ? history.charity_to : history.charity_from),
+              )
 
-            return (
-              <Card key={history.id} className="p-4 grid grid-cols-6 gap-4">
-                <div className="my-auto">
-                  <p className="font-medium text-xl">{resourceDetails?.name}</p>
-                  <p className="text-gray-500">{history.quantity} {resourceDetails?.unit}</p>
-                </div>
+              const resourceDetails = resourceData.find((resource) => resource.id === history.resource_id)
 
-                <div className="my-auto col-span-2">
-                  <p className="font-medium">{charityDetails?.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {charityDetails?.address || "No address provided"}
-                  </p>
-                </div>
+              return (
+                <Card key={history.id} className="p-4">
+                  {/* Mobile view - stack everything vertically */}
+                  <div className="block md:hidden space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium text-lg">{resourceDetails?.name}</p>
+                        <p className="text-gray-500">
+                          {history.quantity} {resourceDetails?.unit}
+                        </p>
+                      </div>
+                      <Badge
+                        className={
+                          history.status === TransitStatus.REJECTED
+                            ? "bg-green-200 text-green-800 hover:bg-green-200"
+                            : history.status === TransitStatus.CANCELLED
+                              ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-200"
+                              : "bg-red-200 text-red-800 hover:bg-red-200"
+                        }
+                      >
+                        {history.status === TransitStatus.REJECTED
+                          ? "Received"
+                          : history.status === TransitStatus.CANCELLED
+                            ? "Cancelled"
+                            : "Rejected"}
+                      </Badge>
+                    </div>
 
-                <div className="my-auto">
-                  <p className="text-sm text-gray-500">Time Sent</p>
-                  <p>{history.time_sent ? (format(history.time_sent, "dd/MM/yyyy hh:mm")) : ("n/a")}</p>
-                </div>
+                    <div>
+                      <p className="font-medium">{charityDetails?.name}</p>
+                      <p className="text-sm text-gray-500">{charityDetails?.address || "No address provided"}</p>
+                    </div>
 
-                <div className="my-auto">
-                  <p className="text-sm text-gray-500">Time Recieved</p>
-                  <p>{history.time_received ? (format(history.time_received, "dd/MM/yyyy hh:mm")) : ("n/a")}</p>
-                </div>
-                
-                <div className="my-auto">
-                  {history.status === TransitStatus.REJECTED ? (
-                    <Badge className="bg-green-200 text-green-800 hover:bg-green-200">Received</Badge>
-                  ) : history.status === TransitStatus.CANCELLED ? (
-                    <Badge className="bg-yellow-200 text-yellow-800 hover:bg-yellow-200">Cancelled</Badge>
-                  ) : (
-                    <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Rejected</Badge>
-                  )}
-                </div>
-              </Card>
-            );
-          })) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-sm text-gray-500">Time Sent</p>
+                        <p className="text-sm">
+                          {history.time_sent ? format(history.time_sent, "dd/MM/yyyy hh:mm") : "n/a"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Time Received</p>
+                        <p className="text-sm">
+                          {history.time_received ? format(history.time_received, "dd/MM/yyyy hh:mm") : "n/a"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop view - grid layout */}
+                  <div className="hidden md:grid md:grid-cols-6 md:gap-4">
+                    <div className="my-auto">
+                      <p className="font-medium text-xl">{resourceDetails?.name}</p>
+                      <p className="text-gray-500">
+                        {history.quantity} {resourceDetails?.unit}
+                      </p>
+                    </div>
+
+                    <div className="my-auto col-span-2">
+                      <p className="font-medium">{charityDetails?.name}</p>
+                      <p className="text-sm text-gray-500">{charityDetails?.address || "No address provided"}</p>
+                    </div>
+
+                    <div className="my-auto">
+                      <p className="text-sm text-gray-500">Time Sent</p>
+                      <p>{history.time_sent ? format(history.time_sent, "dd/MM/yyyy hh:mm") : "n/a"}</p>
+                    </div>
+
+                    <div className="my-auto">
+                      <p className="text-sm text-gray-500">Time Received</p>
+                      <p>{history.time_received ? format(history.time_received, "dd/MM/yyyy hh:mm") : "n/a"}</p>
+                    </div>
+
+                    <div className="my-auto">
+                      {history.status === TransitStatus.REJECTED ? (
+                        <Badge className="bg-green-200 text-green-800 hover:bg-green-200">Received</Badge>
+                      ) : history.status === TransitStatus.CANCELLED ? (
+                        <Badge className="bg-yellow-200 text-yellow-800 hover:bg-yellow-200">Cancelled</Badge>
+                      ) : (
+                        <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Rejected</Badge>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )
+            })
+          ) : (
             <div className="text-center py-8 text-gray-500">
               <BookOpenText size={48} className="mx-auto mb-4 opacity-30" />
               <p>No available history</p>
@@ -233,64 +266,79 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
           )}
         </div>
 
-        <div className="flex justify-end mt-4">
-          <div className="text-sm text-gray-500 mr-6">
-            Showing {transitData.length > 0 ? Math.min(transitData.length, (currentPage - 1) * ITEMS_PER_PAGE + 1) : 0}-
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+          <div className="text-sm text-gray-500 order-2 sm:order-1">
+            Showing{" "}
+            {transitData.length > 0 ? Math.min(transitData.length, (currentPage - 1) * ITEMS_PER_PAGE + 1) : 0}-
             {Math.min(currentPage * ITEMS_PER_PAGE, transitData.length)} of {transitData.length} sharing records
           </div>
-          
+
           {totalPages > 1 && (
-            <Pagination className="flex justify-end">
-              <PaginationContent>
+            <Pagination className="order-1 sm:order-2">
+              <PaginationContent className="flex-wrap justify-center">
                 <PaginationItem>
-                  <PaginationPrevious href="#" aria-disabled={currentPage === 1} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  <PaginationPrevious
+                    href="#"
+                    aria-disabled={currentPage === 1}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                     onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(currentPage - 1);
+                      e.preventDefault()
+                      handlePageChange(currentPage - 1)
                     }}
                   />
                 </PaginationItem>
-                
+
+                {/* Show fewer pagination items on mobile */}
                 {generatePaginationItems().map((page, index, array) => {
+                  // On mobile, only show current page, first and last
+                  const isMobileVisible = page === 1 || page === totalPages || page === currentPage
+
                   if (index > 0 && page > array[index - 1] + 1) {
                     return (
                       <React.Fragment key={`ellipsis-${page}`}>
-                        <PaginationItem>
+                        <PaginationItem className={!isMobileVisible ? "hidden sm:flex" : ""}>
                           <PaginationEllipsis />
                         </PaginationItem>
-                        <PaginationItem>
-                          <PaginationLink href="#" isActive={page === currentPage}
+                        <PaginationItem className={!isMobileVisible ? "hidden sm:flex" : ""}>
+                          <PaginationLink
+                            href="#"
+                            isActive={page === currentPage}
                             onClick={(e) => {
-                              e.preventDefault();
-                              handlePageChange(page);
+                              e.preventDefault()
+                              handlePageChange(page)
                             }}
                           >
                             {page}
                           </PaginationLink>
                         </PaginationItem>
                       </React.Fragment>
-                    );
+                    )
                   }
-                  
+
                   return (
-                    <PaginationItem key={page}>
-                      <PaginationLink href="#" isActive={page === currentPage}
+                    <PaginationItem key={page} className={!isMobileVisible ? "hidden sm:flex" : ""}>
+                      <PaginationLink
+                        href="#"
+                        isActive={page === currentPage}
                         onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(page);
+                          e.preventDefault()
+                          handlePageChange(page)
                         }}
                       >
                         {page}
                       </PaginationLink>
                     </PaginationItem>
-                  );
+                  )
                 })}
-                
+
                 <PaginationItem>
-                  <PaginationNext href="#" aria-disabled={currentPage === totalPages} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  <PaginationNext
+                    href="#"
+                    aria-disabled={currentPage === totalPages}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
                     onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(currentPage + 1);
+                      e.preventDefault()
+                      handlePageChange(currentPage + 1)
                     }}
                   />
                 </PaginationItem>
@@ -401,18 +449,15 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
       <Card className="shadow-sm bg-secondary">
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
+        <CardHeader className="pb-3 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle className="text-2xl font-bold">Sales History</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-bold">Sales History</CardTitle>
               <CardDescription>Record of all your charity sales</CardDescription>
             </div>
-            <ExportSales 
-              salesData={salesData}
-              charity={charity}
-            />
+            <ExportSales salesData={salesData} charity={charity} />
           </div>
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <div className="relative flex-1">
@@ -420,7 +465,7 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
               <Input
                 type="search"
                 placeholder="Search sales history..."
-                className="pl-8"
+                className="pl-8 w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -453,29 +498,34 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
             <div className="space-y-4">
               {currentItems.map((sale) => (
                 <Card key={sale.id} className="overflow-hidden">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-4 md:border-r">
-                      <h3 className="font-semibold text-lg">{charity.name}</h3>
-                    </div>
-                    <div className="p-4 md:border-r">
+                  {/* Card header with charity name */}
+                  <div className="p-4 border-b">
+                    <h3 className="font-semibold text-lg">{charity.name}</h3>
+                  </div>
+
+                  {/* Date information - responsive grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-4 border-b">
+                    <div className="p-2">
                       <div className="text-sm text-muted-foreground">Date From</div>
                       <div className="font-medium">{formatDateDisplay(sale.date_from)}</div>
                     </div>
-                    <div className="p-4 md:border-r">
+                    <div className="p-2">
                       <div className="text-sm text-muted-foreground">Date To</div>
                       <div className="font-medium">{formatDateDisplay(sale.date_to)}</div>
                     </div>
-                    <div className="p-4 bg-muted/10">
+                    <div className="p-2 sm:col-span-2 md:col-span-1 mt-2 sm:mt-0 bg-muted/10 rounded-md">
                       <div className="text-sm text-muted-foreground">Total Amount</div>
                       <div className="font-bold text-lg">{formatCurrency(calculateTotal(sale))}</div>
                     </div>
                   </div>
-                  <div className="border-t">
+
+                  {/* Sales data table - scrollable on mobile */}
+                  <div className="overflow-x-auto">
                     <Table>
                       <TableBody>
                         {sale.sales_data?.map((item, index) => (
                           <TableRow key={index} className="hover:bg-muted/5">
-                            <TableCell className="font-medium">{item.category}:</TableCell>
+                            <TableCell className="font-medium whitespace-nowrap">{item.category}:</TableCell>
                             <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
                           </TableRow>
                         ))}
@@ -487,8 +537,9 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
             </div>
           )}
 
-          <div className="mt-6">
-            <div className="text-sm text-muted-foreground">
+          {/* Pagination - simplified for mobile */}
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredData.length)} of {filteredData.length}{" "}
               sales records
             </div>
@@ -506,15 +557,21 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
                   />
                 </PaginationItem>
 
+                {/* Show fewer page numbers on mobile */}
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .filter(
-                    (page) => page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1),
+                    (page) =>
+                      page === 1 ||
+                      page === totalPages ||
+                      (window.innerWidth < 640
+                        ? page === currentPage
+                        : page >= currentPage - 1 && page <= currentPage + 1),
                   )
                   .map((page, i, array) => {
                     // Add ellipsis if there are gaps in the sequence
                     if (i > 0 && page > array[i - 1] + 1) {
                       return (
-                        <PaginationItem key={`ellipsis-${page}`}>
+                        <PaginationItem key={`ellipsis-${page}`} className="hidden sm:inline-flex">
                           <PaginationEllipsis />
                         </PaginationItem>
                       )

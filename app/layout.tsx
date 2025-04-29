@@ -1,5 +1,5 @@
 import HeaderAuth from "@/components/header-auth";
-// import { GeistSans } from "geist/font/sans";
+import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "next-themes";
 import Image from 'next/image';
 import "./globals.css";
@@ -25,9 +25,8 @@ export default async function RootLayout({
 }) {
   // CHANGE THIS VARIABLE TO TRUE IF YOU WISH TO LEAVE THE WEBSITE ON MAINTENANCE MODE
   const is_maintenance = false;
-  // className={GeistSans.className}
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={GeistSans.className} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.ico" sizes="any" />
         <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet" />

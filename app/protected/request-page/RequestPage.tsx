@@ -25,10 +25,16 @@ interface MonthData {
   [key: string]: number | string;
 }
 
+const useMobileDetect = () => {
+  const isMobile = () => /Mobi|Android/i.test(navigator.userAgent);
+  return { isMobile };
+};
+
 const RequestResourcesPage = ({resourceData, transitData, charityData, charity, salesData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; charity: CharityData, salesData: Sales[]}) => {
   const [seasonalTrendsData, setSeasonalTrendsData] = useState<any[]>([]);
   const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
   const [predictionError, setPredictionError] = useState<string | null>(null);
+  const detectMobile = useMobileDetect();
 
   const otherCharityResourceData = resourceData.filter(resource => resource.charity_id !== charity.id);
 
@@ -106,127 +112,174 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
           <div className="flex">
             <Button asChild className="my-auto mr-4" variant="outline" onClick={(e) => handleNavigation(e, "/protected/resource-page")}>
               <span>
-                {loading && clickedItem === "/protected/resource-page" ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : (<ArrowLeft className="mr-2 h-4 w-4" />) }
+                {loading && clickedItem === "/protected/resource-page" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                )}
                 <Link href="/protected/resource-page">Back</Link>
               </span>
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Request Resources</h1>
-              <p className="text-muted-foreground">Request resources from other charities. Scroll down to view AI predictions</p>
+            <div className={`${detectMobile.isMobile() ? "mt-2" : ""}`}>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Request Resources</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Request resources from other charities. Scroll down to view AI predictions
+              </p>
             </div>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleRefreshPredictions}
             disabled={isLoadingPredictions}
             variant="outline"
             size="icon"
-            className="h-10 w-10"
+            className={`h-10 w-10 ${detectMobile.isMobile() ? "mt-2 self-end" : ""}`}
             title="Refresh AI Predictions"
           >
-            <RefreshCw className={`h-5 w-5 ${isLoadingPredictions ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-5 w-5 ${isLoadingPredictions ? "animate-spin" : ""}`} />
           </Button>
         </div>
 
-        <div className="space-y-5 overflow-hidden">
-          <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
+        <div className="space-y-4 md:space-y-5 overflow-hidden">
+          <div className="mt-2 md:mt-4 bg-blue-50 p-3 md:p-4 rounded-md border border-blue-100">
             <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
-              {isLoadingPredictions ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> :  <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />}
+              {isLoadingPredictions ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />
+              )}
               AI Prediction Explanation
             </h3>
             {recommendation ? (
               <div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:gap-4 md:grid-cols-2">
                   <Card className="bg-blue-100 border-blue-200">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
+                    <CardHeader className="pb-1 md:pb-2">
+                      <CardTitle className="text-xs md:text-sm font-semibold text-blue-900 flex items-center gap-1 md:gap-2">
+                        <Clock className="h-3 w-3 md:h-4 md:w-4" />
                         Temporal Urgency
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-blue-900 ">{recommendation}</p>
+                      <p className="text-xs md:text-sm text-blue-900">{recommendation}</p>
                     </CardContent>
                   </Card>
 
                   <Card className="bg-blue-100 border-blue-200">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                        <Users className="h-4 w-4" />
+                    <CardHeader className="pb-1 md:pb-2">
+                      <CardTitle className="text-xs md:text-sm font-semibold text-blue-900 flex items-center gap-1 md:gap-2">
+                        <Users className="h-3 w-3 md:h-4 md:w-4" />
                         Impact Quantification
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-blue-900 ">
-                        {impact}
-                      </p>
+                      <p className="text-xs md:text-sm text-blue-900">{impact}</p>
                     </CardContent>
                   </Card>
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500">No recommendation available</p>
+              <p className="text-gray-500 text-sm">No recommendation available</p>
             )}
           </div>
 
-          <SharedResourcesTable resourceData={otherCharityResourceData} charityData={charityData} charity={charity} recommendation={recommendation} />
+          <SharedResourcesTable
+            resourceData={otherCharityResourceData}
+            charityData={charityData}
+            charity={charity}
+            recommendation={recommendation}
+          />
 
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight">AI Resource Predictions</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               View AI predictions for resources needed in your charity based on your charity profile.
               {predictionError && <span className="text-amber-600 ml-2">{predictionError}</span>}
             </p>
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart4 className="h-5 w-5 text-green-500" />
+            <CardHeader className="pb-2 md:pb-6">
+              <CardTitle className="text-base md:text-lg flex items-center gap-1 md:gap-2">
+                <BarChart4 className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
                 Seasonal Resource Trends
-                {isLoadingPredictions && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+                {isLoadingPredictions && <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin ml-2" />}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs md:text-sm">
                 AI-predicted demand patterns by category based on your charity's profile
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-48 md:h-64 -mx-4 md:mx-0">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={seasonalTrendsData}>
+                  <LineChart
+                    data={seasonalTrendsData}
+                    margin={{ top: 5, right: detectMobile.isMobile() ? 10 : 30, left: detectMobile.isMobile() ? -15 : 0, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
+                    <XAxis dataKey="month" tick={{ fontSize: detectMobile.isMobile() ? 10 : 12 }} interval={detectMobile.isMobile() ? 1 : 0} />
+                    <YAxis tick={{ fontSize: detectMobile.isMobile() ? 10 : 12 }} />
                     <RechartsTooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: detectMobile.isMobile() ? 10 : 12 }} />
                     <ReferenceLine
                       x={getCurrentMonth()}
                       stroke="#8884d8"
                       strokeWidth={2}
                       strokeDasharray="3 3"
                       label={{
-                        value: "Current Month",
+                        value: detectMobile.isMobile() ? "Now" : "Current Month",
                         position: "insideTopRight",
                         fill: "#8884d8",
-                        fontSize: 12
+                        fontSize: detectMobile.isMobile() ? 10 : 12,
                       }}
                     />
-                    {seasonalTrendsData[0]?.food !==0 && <Line type="monotone" dataKey="food" name={RESOURCE_CATEGORIES_MAP[0].label} stroke="#0088FE" activeDot={{ r: 8 }} />}
-                    {seasonalTrendsData[0]?.clothing !==0 && <Line type="monotone" dataKey="clothing" name={RESOURCE_CATEGORIES_MAP[1].label} stroke="#00C49F" />}
-                    {seasonalTrendsData[0]?.medical !==0 && <Line type="monotone" dataKey="medical" name={RESOURCE_CATEGORIES_MAP[2].label} stroke="#FF8042" />}
-                    {seasonalTrendsData[0]?.housing !==0 && <Line type="monotone" dataKey="housing" name={RESOURCE_CATEGORIES_MAP[3].label} stroke="#FFBB28" />}
+                    {seasonalTrendsData[0]?.food !== 0 && (
+                      <Line
+                        type="monotone"
+                        dataKey="food"
+                        name={RESOURCE_CATEGORIES_MAP[0].label}
+                        stroke="#0088FE"
+                        activeDot={{ r: detectMobile.isMobile() ? 6 : 8 }}
+                        strokeWidth={detectMobile.isMobile() ? 1.5 : 2}
+                      />
+                    )}
+                    {seasonalTrendsData[0]?.clothing !== 0 && (
+                      <Line
+                        type="monotone"
+                        dataKey="clothing"
+                        name={RESOURCE_CATEGORIES_MAP[1].label}
+                        stroke="#00C49F"
+                        strokeWidth={detectMobile.isMobile() ? 1.5 : 2}
+                      />
+                    )}
+                    {seasonalTrendsData[0]?.medical !== 0 && (
+                      <Line
+                        type="monotone"
+                        dataKey="medical"
+                        name={RESOURCE_CATEGORIES_MAP[2].label}
+                        stroke="#FF8042"
+                        strokeWidth={detectMobile.isMobile() ? 1.5 : 2}
+                      />
+                    )}
+                    {seasonalTrendsData[0]?.housing !== 0 && (
+                      <Line
+                        type="monotone"
+                        dataKey="housing"
+                        name={RESOURCE_CATEGORIES_MAP[3].label}
+                        stroke="#FFBB28"
+                        strokeWidth={detectMobile.isMobile() ? 1.5 : 2}
+                      />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
               {predictionExplanation && (
-                <div className="mt-4 bg-blue-50 p-4 rounded-md border border-blue-100">
-                  <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
-                    <TrendingUp className="h-4 w-4 mr-2 text-blue-800" />
+                <div className="mt-3 md:mt-4 bg-blue-50 p-3 md:p-4 rounded-md border border-blue-100">
+                  <h3 className="text-xs md:text-sm font-semibold text-blue-900 mb-1 md:mb-2 flex items-center">
+                    <TrendingUp className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 text-blue-800" />
                     AI Prediction Explanation
                   </h3>
-                  <p className="text-sm text-blue-800">
-                    {predictionExplanation}
-                  </p>
+                  <p className="text-xs md:text-sm text-blue-800">{predictionExplanation}</p>
                 </div>
               )}
             </CardContent>
