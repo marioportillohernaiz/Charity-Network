@@ -45,7 +45,7 @@ export default function Login() {
             <Label htmlFor="email" className="text-sm sm:text-base">
               Email
             </Label>
-            <Input name="email" className="text-black h-10 sm:h-11" placeholder="you@example.com" required />
+            <Input id="email" name="email" className="text-black h-10 sm:h-11" placeholder="you@example.com" required />
             <div className="flex justify-between items-center mt-1">
               <Label htmlFor="password" className="text-sm sm:text-base">
                 Password
@@ -56,6 +56,7 @@ export default function Login() {
             </div>
             <div className="relative">
               <Input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="•••••••••"

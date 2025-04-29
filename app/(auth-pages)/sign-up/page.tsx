@@ -79,13 +79,14 @@ export default function Signup() {
             <Label htmlFor="email" className="text-sm">
               Business Email
             </Label>
-            <Input name="email" placeholder="you@example.com" required className="text-sm" />
+            <Input id="email" name="email" placeholder="you@example.com" required className="text-sm" />
 
             <Label htmlFor="password" className="text-sm">
               Password
             </Label>
             <div className="relative">
               <Input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="•••••••••"
@@ -162,6 +163,7 @@ export default function Signup() {
             </Label>
             <div className="relative">
               <Input
+                id="repeatPassword"
                 type={showRepeatedPassword ? "text" : "password"}
                 name="repeatPassword"
                 placeholder="•••••••••"

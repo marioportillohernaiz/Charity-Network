@@ -3,7 +3,7 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
   // Calculate match score based on resource category, charity needs, and AI recommendation
   const calculateMatchScore = () => {
     // Start with base scoring logic
-    let score = 35;
+    let score = 40;
     
     // Category matching - increase score if resource category matches charity's primary category
     if (charity.category_and_tags?.primary && 

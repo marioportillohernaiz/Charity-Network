@@ -256,79 +256,78 @@ export async function POST(request: Request) {
     const availableResourcesFromOtherCharities = availableResources ? summarizeResources(availableResources) : 'No available resources data available';
     const salesSummary = salesData ? summarizeSalesData(salesData) : 'No current sales data available';
 
-    // console.log("=====================================");
-    // console.log(currentResourcesSummary);
-    // console.log("=====================================");
-    // console.log(resourceHistorySummary);
-    // console.log("=====================================");
-    // console.log(availableResourcesFromOtherCharities);
-    // console.log("=====================================");
-    // console.log(salesSummary);
-
     // Format the prompt for more structured and useful predictions
     const prompt = `
       You are an AI that specializes in charity resource demand forecasting.
-      Based on the following charity information, current resources and sales data predict the seasonal demand trends (monthly) for each different resource category.
 
-      Charity Description: ${description || 'No description provided'}
-      Primary Category: ${categories?.primary || 'Not specified'}
-      Secondary Categories: ${categories?.secondary?.join(', ') || 'None'}
-      Tags: ${tags?.join(', ') || 'None'}
+      # CONTEXT
+      Charity Details:
+      - Description: ${description || 'No description provided'}
+      - Primary Category: ${categories?.primary || 'Not specified'}
+      - Secondary Categories: ${categories?.secondary?.join(', ') || 'None'}
+      - Tags: ${tags?.join(', ') || 'None'}
 
-      Current Resources:
+      Current Resources Summary:
       ${currentResourcesSummary}
 
-      Resource History:
+      Resource History Analysis:
       ${resourceHistorySummary}
 
-      Charity's sales data:
+      Sales Data Analysis:
       ${salesSummary}
 
-      Resources Available From Other Charities:
+      Available Resources From Other Charities:
       ${availableResourcesFromOtherCharities}
 
-     Today's Date: ${new Date().toLocaleDateString()}
+      Today's Date: ${new Date().toLocaleDateString()}
 
-      Provide a structured monthly forecast for the following resource categories:
-      1. Food
-      2. Clothing & Personal Items
-      3. Medical & Health Supplies
-      4. Housing & Homelessness
+      # TASK
+      Create a monthly forecast for resource needs across key categories based on the charity's profile, historical patterns, and seasonal factors.
 
-      For each month (January through December), provide CLEAR distinct numeric value representing relative demand (scale of 0-10 where 10 is peak demand).
-      Consider the following factors in your prediction:
-      - The charity's current resource levels and where they might be lacking
-      - Historical resource usage patterns from the provided history
-      - Seasonal factors like weather patterns and holidays
-      - School terms/holidays in the region
-      - Typical donation cycles
-      - Economic patterns
-      - The specific needs based on the charity's categories and tags
+      # OUTPUT REQUIREMENTS
+      Provide a structured monthly forecast with the following specifications:
+      1. Include forecasts for: Food, Clothing & Personal Items, Medical & Health Supplies, and Housing & Homelessness
+      2. Assign a precise numeric value (scale 0-10) for each month and category
+      3. Focus on actionable insights rather than theoretical analysis
+      4. Keep explanations concise and focused on practical implications
+      5. Prioritize resource recommendations that address immediate needs
 
-      Format your response as a valid JSON object like this:
+      # CONTEXTUAL FACTORS TO CONSIDER
+      - Current inventory gaps and surpluses identified in resource summary
+      - Seasonal variations (weather patterns, holidays, school terms)
+      - Historical usage patterns and trends from transaction history
+      - Local economic conditions and donation cycles
+      - Urgency scoring based on inventory levels vs. predicted demand
+
+      # RESPONSE FORMAT
+      Return your response in this exact JSON structure with no additional text:
       {
         "food": {
           "Jan": 8,
           "Feb": 7,
+          "Mar": 6,
           ...and so on
         },
         "clothing": {
-          "Jan": 4,
-          "Feb": 7,
+          "Jan": 1,
+          "Feb": 3,
+          "Mar": 2,
           ...and so on
         },
         "medical": {
-          "Jan": 1,
-          "Feb": 3,
+          "Jan": 5,
+          "Feb": 5,
+          "Mar": 6,
           ...and so on
         },
         "housing": {
           "Jan": 9,
-          "Feb": 7,
+          "Feb": 8,
+          "Mar": 7,
           ...and so on
         },
-        "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors."
-        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand. Start with 'Based on the available resources...'"
+        "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors.",
+        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand. Start with 'Based on the available resources...'",
         "impact": "A sentence explaining the impact this recommendation will affect this charity in the next 1 to 3 months (the one you are recommending the resources to)."
       }
     `;
