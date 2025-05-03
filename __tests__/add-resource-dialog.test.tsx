@@ -34,7 +34,6 @@ describe('AddResources component', () => {
   };
 
   beforeEach(() => {
-    // Reset the mocks
     jest.clearAllMocks();
   });
 
@@ -55,11 +54,9 @@ describe('AddResources component', () => {
   it('should populate fields when editing existing resource', () => {
     render(<AddResources resource={mockResource} action="editrow" />);
     
-    // Open the dialog
-    const editButton = screen.getByRole('button', { name: '' }); // Edit button doesn't have text
+    const editButton = screen.getByRole('button', { name: '' }); 
     fireEvent.click(editButton);
     
-    // Fields should be populated with resource data
     expect(screen.getByDisplayValue(mockResource.quantity.toString())).toBeInTheDocument();
     expect(screen.getByDisplayValue(mockResource.quantity_reserved.toString())).toBeInTheDocument();
     expect(screen.getByDisplayValue(mockResource.unit.toString())).toBeInTheDocument();
@@ -67,7 +64,6 @@ describe('AddResources component', () => {
   });
 
   it('should validate input and show error when necessary', async () => {
-    // Mock implementation for form submission
     (submitResource as jest.Mock).mockImplementation((formData) => {
       if (formData.get('quantity') < formData.get('shareableQuantity') + formData.get('reservedQuantity')) {
         return { success: false, message: 'You cannot have negative quantity' };
@@ -75,12 +71,10 @@ describe('AddResources component', () => {
       return { success: true, message: 'Resource successfully added' };
     });
 
-    // Render & Open Dialog
     render(<AddResources resource={null} action="add" />);
     const addButton = screen.getAllByRole('button', { name: 'Add Resources' })[0];
     fireEvent.click(addButton);
     
-    // Fill form with invalid data (quantity too small)
     const nameInput = screen.getByPlaceholderText('Enter resource name');
     const quantityInput = screen.getByLabelText('Total Quantity *');
     const reservedQuantityInput = screen.getByLabelText('Reserved Quantity');

@@ -1,7 +1,7 @@
 "use client"
 
 import { signUpAction } from "@/app/actions";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -18,13 +18,7 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [passwordMatches, setPasswordMatches] = useState(false);
-  const [passwordValid, setPasswordValid] = useState({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    special: false
-  });
+  const [passwordValid, setPasswordValid] = useState({length: false, uppercase: false, lowercase: false, number: false, special: false});
 
   useEffect(() => {
     setPasswordValid({
@@ -191,15 +185,9 @@ export default function Signup() {
             {repeatPassword && (
               <div className={`text-xs ${passwordMatches ? "text-green-400" : "text-red-400"} flex items-center`}>
                 {passwordMatches ? (
-                  <>
-                    <Check className="h-3 w-3 mr-1" />
-                    Passwords match
-                  </>
+                  <><Check className="h-3 w-3 mr-1" />Passwords match</>
                 ) : (
-                  <>
-                    <X className="h-3 w-3 mr-1" />
-                    Passwords do not match
-                  </>
+                  <><X className="h-3 w-3 mr-1" />Passwords do not match</>
                 )}
               </div>
             )}

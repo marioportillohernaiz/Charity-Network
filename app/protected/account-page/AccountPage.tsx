@@ -74,7 +74,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
       : defaultOpeningHours
   );
   
-  // Form state
   const [saving, setSaving] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -98,7 +97,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     }
   }, [latitude, longitude]);
   
-  // Monitor for changes to enable/disable save button
   useEffect(() => {}, [
     name, description, addressNumber, addressStreet, 
     addressCity, addressPostcode, phone, website, 
@@ -112,7 +110,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     }));
   }
 
-  // Handle secondary category toggle
   const handleSecondaryCategoryToggle = (category: string, checked: boolean) => {
     if (checked) {
       setSecondaryCategories(prev => [...prev, category]);
@@ -121,7 +118,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     }
   };
 
-  // Handle tag addition
   const handleTagAdd = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       setTags(prev => [...prev, newTag.trim()]);
@@ -129,12 +125,10 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     }
   };
 
-  // Handle tag removal
   const handleTagRemove = (tag: string) => {
     setTags(prev => prev.filter(t => t !== tag));
   };
 
-  // Handle key press for tag input
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -218,7 +212,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1 space-y-6 p-6 md:p-10">
-        {/* Page header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
           <div>
             <h1 className="text-3xl font-bold">Account Settings</h1>
@@ -228,10 +221,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* <Button variant="outline" onClick={handlePreview}>
-              <Eye className="mr-2 h-4 w-4" /> Preview Profile
-            </Button> */}
-            
             <Button type="submit" onClick={handleSubmit}>
               {saving ? (
                 <><Loader2 className="mr-2 h-4 w-4" /> Saving Changes</>
@@ -242,9 +231,8 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
           </div>
         </div>
         
-        {/* Profile completion card */}
         {calculateProfileCompletion() < 100 && (
-          <Alert>
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Complete your profile</AlertTitle>
             <AlertDescription>
@@ -254,7 +242,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
         )}
         
         <div className="grid gap-6 md:grid-cols-5">
-          {/* Left sidebar with tabs */}
           <div className="md:col-span-1">
             <Card>
               <CardContent className="p-0">
@@ -321,7 +308,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Profile Image Upload */}
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                       <div className="flex-1 space-y-4 w-full">
                         <div>
@@ -351,7 +337,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                       </div>
                     </div>
                     
-                    {/* Header Image Upload */}
                     <div>
                       <Label htmlFor="header-image">Charity Image</Label>
                       <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
@@ -782,6 +767,21 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                           onCheckedChange={() => setShowWebsite(!showWebsite)}
                         />
                       </div>
+
+                      <Separator />
+                      
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium">Show Social Links</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Display your social links on your public profile
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={showWebsite} 
+                          onCheckedChange={() => setShowWebsite(!showWebsite)}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -802,7 +802,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                       <p className="text-sm text-muted-foreground mb-4">It's a good idea to use a strong password that you don't use elsewhere</p>
                       <Link href="/protected/reset-password">
 
-                        <Button variant="outline" disabled={accountData?.owner_id === "a68946ad-5753-47e0-9dad-76afc4bf870e"} >
+                        <Button variant="outline">
                           <KeyRound className="h-4 w-4 mr-2" /> Change Password
                         </Button>
                       </Link>
@@ -813,7 +813,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                     <div>
                       <h3 className="font-medium mb-2">Account Deletion</h3>
                       <p className="text-sm text-muted-foreground mb-4">Permanently delete your account and all your data</p>
-                      <Button variant="destructive">Delete Account</Button>
+                      <Button variant="destructive" disabled={true}>Delete Account</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -826,17 +826,3 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
     </div>
   );
 }
-
-// Need to import this since we use it in the component
-const Checkbox = ({ id, checked, onCheckedChange, ...props }: any) => {
-  return (
-    <input
-      id={id}
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onCheckedChange(e.target.checked)}
-      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-      {...props}
-    />
-  );
-};

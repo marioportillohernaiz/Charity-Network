@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { ScrollArea } from "../ui/scrollarea"
 import { ChevronRight, Loader2, Star } from "lucide-react";
-import { SubmitButton } from "../submit-button";
+import { SubmitButton } from "../ui/submit-button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { submitCharity } from "@/app/actions";

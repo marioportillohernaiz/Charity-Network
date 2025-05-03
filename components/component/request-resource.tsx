@@ -9,6 +9,7 @@ import { Badge } from "../ui/badge";
 import { Slider } from "../ui/slider";
 import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
+import { SubmitButton } from "../ui/submit-button";
 
 export default function RequestResource({ selectedResource, className } : { selectedResource: ResourcesData; className: string }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -111,9 +112,9 @@ export default function RequestResource({ selectedResource, className } : { sele
           <Button variant="link" onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
+          <SubmitButton onClick={handleSubmit}>
             Submit Request
-          </Button>
+          </SubmitButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

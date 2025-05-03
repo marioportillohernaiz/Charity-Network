@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { rejectTransit } from "@/app/actions";
 import { toast } from "sonner";
-import { SubmitButton } from "../submit-button";
+import { SubmitButton } from "../ui/submit-button";
 import { TransitStatus } from "@/types/TransitStatus";
 
 export default function HandleCancel({ request, resourceData } : { request: TransitData; resourceData: ResourcesData[] }) {

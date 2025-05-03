@@ -152,11 +152,8 @@ export const signInAction = async (formData: FormData) => {
     return { success: false, message: error.toString() };
   }
 
-  if (charity) {
-    return redirect("/protected");
-  } else {
-    return redirect("/protected/account-page");
-  }
+
+  return redirect("/protected");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -222,7 +219,6 @@ export const resetPasswordAction = async (formData: FormData) => {
   encodedRedirect("success", "/protected/reset-password", "Password updated");
 };
 
-// BROKEN
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();

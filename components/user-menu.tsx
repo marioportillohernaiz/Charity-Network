@@ -47,8 +47,6 @@ export default function UserMenu({ registeredCharity, notificationData }: { regi
 
   const NavLinks = () => (
     <>
-      <Badge variant="secondary" className="mr-2">Hi {registeredCharity?.name}</Badge>
-
       {registeredCharity?.admin_verified && (
         <TooltipProvider>
           <Tooltip>
@@ -62,7 +60,7 @@ export default function UserMenu({ registeredCharity, notificationData }: { regi
         </TooltipProvider>
       )}
 
-      {registeredCharity &&
+      {registeredCharity && registeredCharity?.admin_verified &&
         <><Button asChild size="sm" variant={"link"} className="text-white" onClick={(e) => handleNavigation(e, "/protected")}>
           <span className="flex items-center">
             {loading && clickedItem === "/protected" && <Loader2 className="h-4 w-4 animate-spin text-white mr-2" />}

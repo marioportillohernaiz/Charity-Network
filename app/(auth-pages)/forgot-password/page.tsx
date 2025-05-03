@@ -1,11 +1,15 @@
+// FORGOT PASSWORD PAGE
+// For MVP purposes, this page is available but the button is disabled to prevent change of passwords.
+
 "use client"
 
 import { forgotPasswordAction } from "@/app/actions";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { toast, Toaster } from "sonner";
+import { InfoIcon } from "lucide-react";
 
 export default function ForgotPassword() {
   const handleSubmit = async (formData: FormData) => {
@@ -31,7 +35,11 @@ export default function ForgotPassword() {
         <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
           <Label htmlFor="email">Email</Label>
           <Input name="email" placeholder="you@example.com" required />
-          <SubmitButton type="submit" formAction={handleSubmit} pendingText="Sending Email...">
+          <p className="text-sm text-red-500 flex gap-2">
+            <InfoIcon className="h-4 w-4" />
+            Button disabled for MVP purposes.
+          </p>
+          <SubmitButton type="submit" disabled={true} pendingText="Sending Email...">
             Reset Password
           </SubmitButton>
           <Toaster richColors />

@@ -85,7 +85,6 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
       console.error('Chatbot error:', error);
       toast.error('Sorry, I had trouble responding. Please try again.');
       
-      // Add error message
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Sorry, I encountered an error. Please try again or check your connection.' }

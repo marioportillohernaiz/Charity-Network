@@ -237,7 +237,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
           <CardContent>
             <div className="text-2xl font-bold">{expiringResourcesCount}</div>
             <div className="flex items-center mt-1">
-              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">30 days</Badge>
+              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">30days</Badge>
               <span className="text-xs text-muted-foreground ml-1">or less remaining</span>
             </div>
           </CardContent>

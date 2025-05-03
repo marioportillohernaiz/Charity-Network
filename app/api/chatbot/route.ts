@@ -1,9 +1,7 @@
-// app/api/chatbot/route.ts
 import { NextResponse } from 'next/server';
 
 // Helper function to summarize current resources
 function summarizeResources(resources: ResourcesData[]) {
-  // Group resources by category
   const categorySummary: Record<string, { total: number, items: string[] }> = {};
   
   resources.forEach(resource => {
@@ -15,7 +13,6 @@ function summarizeResources(resources: ResourcesData[]) {
     categorySummary[resource.category].items.push(`${resource.name} (${resource.quantity} ${resource.unit})`);
   });
   
-  // Format the summary
   let summary = '';
   Object.entries(categorySummary).forEach(([category, data]) => {
     summary += `- ${category}: ${data.total} total items\n`;
@@ -31,20 +28,17 @@ function getResourceStats(resources: ResourcesData[]) {
     return 'No resource statistics available';
   }
   
-  // Calculate total quantities and averages
   const totalResources = resources.length;
   const totalQuantity = resources.reduce((sum, resource) => sum + resource.quantity, 0);
   const totalShareable = resources.reduce((sum, resource) => sum + resource.shareable_quantity, 0);
   const totalReserved = resources.reduce((sum, resource) => sum + resource.quantity_reserved, 0);
   const sharingPercentage = Math.round((totalShareable / totalQuantity) * 100);
   
-  // Count resources by category
   const categoryCounts = resources.reduce((acc, resource) => {
     acc[resource.category] = (acc[resource.category] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   
-  // Find expiring resources
   const now = new Date();
   const expiringResources = resources.filter(resource => {
     if (!resource.expiry_date) return false;
@@ -53,7 +47,6 @@ function getResourceStats(resources: ResourcesData[]) {
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
   });
   
-  // Create the summary
   let summary = `The charity manages ${totalResources} distinct resources with a total quantity of ${totalQuantity} items. `;
   summary += `${totalShareable} items (${sharingPercentage}%) are available for sharing with other charities. `;
   summary += `${totalReserved} items are currently reserved. `;

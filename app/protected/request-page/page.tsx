@@ -8,14 +8,18 @@ export default async function RequestPage() {
   const resourceData = await getAllResourceData();
   const transitData = await getResourceTransitData();
   const charityData = await getAllCharities();
-  const charity = await getRegisteredCharity();
+  const currentCharity = await getRegisteredCharity();
   const salesData = await getSalesData();
 
   if (!user) {
     return redirect("/sign-in");
   }
 
+  if (!currentCharity || currentCharity?.admin_verified === false) {
+    return redirect("/protected/account-page");
+  }
+
   return (
-    <RequestResourcesPage resourceData={resourceData} transitData={transitData} charityData={charityData} charity={charity} salesData={salesData} />
+    <RequestResourcesPage resourceData={resourceData} transitData={transitData} charityData={charityData} charity={currentCharity} salesData={salesData} />
   )
 }

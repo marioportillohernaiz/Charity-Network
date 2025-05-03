@@ -1,8 +1,9 @@
 import { resetPasswordAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InfoIcon } from "lucide-react";
 
 export default async function ResetPassword(props: {
   searchParams: Promise<Message>;
@@ -28,7 +29,12 @@ export default async function ResetPassword(props: {
         placeholder="Confirm password"
         required
       />
-      <SubmitButton formAction={resetPasswordAction}>
+
+      <p className="text-sm text-red-500 flex gap-2">
+        <InfoIcon className="h-4 w-4" />
+        Button disabled for MVP purposes.
+      </p>
+      <SubmitButton disabled={true} formAction={resetPasswordAction}>
         Reset password
       </SubmitButton>
       <FormMessage message={searchParams} />

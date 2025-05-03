@@ -60,7 +60,6 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
         setRecommendation(predictions.recommendation || null);
         setImpact(predictions.impact || null);
       } else {
-        // Fallback to default data if predictions fail
         setSeasonalTrendsData(defaultSeasonalTrendsData);
         setPredictionError("Could not fetch AI predictions, using sample data instead");
       }
@@ -73,12 +72,10 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
     }
   };
 
-  // Handle manual refresh button click
   const handleRefreshPredictions = () => {
     loadPredictions(true);
   };
 
-  // Default fallback data
   const [predictionExplanation, setPredictionExplanation] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<string | null>(null);
   const [impact, setImpact] = useState<string | null>(null);
@@ -112,7 +109,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
   };
 
   return (
-    <div className="container mx-auto py-6 max-w-7xl">
+    <div className="container mx-auto py-6 px-1 max-w-7xl">
       <div className="grid gap-6">
 
         <div className="flex justify-between items-center">
@@ -186,7 +183,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No recommendation available</p>
+              <p className="text-gray-500 text-sm">No recommendation available (load the recommendations by clicking the refresh button)</p>
             )}
           </div>
 

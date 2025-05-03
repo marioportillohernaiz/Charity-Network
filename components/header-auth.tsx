@@ -1,7 +1,6 @@
 import { getAuthUser, getNotificationData, getRegisteredCharity } from "@/app/actions";
-import Link from "next/link";
-import { Button } from "./ui/button";
 import UserMenu from "./user-menu";
+import AuthMenu from "./auth-menu";
 
 export default async function AuthButton({ is_maintenance } : { is_maintenance: boolean; }) {
   const user = await getAuthUser();
@@ -13,13 +12,6 @@ export default async function AuthButton({ is_maintenance } : { is_maintenance: 
       <UserMenu registeredCharity={registeredCharity} notificationData={notificationData} />
     </div>
   ) : (
-    <div className="flex gap-2">
-      <Button asChild size="sm" variant={"link"} className="text-white">
-        <Link href="/">Home</Link>
-      </Button>
-      <Button asChild size="sm" variant={"link"} className="text-white">
-        <Link href="/sign-in">Log In</Link>
-      </Button>
-    </div>
+    <AuthMenu />
   ));
 }

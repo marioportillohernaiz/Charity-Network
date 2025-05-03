@@ -113,7 +113,7 @@ const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
                   const daysUntilExpiry = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                   
                   return (
-                    <div key={resource.id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50">
+                    <div key={resource.id} className="flex justify-between items-center p-2 border rounded bg-white hover:bg-gray-50">
                       <div>
                         <div className="font-medium">{resource.name}</div>
                         <div className="text-sm text-gray-500">Expires: {resource.expiry_date ? format(resource.expiry_date.toString(), "dd/MM/yyyy") : ""}</div>
@@ -148,7 +148,7 @@ const ResourcesTab = ({resourceData}:{resourceData: ResourcesData[]}) => {
               </Button>
             </div>
 
-            <div className="grid gap-2 max-h-[300px] overflow-y-auto pr-2">
+            <div className="grid gap-2 max-h-[150px] overflow-y-auto pr-2">
               {resourceData.map((resource) => (
                 <div
                   key={resource.id}
