@@ -1,3 +1,7 @@
+// MAP PAGE
+// Allows the user to select a charity and view its details, resources, and reviews.
+// Allows the user to search for charities and filter by category
+
 "use client"
 
 import { useEffect, useRef, useState } from "react";
@@ -235,6 +239,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
   })
 
   return (
+    // MAIN MAP DISPLAY
     <div id="map" className="relative w-full bg-background">
       <div ref={mapRef} className="h-full w-full bg-muted z-0" />
       
@@ -327,10 +332,12 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         </div>
       </div>
 
-      {/* Charity Selected Drawer */}
+      {/* CHARITY SELECTED  */}
       <Drawer open={!!selectedCharity} onOpenChange={() => setSelectedCharity(null)}>
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col bg-muted">
           <div className="max-w-7xl w-full mx-auto h-[calc(90vh-100px)] overflow-y-auto p-2 md:p-6 space-y-4">
+
+            {/* MAIN CHARITY PROFILE */}
             <Card>
               <div className="p-6 flex flex-col md:grid md:grid-cols-2 gap-6">
                 <div>
@@ -513,6 +520,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               </div>
             </Card>
 
+
+            {/* AVAILABLE AND SCARCE RESOURCES */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center mb-3">
@@ -573,6 +582,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               )}
             </Card>
 
+            {/* SHAREABLE RESOURCES SECTION */}
             <Card className="p-6">
               <div className="flex items-center mb-3">
                 <PackageOpen className="h-5 w-5 mr-2 text-blue-500" />
@@ -586,7 +596,6 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                 </div>
               ) : (
                 <>
-                  {/* Resource Summary */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h3 className="text-sm font-medium text-green-800 mb-1">Shareable Quantity</h3>
@@ -661,6 +670,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               )}
             </Card>
 
+            {/* REVIEW SECTION */}
             <Card className="p-6">
               <div className="flex justify-between">
                 <h2 className="mb-4 text-2xl font-bold">Reviews</h2>

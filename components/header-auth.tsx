@@ -1,3 +1,5 @@
+// NAVIGATION LAYOUT
+
 import { getAuthUser, getNotificationData, getRegisteredCharity } from "@/app/actions";
 import UserMenu from "./user-menu";
 import AuthMenu from "./auth-menu";

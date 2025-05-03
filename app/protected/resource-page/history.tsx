@@ -1,3 +1,6 @@
+// HISTORY PAGE
+// Display resource transit history and sales history for the charity
+
 "use client"
 
 import React, { useEffect, useState } from 'react';
@@ -23,6 +26,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
         <h1 className="text-3xl font-bold tracking-tight">Sharing History</h1>
       </div>
 
+      {/* Resources Sent To Charities Reusable Component */}
       <HistoryTable
         title="Resources Sent To Charities"
         description="History of resources you shared with other charities"
@@ -31,6 +35,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
         transitData={sentTransitData}
       />
 
+      {/* Resources Received From Charities Reusable Component */}
       <HistoryTable
         title="Resources Received From Charities"
         description="History of resources shared to your charity"
@@ -43,6 +48,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
         <h1 className="text-3xl font-bold tracking-tight pt-5">Sales History</h1>
       </div>
 
+      {/* Sales History Table Component */}
       <SalesTable
         charity={charity}
         salesData={salesData}
@@ -52,6 +58,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
   );
 };
 
+// Transit Table Component
 const HistoryTable = ({ title, description, charityData, resourceData, transitData} : 
   {title: string; description: string; charityData: CharityData[]; resourceData: ResourcesData[]; transitData: TransitData[];}
 ) => {
@@ -347,6 +354,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
   );
 };
 
+// Sales Table Component
 const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sales[];}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
@@ -474,6 +482,7 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
             </Select>
           </div>
         </CardHeader>
+
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center py-8">

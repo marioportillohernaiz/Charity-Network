@@ -1,3 +1,5 @@
+// NAVIGATION MENU FOR PAGES POST-LOGIN
+
 "use client";
 
 import { useState, useTransition } from "react";

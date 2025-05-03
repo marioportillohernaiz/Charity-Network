@@ -1,3 +1,5 @@
+// ADD RESOURCE DIALOG REUSABLE COMPONENT
+// This component is used to add a new resource to the inventory
 
 "use client"
 

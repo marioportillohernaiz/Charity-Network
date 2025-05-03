@@ -1,3 +1,5 @@
+// SIMPLE TRANSIT ACTION DIALOG
+
 'use client'
 
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,7 +28,6 @@ export default function HandleCancel({ request, resourceData } : { request: Tran
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="bg-red-100 text-red-800 border-red-200 ml-2">
-          {/* <CircleX className="w-4 h-4 mr-2" /> */}
           Cancel
         </Button>
       </DialogTrigger>

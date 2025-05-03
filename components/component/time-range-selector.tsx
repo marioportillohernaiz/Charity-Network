@@ -1,3 +1,7 @@
+// TIME RANGE SELECTOR
+// Component built due to the basic date picker from shadcn-ui not being able to select time ranges
+// Used for the opening hours of the charity
+
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";

@@ -1,7 +1,10 @@
+// RESOURCE TABLE COMPONENT
+// This component displays a table of resources with search, filter, and sort functionalities.
+
 "use client"
 
 import { Input } from "../ui/input";
-import { ArrowUpDown, Package, Search, Maximize2, Minimize2, X } from "lucide-react";
+import { ArrowUpDown, Package, Search, Maximize2, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import React from "react";
@@ -24,7 +27,6 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
   const [isExpanded, setIsExpanded] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
-  // Close expanded view when escape key is pressed
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isExpanded) {
@@ -34,7 +36,6 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
 
     window.addEventListener('keydown', handleEscKey);
     
-    // Lock body scroll when expanded
     if (isExpanded) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -131,7 +132,7 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
     setIsExpanded(!isExpanded);
   };
 
-  // Table rendering function to avoid duplication
+  // Table function to avoid duplication
   const renderTable = () => (
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
@@ -330,7 +331,6 @@ export function AllResourcesTable({resourceData} : {resourceData: ResourcesData[
         {/* Expanded view modal/overlay */}
         {isExpanded && (
           <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-start overflow-y-auto p-4" onClick={() => setIsExpanded(false)}>
-            {/* Click inside the card shouldn't close the modal */}
             <div 
               className="bg-white rounded-lg shadow-xl max-w-[95vw] w-fit my-8 relative"
               onClick={(e) => e.stopPropagation()}

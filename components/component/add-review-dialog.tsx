@@ -1,3 +1,6 @@
+// ADD REVIEW DIALOG COMPONENT
+// This component is used to add a reviews for a charity.
+
 'use client'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";

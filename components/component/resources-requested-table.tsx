@@ -1,3 +1,5 @@
+// RESOURCES REQUESTED TABLE
+// This component displays a table of resources requested by charities, including their status and actions.
 
 "use client"
 

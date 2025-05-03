@@ -1,3 +1,6 @@
+// LANDING PAGE
+// Displays the landing page before signing in
+
 "use client"
 
 import { Button } from "@/components/ui/button"

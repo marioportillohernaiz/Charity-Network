@@ -1,3 +1,7 @@
+// TRANSIT TAB
+// This component is used to display the transits from and to a charity.
+// Components are reusable to avoid code duplication.
+
 "use client"
 
 import React from 'react';

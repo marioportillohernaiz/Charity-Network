@@ -1,3 +1,6 @@
+// MAP PAGE LAYOUT 
+// Fetches data and redirects if user is not authenticated or charity profile is not verified or complete
+
 import { getAllCharities, getAllResourceData, getAuthUser, getCommentData, getRegisteredCharity, getResourceTransitData } from "../actions";
 import Map from "./MapPage";
 import { redirect } from "next/navigation";

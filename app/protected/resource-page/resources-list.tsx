@@ -1,3 +1,6 @@
+// RESOURCE LIST PAGE
+// Displays the list of resources in the charity's inventory.
+
 "use client"
 
 import React, { useState } from 'react';

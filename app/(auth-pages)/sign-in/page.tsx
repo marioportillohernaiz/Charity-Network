@@ -1,3 +1,6 @@
+// SIGN IN PAGE
+// Allows users with a valid registered account to access the platform
+
 "use client"
 
 import { signInAction } from "@/app/actions";
@@ -29,7 +32,6 @@ export default function Login() {
           alt="Image"
           width="1920"
           height="1080"
-          // className="dark:brightness-[0.2] dark:grayscale"
         />
       </div>
       <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-3xl mx-3 sm:mx-5">

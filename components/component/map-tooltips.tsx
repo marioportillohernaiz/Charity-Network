@@ -1,3 +1,5 @@
+// MAP HTML TOOLTIP COMPONENTS
+
 import { PRIMARY_CATEGORIES } from "@/types/Categories";
 import { format } from "date-fns";
 

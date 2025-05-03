@@ -1,3 +1,6 @@
+// ACCOUNT PAGE
+// Allows the charity to edit their profile, location, categories, and settings.
+
 "use client";
 
 import { submitCharity } from '@/app/actions';
@@ -293,7 +296,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
             </Card>
           </div>
           
-          {/* Main content area */}
+          {/* CHARITY PROFILE TAB */}
           <div className="md:col-span-4 space-y-6">
             <div className="w-full">
               <div className={activeTab === "profile" ? "space-y-6" : "hidden"}>
@@ -502,6 +505,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                 </Card>
               </div>
               
+              {/* LOCATION BASED TAB */}
               <div className={activeTab === "location" ? "space-y-6" : "hidden"}>
                 <Card>
                   <CardHeader>
@@ -591,6 +595,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                 </Card>
               </div>
               
+              {/* CATEGORIES TAB */}
               <div className={activeTab === "categories" ? "space-y-6" : "hidden"}>
                 <Card>
                   <CardHeader>
@@ -688,6 +693,7 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                 </Card>
               </div>
               
+              {/* SETTINGS TAB */}
               <div className={activeTab === "settings" ? "space-y-6" : "hidden"}>
                 <Card>
                   <CardHeader>

@@ -1,3 +1,5 @@
+// REQUESTS PAGE LAYOUT 
+// Fetches data and redirects if user is not authenticated or charity profile is not verified or complete
 
 import { getAllCharities, getAllResourceData, getAuthUser, getRegisteredCharity, getResourceTransitData, getSalesData } from "@/app/actions";
 import { redirect } from "next/navigation";

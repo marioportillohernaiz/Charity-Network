@@ -1,6 +1,8 @@
+// EXPORT TRANSIT DATA TO PDF
+// This component allows the user to export transit data to a PDF file.
+
 "use client"
 
-// First, let's update the Button to include a popover for date selection
 import { useState } from 'react';
 import { format, isAfter, isBefore } from 'date-fns';
 import { Download } from 'lucide-react';
@@ -33,7 +35,6 @@ const exportTransitToPDF = (transitData: TransitData[], resourceData: ResourcesD
   doc.setFontSize(10);
   doc.setTextColor(100);
   
-  // Add date range information to the PDF
   if (startDate && endDate) {
     doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm')} | Date range: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`, 14, 30);
   } else if (startDate) {
@@ -68,7 +69,6 @@ const exportTransitToPDF = (transitData: TransitData[], resourceData: ResourcesD
     alternateRowStyles: { fillColor: [240, 240, 240] }
   });
   
-  // Include date range in the filename
   let filename = `${title.replace(/\s+/g, '-').toLowerCase()}`;
   if (startDate) filename += `-from-${format(startDate, 'yyyy-MM-dd')}`;
   if (endDate) filename += `-to-${format(endDate, 'yyyy-MM-dd')}`;
@@ -76,7 +76,6 @@ const exportTransitToPDF = (transitData: TransitData[], resourceData: ResourcesD
   doc.save(`${filename}.pdf`);
 };
 
-// Export Button with Date Range Selection
 export function ExportTransit({ transitData, resourceData, charityData, title }: {transitData: TransitData[]; resourceData: ResourcesData[]; charityData: CharityData[]; title: string}) {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());

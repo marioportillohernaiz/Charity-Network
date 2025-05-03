@@ -1,3 +1,7 @@
+// REGISTER SALES DIALOG COMPONENT
+// This component allows users to input sales data, including date range and item details, and submit the data for processing.
+
+
 "use client"
 
 import type React from "react"
@@ -35,26 +39,22 @@ export function RegisterSales() {
   const [dateFrom, setDateFrom] = useState<Date>()
   const [dateTo, setDateTo] = useState<Date>()
 
-  // Add a new sales item
   const addSalesItem = () => {
     setSalesItems([...salesItems, { category: "", amount: 0 }])
   }
 
-  // Remove a sales item
   const removeSalesItem = (index: number) => {
     const updatedItems = [...salesItems]
     updatedItems.splice(index, 1)
     setSalesItems(updatedItems)
   }
 
-  // Update a sales item field
   const updateSalesItem = (index: number, field: string, value: string | number) => {
     const updatedItems = [...salesItems]
     updatedItems[index] = { ...updatedItems[index], [field]: value }
     setSalesItems(updatedItems)
   }
 
-  // Calculate total amount
   const totalAmount = salesItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   const handleSubmit = async (event: React.FormEvent) => {

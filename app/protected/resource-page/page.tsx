@@ -1,3 +1,5 @@
+// RESOURCE PAGE LAYOUT 
+// Fetches data and redirects if user is not authenticated or charity profile is not verified or complete
 
 import { getAllCharities, getAllResourceData, getAuthUser, getCharityResourceData, getRegisteredCharity, getResourceTransitData, getSalesData } from "@/app/actions";
 import ResourcePage from "./ResourcePage"

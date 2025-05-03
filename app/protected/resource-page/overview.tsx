@@ -1,3 +1,6 @@
+// OVERVIEW TAB COMPONENT
+// This component is responsible for displaying an overview of the resources, requests, and sales data.
+
 "use client"
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -23,13 +26,11 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
   const detectMobile = useMobileDetect();
   
-  // Calculate total resource statistics
   const totalResources = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.quantity, 0), [resourceData]);
   const totalShareable = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.shareable_quantity, 0), [resourceData]);
   const totalReserved = useMemo(() => resourceData.reduce((sum, resource) => sum + resource.quantity_reserved, 0), [resourceData]);
   const totalAvailable = useMemo(() => totalResources - totalReserved - totalShareable, [totalResources, totalReserved, totalShareable]);
 
-  // Calculate resource distribution by category
   const resourceDistribution = useMemo(() => {
     const distribution: Record<string, number> = {};
     
@@ -47,14 +48,12 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
     })).sort((a, b) => b.value - a.value);
   }, [resourceData]);
 
-  // Calculate resource allocation data
   const resourceAllocationData = useMemo(() => [
     { name: 'Available', value: totalAvailable, color: '#00C49F' },
     { name: 'Reserved', value: totalReserved, color: '#A83632' },
     { name: 'Shareable', value: totalShareable, color: '#0088FE' }
   ], [totalAvailable, totalReserved, totalShareable]);
 
-  // Find expiring resources
   const expiringResourcesCount = useMemo(() => {
     return resourceData.filter(resource => {
       if (!resource.expiry_date) return false;
@@ -69,15 +68,12 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
     return `£${amount.toFixed(2)}`
   }
   
-  // State for all category data and filtered data
   const [allCategoryData, setAllCategoryData] = useState<Record<string, any[]>>({});
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
-  // Process sales data by category and month
   useEffect(() => {
-    // Create an object to store sales by month and category
     const salesByMonth: Record<string, Record<string, number>> = {}
     const months: Set<string> = new Set()
     
@@ -85,16 +81,12 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
     salesData.forEach((sale) => {
       const date = new Date(sale.date_to)
       const monthYear = format(date, 'MMM yyyy')
-      
-      // Add to available months
       months.add(monthYear)
       
-      // Initialize month if not exists
       if (!salesByMonth[monthYear]) {
         salesByMonth[monthYear] = {}
       }
       
-      // Add sales data for this month
       sale.sales_data?.forEach((item) => {
         if (salesByMonth[monthYear][item.category]) {
           salesByMonth[monthYear][item.category] += item.amount
@@ -104,18 +96,17 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
       })
     })
     
-    // Create arrays of available months (sorted chronologically)
     const sortedMonths = Array.from(months).sort((a, b) => {
       const dateA = parse(a, 'MMM yyyy', new Date())
       const dateB = parse(b, 'MMM yyyy', new Date())
-      return dateB.getTime() - dateA.getTime() // Most recent first
+      return dateB.getTime() - dateA.getTime()
     })
     
     setAvailableMonths(sortedMonths)
     
-    // Create aggregate data for all months combined
     const allMonthsData: Record<string, number> = {}
-    
+    const chartDataByMonth: Record<string, any[]> = {}
+
     Object.values(salesByMonth).forEach(monthData => {
       Object.entries(monthData).forEach(([category, amount]) => {
         if (allMonthsData[category]) {
@@ -126,10 +117,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
       })
     })
     
-    // Convert to array format for charts
-    const chartDataByMonth: Record<string, any[]> = {}
-    
-    // Process each month's data
     Object.entries(salesByMonth).forEach(([month, categories]) => {
       const monthData = Object.entries(categories).map(([category, amount]) => ({
         category,
@@ -140,19 +127,15 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
       chartDataByMonth[month] = monthData
     })
     
-    // Process all months combined
     const allData = Object.entries(allMonthsData).map(([category, amount]) => ({
       category,
       amount,
       fill: "#064789",
     })).sort((a, b) => b.amount - a.amount)
     
-    // Store all data
     chartDataByMonth['all'] = allData
-    
     setAllCategoryData(chartDataByMonth)
     
-    // Set initial display data
     if (selectedMonth && chartDataByMonth[selectedMonth]) {
       setCategoryData(chartDataByMonth[selectedMonth])
     } else if (sortedMonths.length > 0) {
@@ -163,7 +146,6 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
     
   }, [salesData])
   
-  // Update displayed data when month selection changes
   useEffect(() => {
     if (selectedMonth && allCategoryData[selectedMonth]) {
       setCategoryData(allCategoryData[selectedMonth])
@@ -175,6 +157,8 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+
+        {/* Cards Displaying key resource information */}
         <Card className="bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
@@ -244,7 +228,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
         </Card>
       </div>
       
-      {/* Charts Row */}
+      {/* Types of Resource Categories */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="bg-white">
           <CardHeader>
@@ -297,6 +281,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
           </CardContent>
         </Card>
         
+        {/* Resource Allocation Chart */}
         <Card className="bg-white">
           <CardHeader>
             <CardTitle>Resource Allocation</CardTitle>
@@ -348,6 +333,7 @@ const OverviewTab = ({ resourceData, requestData, charity, salesData }: { resour
         </Card>
       </div>
 
+      {/* Sales Chart */}
       <Card>
         <CardHeader className="flex flex-col space-y-2 pb-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>

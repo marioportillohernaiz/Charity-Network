@@ -1,6 +1,8 @@
+// EXPORT SALES DATA TO PDF
+// This component allows the user to export sales data to a PDF file.
+
 "use client"
 
-// First, let's update the Button to include a popover for date selection
 import { useState } from 'react';
 import { format, isAfter, isBefore } from 'date-fns';
 import { Download } from 'lucide-react';
@@ -30,20 +32,16 @@ const exportSalesToPDF = (salesData: Sales[], charity: CharityData, startDate: D
     });
   }
   
-  // Create a new PDF document
   const doc = new jsPDF();
   
-  // Add title
   doc.setFontSize(18);
   doc.text("Sales History Report", 14, 22);
   
-  // Add charity name and timestamp with date range info
   doc.setFontSize(12);
   doc.text(`Charity: ${charity.name}`, 14, 30);
   doc.setFontSize(10);
   doc.setTextColor(100);
   
-  // Add date range information to the PDF
   if (startDate && endDate) {
     doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm')} | Date range: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`, 14, 36);
   } else if (startDate) {
@@ -54,7 +52,6 @@ const exportSalesToPDF = (salesData: Sales[], charity: CharityData, startDate: D
     doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 36);
   }
   
-  // Calculate totals by category from filtered data
   const categoryTotals: Record<string, number> = {};
   let grandTotal = 0;
   
@@ -68,14 +65,12 @@ const exportSalesToPDF = (salesData: Sales[], charity: CharityData, startDate: D
     });
   });
   
-  // Prepare table data for sales by category
   const categoryRows = Object.entries(categoryTotals).map(([category, amount]) => [
     category, 
     `£${amount.toFixed(2)}`,
     `${((amount / grandTotal) * 100).toFixed(1)}%`
   ]);
   
-  // Add category summary table
   autoTable(doc, {
     head: [['Category', 'Total Amount', 'Percentage']],
     body: categoryRows,
@@ -85,10 +80,8 @@ const exportSalesToPDF = (salesData: Sales[], charity: CharityData, startDate: D
     alternateRowStyles: { fillColor: [240, 240, 240] }
   });
   
-  // Get end Y position after first table to place the next table
   const finalY = (doc as any).lastAutoTable.finalY + 15;
   
-  // Prepare table data for individual sales
   const salesRows = filteredData.map(sale => {
     const saleTotal = sale.sales_data?.reduce((sum, item) => sum + item.amount, 0) || 0;
     return [
@@ -99,7 +92,6 @@ const exportSalesToPDF = (salesData: Sales[], charity: CharityData, startDate: D
     ];
   });
   
-  // Add detailed sales table
   autoTable(doc, {
     head: [['Date From', 'Date To', 'Total Amount', 'Number of Items']],
     body: salesRows,
@@ -109,18 +101,14 @@ const exportSalesToPDF = (salesData: Sales[], charity: CharityData, startDate: D
     alternateRowStyles: { fillColor: [240, 240, 240] }
   });
   
-  // Grand total
   const finalY2 = (doc as any).lastAutoTable.finalY + 10;
   doc.setFontSize(12);
   doc.setTextColor(0);
   doc.text(`Grand Total: £${grandTotal.toFixed(2)}`, 14, finalY2);
   
-  // Include date range in the filename
   let filename = `sales-history-${charity.name.replace(/\s+/g, '-').toLowerCase()}`;
   if (startDate) filename += `-from-${format(startDate, 'yyyy-MM-dd')}`;
   if (endDate) filename += `-to-${format(endDate, 'yyyy-MM-dd')}`;
-  
-  // Save the PDF
   doc.save(`${filename}.pdf`);
 };
 

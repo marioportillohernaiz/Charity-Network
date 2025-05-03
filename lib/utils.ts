@@ -1,3 +1,6 @@
+// AI UTILS
+// It includes functions for generating class names, fetching seasonal predictions, and transforming predictions into chart data.
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 

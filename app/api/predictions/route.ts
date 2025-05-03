@@ -1,3 +1,6 @@
+// PREDICTIONS API ROUTE
+// This API route handles requests to the chatbot, processes the input data, and returns a response from OpenAI's GPT-3.5 model.
+
 import { NextResponse } from 'next/server';
 
 // Helper function to summarize current resources

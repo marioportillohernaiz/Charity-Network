@@ -1,3 +1,6 @@
+// CHARTBOT API ROUTE
+// This API route handles requests to the chatbot, processes the input data, and returns a response from OpenAI's GPT-3.5 model.
+
 import { NextResponse } from 'next/server';
 
 // Helper function to summarize current resources
@@ -79,8 +82,6 @@ const navigationGuide = {
 export async function POST(request: Request) {
   try {
     const { messages, charityData, resourceData, availableResources } = await request.json();
-    
-    // API configuration
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 });
@@ -142,7 +143,6 @@ export async function POST(request: Request) {
         If you don't know the answer to a specific question, suggest general best practices that most charities could benefit from.`
     };
 
-    // Combine system message with user history
     const combinedMessages = [systemMessage, ...messages];
 
     // Call OpenAI API

@@ -1,3 +1,5 @@
+// NAVIGATION MENU FOR PAGES PRE-LOGIN
+
 "use client";
 
 import Link from "next/link";
@@ -12,12 +14,14 @@ export default function AuthMenu() {
   const router = useRouter();
 
   const handleNavigation = (event: React.MouseEvent, path: string) => {
+    setLoading(true);
     event.preventDefault();
     setClickedItem(path);
 
     startTransition(() => {
       router.push(path);
     });
+    setLoading(false);
   };
 
   return (

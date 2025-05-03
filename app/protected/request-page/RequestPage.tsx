@@ -1,3 +1,6 @@
+// REQUEST RESOURCES PAGE
+// Allows users to request resources from other charities and view AI predictions for their charity's resource needs
+
 "use client"
 
 import React, { useEffect, useState, useTransition } from 'react';

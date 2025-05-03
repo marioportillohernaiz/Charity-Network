@@ -1,3 +1,7 @@
+// REQUEST RESOURCES TABLE
+// This component displays a table of resources available from other charities.
+// Users can search based on location, filter, and sort the resources based on various criteria.
+
 "use client"
 
 import React, { useState } from 'react';
@@ -47,18 +51,15 @@ export function SharedResourcesTable({resourceData, charityData, charity, recomm
       Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
       Math.sin(dLon/2) * Math.sin(dLon/2); 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    const distance = R * c; // Distance in km
+    const distance = R * c;
     return distance;
   };
 
-  // Handle radius slider change
   const handleRadiusChange = (value: number) => {
     setSearchRadius(value);
     if (value === 0) {
-      // If radius is 0, don't filter by distance
       setFilteredByDistance([]);
     } else {
-      // Filter resources by distance
       const resourcesWithinRadius = sharedResources.filter(resource => {
         const resourceCharity = charityData.find(c => c.id === resource.charity_id);
         if (!resourceCharity) return false;
@@ -99,7 +100,6 @@ export function SharedResourcesTable({resourceData, charityData, charity, recomm
     }
   };
 
-  // Apply filters with radius consideration
   const filteredResources = (searchRadius > 0 ? filteredByDistance : sharedResources).filter(resource => {
     const matchesSearch = 
       resource.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -155,7 +155,6 @@ export function SharedResourcesTable({resourceData, charityData, charity, recomm
     setCurrentPage(page);
   };
 
-  // For showing distance in the table
   const getDistanceFromCharity = (resourceCharity: CharityData) => {
     if (!charity || !resourceCharity) return null;
     
@@ -241,7 +240,7 @@ export function SharedResourcesTable({resourceData, charityData, charity, recomm
           )}
         </div>
 
-        {/* Resources Table */}
+        {/* Request Resources Table */}
         <div className="rounded-md border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

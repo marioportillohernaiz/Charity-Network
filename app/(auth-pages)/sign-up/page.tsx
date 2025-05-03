@@ -1,3 +1,7 @@
+// SIGN UP PAGE
+// Allows users to register an account with a valid email and a secure password. The password must meet certain criteria.
+// An email is sent to verify the email address is valid and accessible.
+
 "use client"
 
 import { signUpAction } from "@/app/actions";

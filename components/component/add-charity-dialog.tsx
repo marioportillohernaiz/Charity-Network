@@ -1,3 +1,7 @@
+// Allows users to add a charities by scraping the website for information
+
+// NOT IN USE due to website restrictions on scraping (e.g. bot protection, rate-limiting, or terms of service) 
+
 'use client'
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
@@ -84,7 +88,6 @@ export default function AddCharityDialog() {
     charityFormData.append("description", description);
     charityFormData.append("address", address);
 
-    // charityFormData.append("openingHours", JSON.stringify(openingHours));
     charityFormData.append("starRating", starRating.rating.toString());
 
     charityFormData.append("email", email);
