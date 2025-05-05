@@ -461,7 +461,6 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                       <Clock className="h-4 w-4 text-gray-600" />
                     </div>
                     <div className="w-full">
-                      <p className="font-semibold text-sm sm:text-base">Opening Hours</p>
                       <div className="grid text-sm sm:text-base">
                         {selectedCharity?.opening_hours ? (
                           Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
@@ -614,8 +613,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {categoryResources.map((resource) => {
                             const availabilityLevel = 
-                              resource.shareable_quantity > 10 ? "high" : 
-                              resource.shareable_quantity > 5 ? "medium" : "low";
+                              resource.shareable_quantity > 50 ? "high" : 
+                              resource.shareable_quantity > 10 ? "medium" : "low";
                                 
                             return (
                               <div key={resource.id} className="border rounded-lg overflow-hidden transition-shadow hover:shadow-md">
