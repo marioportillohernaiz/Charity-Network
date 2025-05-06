@@ -773,21 +773,6 @@ export default function AccountPage({ accountData }: { accountData: CharityData 
                           onCheckedChange={() => setShowWebsite(!showWebsite)}
                         />
                       </div>
-
-                      <Separator />
-                      
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium">Show Social Links</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Display your social links on your public profile
-                          </p>
-                        </div>
-                        <Switch 
-                          checked={showWebsite} 
-                          onCheckedChange={() => setShowWebsite(!showWebsite)}
-                        />
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

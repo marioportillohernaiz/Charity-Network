@@ -74,10 +74,6 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       const map = L.map(mapRef.current).setView([currentCharity.latitude, currentCharity.longitude], 15);
       mapInstanceRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-      
-      if (currentCharity) {
-        map.setView([currentCharity.latitude, currentCharity.longitude], 15);
-      }
     }
     
     if (!mapInstanceRef.current) return;
@@ -136,11 +132,15 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       
       drawTransitLines(mapInstanceRef.current, transitData, charityLocations);
       
-      if (filteredCharities.length > 0) {
+      if (selectedCategory && filteredCharities.length > 0) {
         const bounds = L.latLngBounds(filteredCharities.map(c => [c.latitude, c.longitude]));
         if (bounds.isValid()) {
           mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
         }
+      } else if (!selectedCategory) {
+        mapInstanceRef.current.setView([currentCharity.latitude, currentCharity.longitude], 16);
+      } else {
+        mapInstanceRef.current.setView([currentCharity.latitude, currentCharity.longitude], 16);
       }
     }
   }, [charitiesData, transitData, selectedCategory]);
