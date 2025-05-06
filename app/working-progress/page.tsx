@@ -1,3 +1,6 @@
+// WORKING-PROGRESS PAGE
+// Blank page to indicate that the website is under construction.
+
 import { Loader2 } from "lucide-react";
 
 export default async function WorkingProgressPage() {

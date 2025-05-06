@@ -1,3 +1,5 @@
+// SIMPLE TRANSIT ACTION DIALOG
+
 'use client'
 
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -5,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { rejectTransit } from "@/app/actions";
 import { toast } from "sonner";
-import { SubmitButton } from "../submit-button";
+import { SubmitButton } from "../ui/submit-button";
 import { TransitStatus } from "@/types/TransitStatus";
 
 export default function HandleCancel({ request, resourceData } : { request: TransitData; resourceData: ResourcesData[] }) {
@@ -26,7 +28,6 @@ export default function HandleCancel({ request, resourceData } : { request: Tran
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="bg-red-100 text-red-800 border-red-200 ml-2">
-          {/* <CircleX className="w-4 h-4 mr-2" /> */}
           Cancel
         </Button>
       </DialogTrigger>

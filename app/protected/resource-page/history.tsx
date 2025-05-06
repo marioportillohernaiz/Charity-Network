@@ -1,3 +1,6 @@
+// HISTORY PAGE
+// Display resource transit history and sales history for the charity
+
 "use client"
 
 import React, { useEffect, useState } from 'react';
@@ -23,6 +26,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
         <h1 className="text-3xl font-bold tracking-tight">Sharing History</h1>
       </div>
 
+      {/* Resources Sent To Charities Reusable Component */}
       <HistoryTable
         title="Resources Sent To Charities"
         description="History of resources you shared with other charities"
@@ -31,6 +35,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
         transitData={sentTransitData}
       />
 
+      {/* Resources Received From Charities Reusable Component */}
       <HistoryTable
         title="Resources Received From Charities"
         description="History of resources shared to your charity"
@@ -43,6 +48,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
         <h1 className="text-3xl font-bold tracking-tight pt-5">Sales History</h1>
       </div>
 
+      {/* Sales History Table Component */}
       <SalesTable
         charity={charity}
         salesData={salesData}
@@ -52,6 +58,7 @@ const HistoryTab = ({charity,charityData,resourceData,transitData,salesData}:{ch
   );
 };
 
+// Transit Table Component
 const HistoryTable = ({ title, description, charityData, resourceData, transitData} : 
   {title: string; description: string; charityData: CharityData[]; resourceData: ResourcesData[]; transitData: TransitData[];}
 ) => {
@@ -174,7 +181,6 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
 
               return (
                 <Card key={history.id} className="p-4">
-                  {/* Mobile view - stack everything vertically */}
                   <div className="block md:hidden space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
@@ -188,7 +194,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                           history.status === TransitStatus.REJECTED
                             ? "bg-green-200 text-green-800 hover:bg-green-200"
                             : history.status === TransitStatus.CANCELLED
-                              ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-200"
+                              ? "bg-red-200 text-red-800 hover:bg-red-200"
                               : "bg-red-200 text-red-800 hover:bg-red-200"
                         }
                       >
@@ -221,7 +227,6 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                     </div>
                   </div>
 
-                  {/* Desktop view - grid layout */}
                   <div className="hidden md:grid md:grid-cols-6 md:gap-4">
                     <div className="my-auto">
                       <p className="font-medium text-xl">{resourceDetails?.name}</p>
@@ -249,7 +254,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                       {history.status === TransitStatus.REJECTED ? (
                         <Badge className="bg-green-200 text-green-800 hover:bg-green-200">Received</Badge>
                       ) : history.status === TransitStatus.CANCELLED ? (
-                        <Badge className="bg-yellow-200 text-yellow-800 hover:bg-yellow-200">Cancelled</Badge>
+                        <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Cancelled</Badge>
                       ) : (
                         <Badge className="bg-red-200 text-red-800 hover:bg-red-200">Rejected</Badge>
                       )}
@@ -288,9 +293,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
                   />
                 </PaginationItem>
 
-                {/* Show fewer pagination items on mobile */}
                 {generatePaginationItems().map((page, index, array) => {
-                  // On mobile, only show current page, first and last
                   const isMobileVisible = page === 1 || page === totalPages || page === currentPage
 
                   if (index > 0 && page > array[index - 1] + 1) {
@@ -351,6 +354,7 @@ const HistoryTable = ({ title, description, charityData, resourceData, transitDa
   );
 };
 
+// Sales Table Component
 const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sales[];}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
@@ -412,12 +416,10 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
     setCurrentPage(1)
   }, [searchQuery, dateFilter, salesData]);
 
-  // Calculate total amount for a sale
   const calculateTotal = (sale: Sales): number => {
     return sale.sales_data?.reduce((sum, item) => sum + item.amount, 0) || 0
   };
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
@@ -432,14 +434,10 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
     }
   }, [filteredData, totalPages, currentPage]);
   
-
-
-  // Format currency
   const formatCurrency = (amount: number): string => {
     return `£${amount.toFixed(2)}`
   };
 
-  // Format date for display (keeping the original Date object as requested)
   const formatDateDisplay = (date: Date): string => {
     return new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -484,6 +482,7 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
             </Select>
           </div>
         </CardHeader>
+
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center py-8">
@@ -498,12 +497,10 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
             <div className="space-y-4">
               {currentItems.map((sale) => (
                 <Card key={sale.id} className="overflow-hidden">
-                  {/* Card header with charity name */}
                   <div className="p-4 border-b">
                     <h3 className="font-semibold text-lg">{charity.name}</h3>
                   </div>
 
-                  {/* Date information - responsive grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-4 border-b">
                     <div className="p-2">
                       <div className="text-sm text-muted-foreground">Date From</div>
@@ -519,7 +516,6 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
                     </div>
                   </div>
 
-                  {/* Sales data table - scrollable on mobile */}
                   <div className="overflow-x-auto">
                     <Table>
                       <TableBody>
@@ -537,7 +533,6 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
             </div>
           )}
 
-          {/* Pagination - simplified for mobile */}
           <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredData.length)} of {filteredData.length}{" "}
@@ -557,7 +552,6 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
                   />
                 </PaginationItem>
 
-                {/* Show fewer page numbers on mobile */}
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .filter(
                     (page) =>
@@ -568,7 +562,6 @@ const SalesTable = ({charity, salesData} : {charity: CharityData; salesData: Sal
                         : page >= currentPage - 1 && page <= currentPage + 1),
                   )
                   .map((page, i, array) => {
-                    // Add ellipsis if there are gaps in the sequence
                     if (i > 0 && page > array[i - 1] + 1) {
                       return (
                         <PaginationItem key={`ellipsis-${page}`} className="hidden sm:inline-flex">

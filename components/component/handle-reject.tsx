@@ -1,3 +1,5 @@
+// SIMPLE TRANSIT ACTION DIALOG
+
 'use client'
 
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,7 +8,7 @@ import { useState } from "react";
 import { CircleX } from "lucide-react";
 import { rejectTransit } from "@/app/actions";
 import { toast } from "sonner";
-import { SubmitButton } from "../submit-button";
+import { SubmitButton } from "../ui/submit-button";
 import { TransitStatus } from "@/types/TransitStatus";
 
 export default function HandleReject({ request, resourceData } : { request: TransitData; resourceData: ResourcesData[] }) {

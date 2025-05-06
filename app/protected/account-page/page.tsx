@@ -1,3 +1,6 @@
+// ACCOUNT PAGE LAYOUT 
+// Fetches data and redirects if user is not authenticated
+
 import { redirect } from "next/navigation";
 import { getAuthUser, getRegisteredCharity } from "@/app/actions";
 import AccountPage from "./AccountPage";

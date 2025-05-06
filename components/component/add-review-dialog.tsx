@@ -1,3 +1,6 @@
+// ADD REVIEW DIALOG COMPONENT
+// This component is used to add a reviews for a charity.
+
 'use client'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,13 +10,12 @@ import { Label } from "@radix-ui/react-label";
 import { ScrollArea } from "../ui/scrollarea"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageSquarePlus, Star } from "lucide-react";
-import { toast, Toaster } from "sonner";
-import { SubmitButton } from "../submit-button";
+import { toast } from "sonner";
 import { submitReview } from "@/app/actions";
+import { SubmitButton } from "../ui/submit-button";
 
 export default function AddCharityReviewDialog({ selectedCharityId } : { selectedCharityId: string; }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const [starRating, setStarRating] = useState(0);
   const [commentText, setCommentText] = useState("");
 
@@ -26,9 +28,7 @@ export default function AddCharityReviewDialog({ selectedCharityId } : { selecte
     const reviewResponse = await submitReview(reviewFormData);
     if (reviewResponse.success) {
       toast.success(reviewResponse.message);
-      setTimeout(() => {
-        setIsDialogOpen(false);
-      }, 2000);
+      setIsDialogOpen(false);
     } else {
       toast.error(reviewResponse.message);
     }

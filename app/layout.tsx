@@ -1,3 +1,6 @@
+// PLATFORM'S LAYOUT FILE
+// This file is used to define the layout of the platform
+
 import HeaderAuth from "@/components/header-auth";
 import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "next-themes";

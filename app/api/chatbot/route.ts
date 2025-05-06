@@ -1,9 +1,10 @@
-// app/api/chatbot/route.ts
+// CHARTBOT API ROUTE
+// This API route handles requests to the chatbot, processes the input data, and returns a response from OpenAI's GPT-3.5 model.
+
 import { NextResponse } from 'next/server';
 
 // Helper function to summarize current resources
 function summarizeResources(resources: ResourcesData[]) {
-  // Group resources by category
   const categorySummary: Record<string, { total: number, items: string[] }> = {};
   
   resources.forEach(resource => {
@@ -15,7 +16,6 @@ function summarizeResources(resources: ResourcesData[]) {
     categorySummary[resource.category].items.push(`${resource.name} (${resource.quantity} ${resource.unit})`);
   });
   
-  // Format the summary
   let summary = '';
   Object.entries(categorySummary).forEach(([category, data]) => {
     summary += `- ${category}: ${data.total} total items\n`;
@@ -31,20 +31,17 @@ function getResourceStats(resources: ResourcesData[]) {
     return 'No resource statistics available';
   }
   
-  // Calculate total quantities and averages
   const totalResources = resources.length;
   const totalQuantity = resources.reduce((sum, resource) => sum + resource.quantity, 0);
   const totalShareable = resources.reduce((sum, resource) => sum + resource.shareable_quantity, 0);
   const totalReserved = resources.reduce((sum, resource) => sum + resource.quantity_reserved, 0);
   const sharingPercentage = Math.round((totalShareable / totalQuantity) * 100);
   
-  // Count resources by category
   const categoryCounts = resources.reduce((acc, resource) => {
     acc[resource.category] = (acc[resource.category] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   
-  // Find expiring resources
   const now = new Date();
   const expiringResources = resources.filter(resource => {
     if (!resource.expiry_date) return false;
@@ -53,7 +50,6 @@ function getResourceStats(resources: ResourcesData[]) {
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
   });
   
-  // Create the summary
   let summary = `The charity manages ${totalResources} distinct resources with a total quantity of ${totalQuantity} items. `;
   summary += `${totalShareable} items (${sharingPercentage}%) are available for sharing with other charities. `;
   summary += `${totalReserved} items are currently reserved. `;
@@ -67,11 +63,25 @@ function getResourceStats(resources: ResourcesData[]) {
   return summary;
 }
 
+// Website navigation guide
+const navigationGuide = {
+  main: [
+    { name: "Map Page", path: "/protected", locationDescription: "On the navigation bar", description: "Map page where charities and their resources can be visualised" },
+    { name: "Resources Page", path: "/protected/resource-page", locationDescription: "On the navigation bar", description: "Manage your inventory, view resource statistics, and handle resource requests" },
+    { name: "Request Resources", path: "/protected/request-page", locationDescription: "Inside the Resources Page, then in a button near the top labeled Requests", description: "Request resources from other charities and view AI recommendations" },
+    { name: "Account Settings", path: "/protected/account-page", locationDescription: "On the navigation bar", description: "Update your profile, location, and contact information" },
+  ],
+  resourcePageTabs: [
+    { name: "Overview", description: "View analytics and statistics about your resources" },
+    { name: "Resources", description: "Manage your inventory and mark scarce resources" },
+    { name: "Transits", description: "View and manage ongoing resource transfers" },
+    { name: "History", description: "See past transactions and sales" }
+  ]
+};
+
 export async function POST(request: Request) {
   try {
     const { messages, charityData, resourceData, availableResources } = await request.json();
-    
-    // API configuration
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 });
@@ -94,12 +104,11 @@ export async function POST(request: Request) {
     const systemMessage = {
       role: 'system',
       content: `
-        You are an AI assistant for charity organizations, specializing in resource management, fundraising, and charity operations. 
+        You are an AI assistant for charity organizations, specializing in resource management, fundraising, charity operations and navigation through this platform.
       
         Today's date is ${new Date().toLocaleDateString()}.
-            
+        
         You have the following information about the charity you're assisting:
-
         ${charityContext}
 
         CURRENT RESOURCE INFORMATION:
@@ -110,6 +119,9 @@ export async function POST(request: Request) {
 
         AVAILABLE RESOURCES TO REQUEST
         ${availableResourcesFromOtherCharities}
+
+        WEBSITE NAVIGATION INFORMATION:
+        ${JSON.stringify(navigationGuide, null, 2)}
 
         When responding:
         1. Respond in one short sentence as if you were having a conversation.
@@ -131,7 +143,6 @@ export async function POST(request: Request) {
         If you don't know the answer to a specific question, suggest general best practices that most charities could benefit from.`
     };
 
-    // Combine system message with user history
     const combinedMessages = [systemMessage, ...messages];
 
     // Call OpenAI API

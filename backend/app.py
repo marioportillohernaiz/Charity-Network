@@ -1,38 +1,27 @@
+# This is a simple Flask application that serves as an API for web scraping.
+# It receives a URL via a POST request, scrapes the website at that URL, and returns the scraped data as JSON.
+
+# NOT IN USE due to website restrictions on scraping (e.g. bot protection, rate-limiting, or terms of service) 
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from google_maps_service import search_charities, get_place_details
+from scraper import scrape_website
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/search', methods=['POST'])
-def search():
+@app.route('/scrape', methods=['POST'])
+def scrape():
     data = request.json
-    query = data.get("query")
-    location = data.get("location", "UK")  # Default to UK if no location specified
+    url = data.get("url")
 
-    print(f"Searching for: {query} in {location}")
+    print(f"Received URL: {url}")
 
-    if not query:
-        return jsonify({"error": "No search query provided"}), 400
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
 
-    results = search_charities(query, location)
-    print(f"Found {len(results)} results")
-
-    return jsonify(results)
-
-@app.route('/details', methods=['POST'])
-def details():
-    data = request.json
-    place_id = data.get("place_id")
-
-    print(f"Getting details for place_id: {place_id}")
-
-    if not place_id:
-        return jsonify({"error": "No place_id provided"}), 400
-
-    result = get_place_details(place_id)
-    print(f"Got details for: {result.get('name', 'Unknown')}")
+    result = scrape_website(url)
+    print(f"Scraped Data: {result}")
 
     return jsonify(result)
 

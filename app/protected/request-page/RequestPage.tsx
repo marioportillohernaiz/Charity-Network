@@ -1,6 +1,9 @@
+// REQUEST RESOURCES PAGE
+// Allows users to request resources from other charities and view AI predictions for their charity's resource needs
+
 "use client"
 
-import React, { useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { 
   TrendingUp, ArrowLeft, Loader2, BarChart4,
   RefreshCw,
@@ -26,8 +29,15 @@ interface MonthData {
 }
 
 const useMobileDetect = () => {
-  const isMobile = () => /Mobi|Android/i.test(navigator.userAgent);
-  return { isMobile };
+  const [isMobileState, setIsMobileState] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobileState(/Mobi|Android/i.test(navigator.userAgent));
+    }
+  }, []);
+  
+  return { isMobile: () => isMobileState };
 };
 
 const RequestResourcesPage = ({resourceData, transitData, charityData, charity, salesData} : {resourceData: ResourcesData[]; transitData: TransitData[]; charityData: CharityData[]; charity: CharityData, salesData: Sales[]}) => {
@@ -53,7 +63,6 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
         setRecommendation(predictions.recommendation || null);
         setImpact(predictions.impact || null);
       } else {
-        // Fallback to default data if predictions fail
         setSeasonalTrendsData(defaultSeasonalTrendsData);
         setPredictionError("Could not fetch AI predictions, using sample data instead");
       }
@@ -66,12 +75,10 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
     }
   };
 
-  // Handle manual refresh button click
   const handleRefreshPredictions = () => {
     loadPredictions(true);
   };
 
-  // Default fallback data
   const [predictionExplanation, setPredictionExplanation] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<string | null>(null);
   const [impact, setImpact] = useState<string | null>(null);
@@ -105,7 +112,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
   };
 
   return (
-    <div className="container mx-auto py-6 max-w-7xl">
+    <div className="container mx-auto py-6 px-1 max-w-7xl">
       <div className="grid gap-6">
 
         <div className="flex justify-between items-center">
@@ -179,7 +186,7 @@ const RequestResourcesPage = ({resourceData, transitData, charityData, charity, 
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No recommendation available</p>
+              <p className="text-gray-500 text-sm">No recommendation available (load the recommendations by clicking the refresh button)</p>
             )}
           </div>
 

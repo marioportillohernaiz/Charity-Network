@@ -1,3 +1,9 @@
+// MAIN RESOURCE PAGE FOR CHARITY
+// Displays the resources, requests, and history of the charity. 
+// It also allows the charity to add resources and register sales. 
+// The page is divided into tabs for easy navigation. 
+// The chatbot feature is included to assist users with their queries.
+
 "use client"
 
 import Link from "next/link"
@@ -27,8 +33,6 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
   const router = useRouter();
   const [loading, startTransition] = useTransition();
   const [clickedItem, setClickedItem] = useState<string | null>(null);
-  
-  // Chatbot state
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -75,8 +79,6 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
       }
       
       const data = await response.json();
-      
-      // Add assistant response to chat
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: data.response }
@@ -85,7 +87,6 @@ export default function DashboardPage({charity,charityData,resourceData,allResou
       console.error('Chatbot error:', error);
       toast.error('Sorry, I had trouble responding. Please try again.');
       
-      // Add error message
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Sorry, I encountered an error. Please try again or check your connection.' }

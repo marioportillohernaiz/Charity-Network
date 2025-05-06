@@ -1,15 +1,18 @@
+// MAP PAGE
+// Allows the user to select a charity and view its details, resources, and reviews.
+// Allows the user to search for charities and filter by category
+
 "use client"
 
 import { useEffect, useRef, useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { AlertCircle, Calendar, ChevronLeft, ChevronRight, Clock, Globe, LayersIcon, MapPin, MessageSquareOff, Package, Phone, Search, Star, StarHalf, X } from "lucide-react";
+import { AlertCircle, Calendar, ChevronLeft, ChevronRight, Clock, ExternalLink, Facebook, Globe, Instagram, LayersIcon, MapPin, MessageSquareOff, Package, PackageOpen, Phone, Search, Star, StarHalf, Twitter, X } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 let L: typeof import('leaflet');
 if (typeof window !== 'undefined') {
   L = require('leaflet');
 }
-import AddCharityDialog from "@/components/component/add-charity-dialog";
 import AddCharityReviewDialog from "@/components/component/add-review-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TransitStatus } from "@/types/TransitStatus";
@@ -18,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PRIMARY_CATEGORIES } from "@/types/Categories";
 import RequestResource from "@/components/component/request-resource";
+import { CharityTooltip, TruckIconHtml, TruckTooltipHtml } from "@/components/component/map-tooltips";
 
 export default function Map({ charitiesData, currentCharity, commentsData, transitData, resourcesData }: { charitiesData: CharityData[]; currentCharity: CharityData; commentsData: ReviewComments[]; transitData: TransitData[]; resourcesData: ResourcesData[] }) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -111,58 +115,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
           
         markersRef.current.push(marker);
         
-        const tooltipContent = `
-          <div style="padding: 1rem; width: 100%;">
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">${charity.name}</h3>
-            ${charity.description ? `<p style="font-size: 0.875rem; color: #718096; margin-bottom: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${charity.description && charity.description.substring(0, 50) + '...'}</p>` : ''}
-            
-            <div style="margin-bottom: 0.75rem;">
-              <span style="display: inline-block; background-color: #E6F0FD; color: #1E429F; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 9999px; margin-right: 0.25rem;">
-                ${PRIMARY_CATEGORIES.find(cat => cat.value === charity.category_and_tags.primary)?.label || charity.category_and_tags.primary}
-              </span>
-              ${charity.category_and_tags.secondary.slice(0, 2).map(tag => `
-                <span style="display: inline-block; background-color: #F1F1F1; color: #4A5568; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 9999px; margin-right: 0.25rem;">
-                  ${tag}
-                </span>
-              `).join('')}
-            </div>
-  
-            ${charity.rating > 0 ? `
-              <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
-                <div style="display: flex;">
-                  <p style="margin: 2px 0; font-size: 16px;">⭐ ${charity.rating} / 5 (${charity.total_rating} ratings)</p>
-                </div>
-              </div>
-            ` : ''}
-  
-            <div style="display: flex; align-items: flex-start; margin-bottom: 0.5rem;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem; margin-top: 0.25rem; flex-shrink: 0; color: #718096;">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-              <span style="font-size: 0.875rem;">${charity.address}</span>
-            </div>
-  
-            ${charity.opening_hours ? `
-              <div style="display: flex; align-items: flex-start; margin-bottom: 0.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem; margin-top: 0.25rem; flex-shrink: 0; color: #718096;">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <div style="font-size: 0.875rem;">
-                  ${(() => {
-                    const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
-                    const hours = charity.opening_hours[today];
-                    if (hours?.isOpen) {
-                      return `Today: ${hours.start} - ${hours.end}`;
-                    }
-                    return "Closed today";
-                  })()}
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        `;
+        const tooltipContent = CharityTooltip(charity);
   
         marker.bindTooltip(tooltipContent, {
           permanent: false, 
@@ -177,15 +130,17 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         });
       });
       
-      // Draw transit lines
       drawTransitLines(mapInstanceRef.current, transitData, charityLocations);
       
-      // Adjust map view to fit all visible charities
-      if (filteredCharities.length > 0) {
+      if (selectedCategory && filteredCharities.length > 0) {
         const bounds = L.latLngBounds(filteredCharities.map(c => [c.latitude, c.longitude]));
         if (bounds.isValid()) {
           mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
         }
+      } else if (!selectedCategory) {
+        mapInstanceRef.current.setView([currentCharity.latitude, currentCharity.longitude], 16);
+      } else {
+        mapInstanceRef.current.setView([currentCharity.latitude, currentCharity.longitude], 16);
       }
     }
   }, [charitiesData, transitData, selectedCategory]);
@@ -215,6 +170,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
       const fromLocation = charityLocations[transit.charity_from];
       const toLocation = charityLocations[transit.charity_to];
       const charityTo = charitiesData.find(charity => charity.id === transit.charity_to);
+      const charityFrom = charitiesData.find(charity => charity.id === transit.charity_from);
       
       if (fromLocation && toLocation) {
         const lineColor = transit.charity_to === currentCharity?.id ? '#E53935' : '#1E88E5';
@@ -222,23 +178,14 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         const transitLine = L.polyline([fromLocation, toLocation], {
           color: lineColor,
           weight: 3,
+          dashArray: '10, 10',
         }).addTo(map);
         
         transitLinesRef.current.push(transitLine);
         const midLat = (fromLocation[0] + toLocation[0]) / 2;
         const midLng = (fromLocation[1] + toLocation[1]) / 2;
         
-        const truckIconHtml = `
-        <div style="background-color: ${lineColor};border-radius: 50%;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;
-          ${transit.charity_to === currentCharity?.id ? 'transform: scaleX(-1);' : ''}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 17h4V5H2v12h3"/>
-              <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/>
-              <circle cx="7.5" cy="17.5" r="2.5"/>
-              <circle cx="17.5" cy="17.5" r="2.5"/>
-            </svg>
-          </div>
-        `;
+        const truckIconHtml = TruckIconHtml(lineColor, transit, currentCharity);
         
         const truckIcon = L.divIcon({
           html: truckIconHtml,
@@ -251,42 +198,10 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
           icon: truckIcon
         }).addTo(map);
         
-        truckMarker.bindTooltip(`
-          <div style="width: 100%; max-width: 28rem;">
-            <div style="padding: 1.25rem 1.5rem 0rem; display: flex; flex-direction: row; align-items: center; justify-content: space-between; background-color: rgba(241, 245, 249, 0.3);">
-              <div style="display: flex; flex-direction: column;">
-                <div style="font-size: 1.125rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                    <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
-                    <path d="M12 3v6"></path>
-                  </svg>
-                  Resource in Transit
-                </div>
-              </div>
-            </div>
-            
-            <div style="padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Item ID:</span>
-                <span style="font-family: monospace; font-size: 0.875rem; background-color: #f1f5f9; padding: 0.125rem 0.5rem; border-radius: 0.25rem;">${transit.id}</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Destination:</span>
-                <span style="font-weight: 600;">${charityTo?.name || transit.charity_to}</span>
-              </div>
-              
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-weight: 500; color: #64748b; min-width: 4rem;">Quantity:</span>
-                <span>${transit.quantity}</span>
-              </div>
-              
-              <div style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
-                <p style="font-size: 0.875rem; margin: 0;">${transit.description || 'No description'}</p>
-              </div>
-            </div>
-          </div>
-        `);
+        truckMarker.bindTooltip(TruckTooltipHtml(transit, charityTo, charityFrom), {
+          direction: 'right',
+          offset: L.point(15, 0)
+        });
         
         transitIconsRef.current.push(truckMarker);
       }
@@ -324,12 +239,11 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
   })
 
   return (
+    // MAIN MAP DISPLAY
     <div id="map" className="relative w-full bg-background">
       <div ref={mapRef} className="h-full w-full bg-muted z-0" />
       
       <div className="flex gap-2 absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md px-4 search-container">
-        {/* <AddCharityDialog /> */}
-
         <div className="relative flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -418,87 +332,152 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
         </div>
       </div>
 
+      {/* CHARITY SELECTED  */}
       <Drawer open={!!selectedCharity} onOpenChange={() => setSelectedCharity(null)}>
         <DrawerContent className="p-5 md:p-10 max-h-[90vh] flex flex-col bg-muted">
           <div className="max-w-7xl w-full mx-auto h-[calc(90vh-100px)] overflow-y-auto p-2 md:p-6 space-y-4">
+
+            {/* MAIN CHARITY PROFILE */}
             <Card>
               <div className="p-6 flex flex-col md:grid md:grid-cols-2 gap-6">
                 <div>
                   {selectedCharity?.src_charity_img ? (
-                    <img
-                      className="h-[200px] sm:h-[250px] md:h-[300px] w-full rounded-lg object-cover"
-                      src={selectedCharity?.src_charity_img || "/placeholder.svg"}
-                      alt={selectedCharity?.name || "Charity"}
-                    />
+                    <img className="aspect-[4/3] w-full rounded-lg object-cover" src={selectedCharity?.src_charity_img || "/placeholder.svg"} alt={selectedCharity?.name || "Charity"} />
                   ) : (
-                    <img
-                      className="h-[150px] sm:h-[200px] md:h-[250px] w-full rounded-lg object-cover"
-                      src="/placeholder.png"
-                      alt="Placeholder"
-                    />
+                    <img className="aspect-[4/3] w-full rounded-lg object-cover" src="/placeholder.png" alt="Placeholder"/>
                   )}
                 </div>
-                <div className="mt-4 md:mt-0 md:pl-4">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                      <p className="text-sm sm:text-base">
-                        {selectedCharity?.address || <span className="text-muted-foreground italic">No address given</span>}
-                      </p>
-                    </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="space-y-3">
+                      <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider mb-2">Contact Details</h3>
 
-                    {selectedCharity?.settings?.show_phone && (
-                      <div className="flex items-start gap-2">
-                        <Phone className="mt-1 h-4 w-4 shrink-0" />
-                        <p className="text-sm sm:text-base">
-                          {selectedCharity?.phone_number || (
-                            <span className="text-muted-foreground italic">No phone given</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {selectedCharity?.settings?.show_website && (
-                      <div className="flex items-start gap-2">
-                        <Globe className="mt-1 h-4 w-4 shrink-0" />
-                        {selectedCharity?.website_link ? (
-                          <a
-                            href={selectedCharity.website_link}
-                            target="_blank"
-                            className="text-sm sm:text-base text-blue-500 hover:underline break-words"
-                            rel="noreferrer"
-                          >
-                            {selectedCharity.website_link.length > 35
-                              ? `${selectedCharity.website_link.slice(0, 35)}...`
-                              : selectedCharity.website_link}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground italic">No website link given</span>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-start gap-2">
-                      <Clock className="mt-1 h-4 w-4 shrink-0" />
-                      <div className="w-full">
-                        <p className="font-semibold text-sm sm:text-base">Opening Hours</p>
-                        <div className="grid grid-rows-7 text-sm sm:text-base">
-                          {selectedCharity?.opening_hours ? (
-                            Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
-                              <div key={day} className="grid grid-cols-2">
-                                <p>{day}:</p>
-                                <p>{isOpen ? `${start} - ${end}` : "Closed"}</p>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-muted-foreground italic">No opening hours available</p>
-                          )}
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-100 p-2 rounded-md">
+                          <MapPin className="h-4 w-4 text-gray-600" />
                         </div>
+                        <div>
+                          <p className="text-sm font-medium">Address</p>
+                          <p className="text-sm text-gray-600">
+                            {selectedCharity?.address || <span className="text-muted-foreground italic">No address available</span>}
+                          </p>
+                        </div>
+                      </div>
+
+                      {selectedCharity?.settings?.show_phone && (
+                        <div className="flex items-start gap-3">
+                          <div className="bg-gray-100 p-2 rounded-md">
+                            <Phone className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Phone</p>
+                            <p className="text-sm text-gray-600">
+                              {selectedCharity?.phone_number || (
+                                <span className="text-muted-foreground italic">No phone available</span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedCharity?.settings?.show_website && selectedCharity?.website_link && (
+                        <div className="flex items-start gap-3">
+                          <div className="bg-gray-100 p-2 rounded-md">
+                            <Globe className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Website</p>
+                            <a
+                              href={selectedCharity.website_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              {selectedCharity.website_link.length > 25
+                                ? `${selectedCharity.website_link.slice(0, 25)}...`
+                                : selectedCharity.website_link}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-3">
+                      {selectedCharity?.settings?.show_website && (
+                        <>
+                        <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider mb-2">Social Links</h3>
+                        {selectedCharity?.facebook_link && (
+                          <div className="flex items-start gap-3">
+                            <div className="bg-gray-100 p-2 rounded-md">
+                              <Facebook className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <a
+                              href={selectedCharity.facebook_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-blue-600 hover:underline flex items-center my-auto "
+                            >
+                              {selectedCharity?.facebook_link.length > 25 ? `${selectedCharity.facebook_link.slice(0, 25)}...` : selectedCharity.facebook_link}
+                            </a>
+                          </div>
+                        )}
+                        {selectedCharity?.instagram_link && (
+                          <div className="flex items-start gap-3">
+                            <div className="bg-gray-100 p-2 rounded-md">
+                              <Instagram className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <a
+                              href={selectedCharity.instagram_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-blue-600 hover:underline flex items-center my-auto "
+                            >
+                              {selectedCharity?.instagram_link.length > 25 ? `${selectedCharity.instagram_link.slice(0, 25)}...` : selectedCharity.instagram_link}
+                            </a>
+                          </div>
+                        )}
+                        {selectedCharity?.twitter_link && (
+                          <div className="flex items-start gap-3">
+                            <div className="bg-gray-100 p-2 rounded-md">
+                              <Twitter className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <a
+                              href={selectedCharity.twitter_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-blue-600 hover:underline flex items-center my-auto "
+                            >
+                              {selectedCharity?.twitter_link.length > 25 ? `${selectedCharity.twitter_link.slice(0, 25)}...` : selectedCharity.twitter_link}
+                            </a>
+                          </div>
+                        )}
+                      </>)}
+                    </div>
+                  </div>
+
+                  <h3 className="font-medium text-sm text-gray-500 uppercase tracking-wider mb-2">Opening Hours</h3>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-gray-100 p-2 rounded-md">
+                      <Clock className="h-4 w-4 text-gray-600" />
+                    </div>
+                    <div className="w-full">
+                      <div className="grid text-sm sm:text-base">
+                        {selectedCharity?.opening_hours ? (
+                          Object.entries(selectedCharity.opening_hours).map(([day, { isOpen, start, end }]) => (
+                            <div key={day} className="grid grid-cols-2">
+                              <p>{day}:</p>
+                              <p>{isOpen ? `${start} - ${end}` : "Closed"}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground italic">No opening hours available</p>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+              
               <div className="px-6 pb-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                   <div>
@@ -540,6 +519,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               </div>
             </Card>
 
+
+            {/* AVAILABLE AND SCARCE RESOURCES */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center mb-3">
@@ -600,8 +581,12 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               )}
             </Card>
 
+            {/* SHAREABLE RESOURCES SECTION */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Shareable Resources</h2>
+              <div className="flex items-center mb-3">
+                <PackageOpen className="h-5 w-5 mr-2 text-blue-500" />
+                <h2 className="text-xl font-semibold">Shareable Resources</h2>
+              </div>
 
               {resources.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
@@ -610,7 +595,6 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                 </div>
               ) : (
                 <>
-                  {/* Resource Summary */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h3 className="text-sm font-medium text-green-800 mb-1">Shareable Quantity</h3>
@@ -629,8 +613,8 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {categoryResources.map((resource) => {
                             const availabilityLevel = 
-                              resource.shareable_quantity > 10 ? "high" : 
-                              resource.shareable_quantity > 5 ? "medium" : "low";
+                              resource.shareable_quantity > 50 ? "high" : 
+                              resource.shareable_quantity > 10 ? "medium" : "low";
                                 
                             return (
                               <div key={resource.id} className="border rounded-lg overflow-hidden transition-shadow hover:shadow-md">
@@ -666,7 +650,7 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
                                   {resource.expiry_date && (
                                     <div className="my-3">
                                       <Badge variant="destructive" className="text-xs">
-                                        <Calendar size={12} className="mr-1" /> Expires: {new Date(resource.expiry_date).toLocaleDateString()}
+                                        <Calendar size={12} className="mr-1" /> Expires: {format(resource.expiry_date, "dd/MM/yyyy")}
                                       </Badge>
                                     </div>
                                   )}
@@ -685,10 +669,11 @@ export default function Map({ charitiesData, currentCharity, commentsData, trans
               )}
             </Card>
 
+            {/* REVIEW SECTION */}
             <Card className="p-6">
               <div className="flex justify-between">
-                <h2 className="mb-4 text-2xl font-bold">Comments</h2>
-                {selectedCharity && <div className="flex justify-end"><AddCharityReviewDialog selectedCharityId={selectedCharity.id} /></div>}
+                <h2 className="mb-4 text-2xl font-bold">Reviews</h2>
+                {selectedCharity && selectedCharity.id !== currentCharity.id && <div className="flex justify-end"><AddCharityReviewDialog selectedCharityId={selectedCharity.id} /></div>}
               </div>
               
               {commentsData.filter((comment) => comment.charity_id === selectedCharity?.id).length > 0 ? (

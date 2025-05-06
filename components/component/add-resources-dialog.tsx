@@ -1,3 +1,5 @@
+// ADD RESOURCE DIALOG REUSABLE COMPONENT
+// This component is used to add a new resource to the inventory
 
 "use client"
 
@@ -18,7 +20,7 @@ import React from "react";
 import { toast } from "sonner";
 import { submitResource } from "@/app/actions";
 import { ScrollArea } from "../ui/scrollarea";
-import { SubmitButton } from "../submit-button";
+import { SubmitButton } from "../ui/submit-button";
 
 export function AddResources({resource, action} : {resource: ResourcesData | null; action: string;}) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

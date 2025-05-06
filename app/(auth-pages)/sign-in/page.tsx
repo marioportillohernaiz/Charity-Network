@@ -1,7 +1,10 @@
+// SIGN IN PAGE
+// Allows users with a valid registered account to access the platform
+
 "use client"
 
 import { signInAction } from "@/app/actions";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -29,28 +32,27 @@ export default function Login() {
           alt="Image"
           width="1920"
           height="1080"
-          // className="dark:brightness-[0.2] dark:grayscale"
         />
       </div>
-      <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-lg mx-3 sm:mx-5">
-        <form className="mx-auto grid w-full max-w-[350px] gap-2 text-white px-4 sm:px-0">
-          <h1 className="text-xl sm:text-2xl font-medium">Sign in</h1>
-          <p className="text-sm">
+      <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-3xl mx-3 sm:mx-5">
+        <form className="mx-auto grid w-full max-w-[350px] gap-2 px-4 sm:px-0">
+          <h1 className="text-xl sm:text-2xl text-white font-medium">Sign in</h1>
+          <p className="text-sm text-white">
             Don't have an account?{" "}
             <Link className="font-medium underline" href="/sign-up">
               Sign up
             </Link>
           </p>
           <div className="flex flex-col gap-2 [&>input]:mb-3 mt-6 sm:mt-8">
-            <Label htmlFor="email" className="text-sm sm:text-base">
+            <Label htmlFor="email" className="text-sm text-white sm:text-base">
               Email
             </Label>
             <Input id="email" name="email" className="text-black h-10 sm:h-11" placeholder="you@example.com" required />
             <div className="flex justify-between items-center mt-1">
-              <Label htmlFor="password" className="text-sm sm:text-base">
+              <Label htmlFor="password" className="text-sm text-white sm:text-base">
                 Password
               </Label>
-              <Link className="text-xs underline" href="/forgot-password">
+              <Link className="text-xs text-white underline" href="/forgot-password">
                 Forgot Password?
               </Link>
             </div>

@@ -1,4 +1,6 @@
-// app/api/predictions/route.ts
+// PREDICTIONS API ROUTE
+// This API route handles requests to the chatbot, processes the input data, and returns a response from OpenAI's GPT-3.5 model.
+
 import { NextResponse } from 'next/server';
 
 // Helper function to summarize current resources
@@ -7,7 +9,6 @@ function summarizeResources(resources: ResourcesData[]) {
     return 'No resources data available';
   }
 
-  // Group resources by category
   const categorySummary: Record<string, { total: number, items: string[] }> = {};
   
   resources.forEach(resource => {
@@ -19,7 +20,6 @@ function summarizeResources(resources: ResourcesData[]) {
     categorySummary[resource.category].items.push(`${resource.name} (${resource.quantity} ${resource.unit})`);
   });
   
-  // Format the summary
   let summary = '';
   Object.entries(categorySummary).forEach(([category, data]) => {
     summary += `- ${category}: ${data.total} total items\n`;
@@ -36,30 +36,23 @@ function summarizeResourceHistory(history: any[]) {
   }
   
   let summary = '';
-  
-  // Basic statistics
   const totalTransfers = history.length;
   const totalQuantity = history.reduce((sum, transfer) => sum + transfer.quantity, 0);
   
-  // Calculate date range
   const dates = history.map(transfer => new Date(transfer.time_sent));
   const oldestDate = new Date(Math.min(...dates.map(d => d.getTime())));
   const newestDate = new Date(Math.max(...dates.map(d => d.getTime())));
   const dateRangeInDays = Math.ceil((newestDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Get unique resource IDs
   const uniqueResourceIds = new Set(history.map(transfer => transfer.resource_id));
   
-  // Categorize transfers by status
   const statusCounts: Record<string, number> = {};
   history.forEach(transfer => {
     statusCounts[transfer.status] = (statusCounts[transfer.status] || 0) + 1;
   });
   
-  // Extract information about transfer descriptions if available
   const transfersWithDescriptions = history.filter(transfer => transfer.description && transfer.description.trim() !== '');
   
-  // Analyze charity relationships
   const charityRelationships: Record<string, Set<string>> = {};
   history.forEach(transfer => {
     if (!charityRelationships[transfer.charity_from]) {
@@ -68,17 +61,14 @@ function summarizeResourceHistory(history: any[]) {
     charityRelationships[transfer.charity_from].add(transfer.charity_to);
   });
   
-  // Build a comprehensive summary
   summary += `Resource transfer history shows ${totalTransfers} transactions spanning ${dateRangeInDays} days (from ${oldestDate.toLocaleDateString()} to ${newestDate.toLocaleDateString()}). `;
   summary += `A total of ${totalQuantity} items were transferred, involving ${uniqueResourceIds.size} unique resource types. `;
   
-  // Add status information
   const statusSummary = Object.entries(statusCounts)
     .map(([status, count]) => `${count} ${status.toLowerCase()}`)
     .join(', ');
   summary += `Transfer statuses include: ${statusSummary}. `;
   
-  // Add description information if available
   if (transfersWithDescriptions.length > 0) {
     const sampleDescriptions = transfersWithDescriptions
       .slice(0, Math.min(2, transfersWithDescriptions.length))
@@ -87,10 +77,8 @@ function summarizeResourceHistory(history: any[]) {
     summary += `Notable transfers include ${sampleDescriptions}. `;
   }
   
-  // Add charity relationship information
   const totalDonors = Object.keys(charityRelationships).length;
   
-  // Create a set of all recipients without using spread operator
   const allRecipients = new Set<string>();
   Object.values(charityRelationships).forEach(recipientSet => {
     recipientSet.forEach(recipient => {
@@ -103,12 +91,10 @@ function summarizeResourceHistory(history: any[]) {
   
   // Identify potential trends
   if (totalTransfers >= 2) {
-    // Sort by date to analyze chronological trends
     const sortedTransfers = [...history].sort((a, b) => 
       new Date(a.time_sent).getTime() - new Date(b.time_sent).getTime()
     );
     
-    // Compare first and last transfer quantities to detect a simple trend
     const firstQuantity = sortedTransfers[0].quantity;
     const lastQuantity = sortedTransfers[sortedTransfers.length - 1].quantity;
     
@@ -133,37 +119,30 @@ function summarizeSalesData(salesData: Sales[]) {
   let summary = '';
   
   try {
-    // Extract date range
     const dates = salesData.map(sale => new Date(sale.date_to));
     const oldestDate = new Date(Math.min(...dates.map(d => d.getTime())));
     const newestDate = new Date(Math.max(...dates.map(d => d.getTime())));
     const dateRangeInDays = Math.ceil((newestDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Calculate total sales
     let totalSalesAmount = 0;
     let categorySales: Record<string, number> = {};
     let monthlySales: Record<string, number> = {};
     
-    // Process all sales data
     salesData.forEach(sale => {
       if (!sale.sales_data) return;
       
-      // Get month for monthly tracking
       const saleDate = new Date(sale.date_to);
       const monthKey = saleDate.toLocaleString('default', { month: 'short' });
       
       // Process each sale item
       sale.sales_data.forEach(item => {
-        // Add to total
         totalSalesAmount += item.amount;
         
-        // Add to category totals
         if (!categorySales[item.category]) {
           categorySales[item.category] = 0;
         }
         categorySales[item.category] += item.amount;
         
-        // Add to monthly totals
         if (!monthlySales[monthKey]) {
           monthlySales[monthKey] = 0;
         }
@@ -175,7 +154,6 @@ function summarizeSalesData(salesData: Sales[]) {
     summary += `Sales data shows ${salesData.length} records spanning ${dateRangeInDays} days (from ${oldestDate.toLocaleDateString()} to ${newestDate.toLocaleDateString()}). `;
     summary += `Total sales amount: £${totalSalesAmount.toFixed(2)}. `;
     
-    // Add category breakdown
     const sortedCategories = Object.entries(categorySales)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
@@ -188,7 +166,6 @@ function summarizeSalesData(salesData: Sales[]) {
       summary += `. `;
     }
     
-    // Add monthly analysis
     const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const sortedMonthlyData = Object.entries(monthlySales)
       .sort((a, b) => monthOrder.indexOf(a[0]) - monthOrder.indexOf(b[0]));
@@ -206,9 +183,7 @@ function summarizeSalesData(salesData: Sales[]) {
       summary += `and lowest in ${lowestMonth[0]} (£${lowestMonth[1].toFixed(2)}). `;
     }
     
-    // Identify trends
     if (sortedMonthlyData.length >= 2) {
-      // Simple trend analysis
       let increases = 0;
       let decreases = 0;
       
@@ -229,7 +204,6 @@ function summarizeSalesData(salesData: Sales[]) {
       }
     }
     
-    // Calculate average sale amount
     const avgSaleAmount = totalSalesAmount / salesData.length;
     summary += `Average transaction amount: £${avgSaleAmount.toFixed(2)}. `;
     
@@ -259,78 +233,137 @@ export async function POST(request: Request) {
     // Format the prompt for more structured and useful predictions
     const prompt = `
       You are an AI that specializes in charity resource demand forecasting.
+      Based on the following charity information, current resources and sales data predict the seasonal demand trends (monthly) for each different resource category.
 
-      # CONTEXT
-      Charity Details:
-      - Description: ${description || 'No description provided'}
-      - Primary Category: ${categories?.primary || 'Not specified'}
-      - Secondary Categories: ${categories?.secondary?.join(', ') || 'None'}
-      - Tags: ${tags?.join(', ') || 'None'}
+      Charity Description: ${description || 'No description provided'}
+      Primary Category: ${categories?.primary || 'Not specified'}
+      Secondary Categories: ${categories?.secondary?.join(', ') || 'None'}
+      Tags: ${tags?.join(', ') || 'None'}
 
-      Current Resources Summary:
+      Current Resources:
       ${currentResourcesSummary}
 
-      Resource History Analysis:
+      Resource History:
       ${resourceHistorySummary}
 
-      Sales Data Analysis:
+      Charity's sales data:
       ${salesSummary}
 
-      Available Resources From Other Charities:
+      Resources Available From Other Charities:
       ${availableResourcesFromOtherCharities}
 
       Today's Date: ${new Date().toLocaleDateString()}
 
-      # TASK
-      Create a monthly forecast for resource needs across key categories based on the charity's profile, historical patterns, and seasonal factors.
+      Provide a structured monthly forecast for the following resource categories:
+      1. Food
+      2. Clothing & Personal Items
+      3. Medical & Health Supplies
+      4. Housing & Homelessness
 
-      # OUTPUT REQUIREMENTS
-      Provide a structured monthly forecast with the following specifications:
-      1. Include forecasts for: Food, Clothing & Personal Items, Medical & Health Supplies, and Housing & Homelessness
-      2. Assign a precise numeric value (scale 0-10) for each month and category
-      3. Focus on actionable insights rather than theoretical analysis
-      4. Keep explanations concise and focused on practical implications
-      5. Prioritize resource recommendations that address immediate needs
+      For each month (January through December), provide CLEAR distinct numeric value representing relative demand (scale of 0-10 where 10 is peak demand).
+      Consider the following factors in your prediction:
+      - The charity's current resource levels and where they might be lacking
+      - Historical resource usage patterns from the provided history
+      - Seasonal factors like weather patterns and holidays
+      - School terms/holidays in the region
+      - Typical donation cycles
+      - Economic patterns
+      - The specific needs based on the charity's categories and tags
 
-      # CONTEXTUAL FACTORS TO CONSIDER
-      - Current inventory gaps and surpluses identified in resource summary
-      - Seasonal variations (weather patterns, holidays, school terms)
-      - Historical usage patterns and trends from transaction history
-      - Local economic conditions and donation cycles
-      - Urgency scoring based on inventory levels vs. predicted demand
-
-      # RESPONSE FORMAT
-      Return your response in this exact JSON structure with no additional text:
+      Format your response as a valid JSON object like this:
       {
         "food": {
           "Jan": 8,
           "Feb": 7,
-          "Mar": 6,
           ...and so on
         },
         "clothing": {
-          "Jan": 1,
-          "Feb": 3,
-          "Mar": 2,
+          "Jan": 4,
+          "Feb": 7,
           ...and so on
         },
         "medical": {
-          "Jan": 5,
-          "Feb": 5,
-          "Mar": 6,
+          "Jan": 1,
+          "Feb": 3,
           ...and so on
         },
         "housing": {
           "Jan": 9,
-          "Feb": 8,
-          "Mar": 7,
+          "Feb": 7,
           ...and so on
         },
-        "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors.",
-        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand. Start with 'Based on the available resources...'",
+        "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors."
+        "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand."
         "impact": "A sentence explaining the impact this recommendation will affect this charity in the next 1 to 3 months (the one you are recommending the resources to)."
       }
     `;
+    // Alternative prompt structure
+    // const prompt = `
+    //   You are an AI that specializes in charity resource demand forecasting.
+
+    //   # CONTEXT
+    //   Charity Details:
+    //   - Description: ${description || 'No description provided'}
+    //   - Primary Category: ${categories?.primary || 'Not specified'}
+    //   - Secondary Categories: ${categories?.secondary?.join(', ') || 'None'}
+    //   - Tags: ${tags?.join(', ') || 'None'}
+
+    //   Current Resources Summary:
+    //   ${currentResourcesSummary}
+
+    //   Resource History Analysis:
+    //   ${resourceHistorySummary}
+
+    //   Sales Data Analysis:
+    //   ${salesSummary}
+
+    //   Available Resources From Other Charities:
+    //   ${availableResourcesFromOtherCharities}
+
+    //   Today's Date: ${new Date().toLocaleDateString()}
+
+    //   # TASK
+    //   PREDICT a monthly forecast for resource needs across key categories based on the charity's profile, historical patterns, and seasonal factors.
+
+    //   # OUTPUT REQUIREMENTS
+    //   Provide a structured monthly forecast with the following specifications:
+    //   1. Include forecasts for: Food, Clothing & Personal Items, Medical & Health Supplies, and Housing & Homelessness
+    //   2. Assign a precise numeric value (scale 0-10) for each month and category
+    //   3. Focus on actionable insights rather than theoretical analysis
+    //   4. Keep explanations concise and focused on practical implications
+    //   5. Prioritize resource recommendations that address immediate needs
+
+    //   # CONTEXTUAL FACTORS TO CONSIDER
+    //   - Current inventory gaps and surpluses identified in resource summary
+    //   - Seasonal variations (weather patterns, holidays, school terms)
+    //   - Historical usage patterns and trends from transaction history
+    //   - Local economic conditions and donation cycles
+    //   - Urgency scoring based on inventory levels vs. predicted demand
+
+    //   # RESPONSE FORMAT
+    //   Return your response in this exact JSON structure with no additional text. The number of each month (January to December) should be between 0 and 10, where 0 means no need and 10 means maximum need depending on your analysis (these are labeled "x"). There should be a clear distiction between these categories:
+    //   {
+    //     "food": {
+    //       "Jan": x,
+    //       ... and so on
+    //     },
+    //     "clothing": {
+    //       "Jan": x,
+    //       ... and so on
+    //     },
+    //     "medical": {
+    //       "Jan": x,
+    //       ... and so on
+    //     },
+    //     "housing": {
+    //       "Jan": x,
+    //       ... and so on
+    //     },
+    //     "explanation": "A brief explanation of why these predictions were made, considering the charity's profile, resource levels, and seasonal factors.",
+    //     "recommendation": "A sentence recommending ONLY ONE resource from the available resources from other charities that might be able to help TODAY with the predicted demand. Start with 'Based on the available resources...'",
+    //     "impact": "A sentence explaining the impact this recommendation will affect this charity in the next 1 to 3 months (the one you are recommending the resources to)."
+    //   }
+    // `;
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -371,7 +404,6 @@ export async function POST(request: Request) {
         const predictionJson = JSON.parse(jsonMatch[0]);
         return NextResponse.json(predictionJson);
       } else {
-        // If no JSON structure was found, return an error
         return NextResponse.json({ error: 'Could not parse prediction data' }, { status: 422 });
       }
     } catch (error) {

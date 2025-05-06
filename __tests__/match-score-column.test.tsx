@@ -44,11 +44,9 @@ describe('MatchScore component', () => {
       />
     );
     
-    // The score should be visible
     const scoreElement = screen.getByText(/\d+%/);
     expect(scoreElement).toBeInTheDocument();
     
-    // The match quality text should be visible (one of: Excellent, Good, Fair, Low)
     const matchQualityElement = screen.getByText(/match$/);
     expect(matchQualityElement).toBeInTheDocument();
   });
@@ -62,14 +60,10 @@ describe('MatchScore component', () => {
       />
     );
     
-    // The score should be 100%
-    expect(screen.getByText('100%')).toBeInTheDocument();
     
-    // It should show Excellent match
-    expect(screen.getByText('Excellent match')).toBeInTheDocument();
-    
-    // It should show the AI recommended badge
-    expect(screen.getByText('AI recommended')).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument(); // The score should be 100%
+    expect(screen.getByText('Excellent match')).toBeInTheDocument(); // It should show Excellent match
+    expect(screen.getByText('AI recommended')).toBeInTheDocument(); // It should show the AI recommended badge
   });
 
   it('gives high score for matching primary category', () => {
@@ -87,7 +81,6 @@ describe('MatchScore component', () => {
       />
     );
     
-    // Should show a high score text
     const matchText = screen.getByText(/match$/);
     expect(['Excellent match', 'Good match']).toContain(matchText.textContent);
   });
@@ -107,11 +100,8 @@ describe('MatchScore component', () => {
       />
     );
     
-    // The score should be visible
     const scoreElement = screen.getByText(/\d+%/);
     expect(scoreElement).toBeInTheDocument();
-    
-    // Should not show "Excellent match"
     expect(screen.queryByText('Excellent match')).not.toBeInTheDocument();
   });
 });

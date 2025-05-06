@@ -1,3 +1,6 @@
+// THEME SWITCHER
+// Currently not in use
+
 "use client";
 
 import { Button } from "@/components/ui/button";

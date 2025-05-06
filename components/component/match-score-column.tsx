@@ -1,3 +1,4 @@
+// MATCH SCORE COMPONENT
 
 export function MatchScore({ resource, charity, recommendation } : {resource: ResourcesData; charity: CharityData; recommendation: string | null}) {
   // Calculate match score based on resource category, charity needs, and AI recommendation
@@ -48,7 +49,7 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
         // Skip very short or common words
         if (keyword.length > 3 && !['and', 'the', 'for', 'from', 'with'].includes(keyword)) {
           if (recommendationLower.includes(keyword)) {
-            score += 30; // Significant boost for keyword match
+            score += 30;
             break;
           }
         }
@@ -60,17 +61,6 @@ export function MatchScore({ resource, charity, recommendation } : {resource: Re
       }
     }
     
-    // Add a bit of entropy to make it look more natural
-    // Using the resource ID as a seed for consistent but varied scores
-    const resourceIdSum = resource.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const randomFactor = (resourceIdSum % 15) - 7; // -7 to +7 range
-    
-    // Only add randomness if we haven't already achieved a perfect match from recommendation
-    if (score < 100) {
-      score += randomFactor;
-    }
-    
-    // Ensure the score is between 0-100
     return Math.min(Math.max(Math.round(score), 0), 100);
   };
   

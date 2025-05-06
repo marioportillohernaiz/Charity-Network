@@ -1,11 +1,14 @@
+// RESET PASSWORD PAGE
+// For MVP purposes, this page is available but the button is disabled to prevent change of passwords.
+
 import { resetPasswordAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InfoIcon } from "lucide-react";
 
 export default async function ResetPassword(props: {
-  searchParams: Promise<Message>;
+  searchParams: Promise<string>;
 }) {
   const searchParams = await props.searchParams;
   return (
@@ -28,10 +31,14 @@ export default async function ResetPassword(props: {
         placeholder="Confirm password"
         required
       />
-      <SubmitButton formAction={resetPasswordAction}>
+
+      <p className="text-sm text-red-500 flex gap-2">
+        <InfoIcon className="h-4 w-4" />
+        Button disabled for MVP purposes.
+      </p>
+      <SubmitButton disabled={true}> {/* formAction={resetPasswordAction} */}
         Reset password
       </SubmitButton>
-      <FormMessage message={searchParams} />
     </form>
   );
 }

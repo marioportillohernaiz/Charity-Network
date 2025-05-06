@@ -1,7 +1,11 @@
+// SIGN UP PAGE
+// Allows users to register an account with a valid email and a secure password. The password must meet certain criteria.
+// An email is sent to verify the email address is valid and accessible.
+
 "use client"
 
 import { signUpAction } from "@/app/actions";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -18,13 +22,7 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [passwordMatches, setPasswordMatches] = useState(false);
-  const [passwordValid, setPasswordValid] = useState({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    special: false
-  });
+  const [passwordValid, setPasswordValid] = useState({length: false, uppercase: false, lowercase: false, number: false, special: false});
 
   useEffect(() => {
     setPasswordValid({
@@ -65,10 +63,10 @@ export default function Signup() {
   return (
     <>
     <div className="w-full lg:grid lg:min-h-[500px] lg:grid-cols-2 xl:min-h-[500px]">
-      <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-lg mx-2 sm:mx-5">
-        <div className="w-full max-w-[350px] px-4 sm:px-0 mx-auto grid gap-2 text-white">
-          <h1 className="text-xl sm:text-2xl font-medium">Sign up</h1>
-          <p className="text-xs sm:text-sm">
+      <div className="flex items-center justify-center py-8 sm:py-12 bg-[#064789] rounded-3xl mx-2 sm:mx-5">
+        <div className="w-full max-w-[350px] px-4 sm:px-0 mx-auto grid gap-2">
+          <h1 className="text-xl sm:text-2xl text-white font-medium">Sign up</h1>
+          <p className="text-xs text-white sm:text-sm">
             Already have an account?{" "}
             <Link className="font-medium underline" href="/sign-in">
               Sign in
@@ -76,12 +74,12 @@ export default function Signup() {
           </p>
 
           <form className="flex flex-col gap-2 [&>input]:mb-3 mt-6 sm:mt-8">
-            <Label htmlFor="email" className="text-sm">
+            <Label htmlFor="email" className="text-sm text-white">
               Business Email
             </Label>
             <Input id="email" name="email" placeholder="you@example.com" required className="text-sm" />
 
-            <Label htmlFor="password" className="text-sm">
+            <Label htmlFor="password" className="text-sm text-white">
               Password
             </Label>
             <div className="relative">
@@ -112,7 +110,7 @@ export default function Signup() {
             </div>
 
             {/* Password requirements checklist */}
-            <div className="bg-white/10 p-2 sm:p-3 rounded-md text-xs my-2">
+            <div className="bg-white/10 text-white p-2 sm:p-3 rounded-md text-xs my-2">
               <p className="font-medium mb-1 sm:mb-2">Password must include:</p>
               <ul className="space-y-1">
                 <li className="flex items-center">
@@ -158,7 +156,7 @@ export default function Signup() {
               </ul>
             </div>
 
-            <Label htmlFor="repeatPassword" className="text-sm">
+            <Label htmlFor="repeatPassword" className="text-sm text-white">
               Repeat Password
             </Label>
             <div className="relative">
@@ -191,22 +189,16 @@ export default function Signup() {
             {repeatPassword && (
               <div className={`text-xs ${passwordMatches ? "text-green-400" : "text-red-400"} flex items-center`}>
                 {passwordMatches ? (
-                  <>
-                    <Check className="h-3 w-3 mr-1" />
-                    Passwords match
-                  </>
+                  <><Check className="h-3 w-3 mr-1" />Passwords match</>
                 ) : (
-                  <>
-                    <X className="h-3 w-3 mr-1" />
-                    Passwords do not match
-                  </>
+                  <><X className="h-3 w-3 mr-1" />Passwords do not match</>
                 )}
               </div>
             )}
 
             <div className="flex items-start space-x-2 my-3 sm:my-4">
               <Checkbox id="consent" name="consent" required className="bg-white mt-0.5" />
-              <Label htmlFor="consent" className="text-xs leading-tight">
+              <Label htmlFor="consent" className="text-xs text-white leading-tight">
                 * I confirm this account is for a registered charitable organisation.
               </Label>
             </div>

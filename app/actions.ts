@@ -1,3 +1,7 @@
+// ACTIONS SERVER-SIDE PAGE
+// Fetches data from the database and handles actions like sign up, sign in, and resource management.
+// Inserts and Updates data in the database based on user actions.
+
 "use server";
 
 import { encodedRedirect } from "@/utils/utils";
@@ -8,7 +12,6 @@ import { format } from 'date-fns-tz';
 
 const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'Europe/Paris' })
 
-// Any sort of database fetch
 export const getAuthUser = async () => {
   const supabase = await createClient();
   const {
@@ -110,7 +113,6 @@ export const getSalesData = async () => {
   return sales;
 };
 
-// Any sort of form actions & database insert/update/delete
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
@@ -152,11 +154,8 @@ export const signInAction = async (formData: FormData) => {
     return { success: false, message: error.toString() };
   }
 
-  if (charity) {
-    return redirect("/protected");
-  } else {
-    return redirect("/protected/account-page");
-  }
+
+  return redirect("/protected");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -222,7 +221,6 @@ export const resetPasswordAction = async (formData: FormData) => {
   encodedRedirect("success", "/protected/reset-password", "Password updated");
 };
 
-// BROKEN
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
