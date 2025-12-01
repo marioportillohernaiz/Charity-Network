@@ -12,6 +12,15 @@ The project addresses a major gap in the non-profit sector - the lack of infrast
 
 🌍 **Live Deployment:** [https://charitynetwork.vercel.app](https://charitynetwork.vercel.app)
 
+### Features comparison
+<img width="500" height="300" alt="features" src="https://github.com/user-attachments/assets/f199658e-3719-4a2c-8faf-7c65c84e2282" />
+
+### Database Architecture
+<img width="1172" height="738" alt="database" src="https://github.com/user-attachments/assets/9f0936a2-2a5b-4b78-b000-fffe29dcd0c4" />
+
+### Example Screenshots
+<img width="1343" height="699" alt="screenshot1" src="https://github.com/user-attachments/assets/47e72315-0ca8-4e9b-9ed1-cf6eef4a260e" />
+
 ---
 
 ## 📖 Table of Contents
